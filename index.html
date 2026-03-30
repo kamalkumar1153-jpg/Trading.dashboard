@@ -1,17 +1,23 @@
-
-<!-- Nifty 50 Chart (Fixed) -->
-<div style="margin: 30px auto; max-width: 650px;">
+<!-- Nifty 50 Chart - Bigger Size -->
+<div style="margin: 30px auto; max-width: 700px; width: 100%;">
   <h3>Nifty 50 Live Chart</h3>
-  <div id="nifty-chart" style="height: 420px;"></div>
+  <div id="nifty-chart" style="height: 520px; width: 100%;"></div>   <!-- Height बढ़ाई -->
 </div>
 
+<!-- Sensex Chart - Bigger Size -->
+<div style="margin: 30px auto; max-width: 700px; width: 100%;">
+  <h3>Sensex Live Chart</h3>
+  <div id="sensex-chart" style="height: 520px; width: 100%;"></div>   <!-- Height बढ़ाई -->
+</div>
+
+<!-- TradingView Script -->
 <script src="https://s3.tradingview.com/tv.js"></script>
 <script>
-  // Fixed Nifty Chart - Gift Nifty symbol
+  // Nifty 50 Chart (Bigger + Symbol Fix की कोशिश)
   new TradingView.widget({
     "width": "100%",
-    "height": 420,
-    "symbol": "NSEIX:NIFTY1!",     // ← ये बदलाव करो
+    "height": 520,                    // ← Size बढ़ाई (520px)
+    "symbol": "NSEIX:NIFTY1!",        // Gift Nifty symbol (notification कम करने की कोशिश)
     "interval": "D",
     "timezone": "Asia/Kolkata",
     "theme": "dark",
@@ -24,10 +30,10 @@
     "container_id": "nifty-chart"
   });
 
-  // Sensex Chart (जैसा पहले था, वो ठीक है)
+  // Sensex Chart (Bigger)
   new TradingView.widget({
     "width": "100%",
-    "height": 420,
+    "height": 520,                    // ← Size बढ़ाई (520px)
     "symbol": "BSE:SENSEX",
     "interval": "D",
     "timezone": "Asia/Kolkata",
