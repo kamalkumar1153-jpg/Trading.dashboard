@@ -1,30 +1,44 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Kamal Trading Bot</title>
-    <meta http-equiv="refresh" content="30">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kamal Live Trading</title>
     <style>
-        body { background: #0d1117; color: white; font-family: sans-serif; text-align: center; }
-        .box { border: 2px solid #238636; border-radius: 10px; padding: 20px; display: inline-block; margin: 10px; width: 200px; }
-        .price { font-size: 24px; color: #3fb950; font-weight: bold; }
-        .rsi { color: #f85149; }
+        body { background: #0d1117; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 20px; }
+        .container { display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; margin-top: 50px; }
+        .box { background: #161b22; border: 2px solid #30363d; border-radius: 12px; padding: 20px; width: 250px; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .box:hover { border-color: #58a6ff; transform: translateY(-5px); }
+        .name { font-size: 1.2rem; color: #8b949e; margin-bottom: 10px; }
+        .price { font-size: 2rem; font-weight: bold; color: #3fb950; margin-bottom: 5px; }
+        .status { font-size: 0.9rem; color: #f85149; }
     </style>
 </head>
 <body>
-    <h1>🚀 KAMAL LIVE TRADING 🚀</h1>
-    <div id="display"></div>
+    <h1>🚀 KAMAL LIVE MARKET 🚀</h1>
+    <div id="dashboard" class="container">Dhoond raha hai...</div>
+
     <script>
-        fetch('data.json').then(r => r.json()).then(data => {
-            let html = '';
-            for(let key in data) {
-                html += `<div class="box">
-                            <h3>${key}</h3>
+        async function updateData() {
+            try {
+                const response = await fetch('data.json?t=' + Date.now());
+                const data = await response.json();
+                let html = '';
+                for (let key in data) {
+                    html += `
+                        <div class="box">
+                            <div class="name">${key}</div>
                             <div class="price">₹${data[key].price}</div>
-                            <div class="rsi">RSI: ${data[key].rsi}</div>
-                         </div>`;
+                            <div class="status">RSI: ${data[key].rsi || 'Loading...'}</div>
+                        </div>`;
+                }
+                document.getElementById('dashboard').innerHTML = html;
+            } catch (e) {
+                document.getElementById('dashboard').innerHTML = "Market Data Ka Intezar Hai...";
             }
-            document.getElementById('display').innerHTML = html;
-        });
+        }
+        updateData();
+        setInterval(updateData, 30000); // 30 seconds mein refresh
     </script>
 </body>
 </html>
