@@ -1,49 +1,102 @@
-<!-- Nifty 50 Chart - Bigger Size -->
-<div style="margin: 30px auto; max-width: 700px; width: 100%;">
-  <h3>Nifty 50 Live Chart</h3>
-  <div id="nifty-chart" style="height: 520px; width: 100%;"></div>   <!-- Height बढ़ाई -->
-</div>
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Pro Terminal V2</title>
+  <style>
+    body {
+      background: #0a0a0a;
+      color: #00ff88;
+      font-family: 'Courier New', monospace;
+      margin: 0;
+      padding: 15px;
+      text-align: center;
+    }
+    h1 { 
+      color: #00ff00; 
+      margin: 15px 0 5px; 
+    }
+    .card {
+      background: #111;
+      border: 1px solid #00ff88;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 650px;
+      text-align: left;
+    }
+    .price { 
+      font-size: 1.9em; 
+      font-weight: bold; 
+    }
+    .down { color: #ff4444; }
+    .signal { 
+      font-size: 1.35em; 
+      margin: 12px 0; 
+      font-weight: bold;
+    }
+    .chart-container {
+      margin: 30px auto;
+      max-width: 700px;
+      width: 100%;
+    }
+    h3 { color: #00ffaa; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
 
-<!-- Sensex Chart - Bigger Size -->
-<div style="margin: 30px auto; max-width: 700px; width: 100%;">
-  <h3>Sensex Live Chart</h3>
-  <div id="sensex-chart" style="height: 520px; width: 100%;"></div>   <!-- Height बढ़ाई -->
-</div>
+  <h1>🚀 AI PRO TERMINAL V2 - LIVE</h1>
+  <p><strong>Nifty 50 & Sensex Signals</strong> | 30 मार्च 2026</p>
 
-<!-- TradingView Script -->
-<script src="https://s3.tradingview.com/tv.js"></script>
-<script>
-  // Nifty 50 Chart (Bigger + Symbol Fix की कोशिश)
-  new TradingView.widget({
-    "width": "100%",
-    "height": 520,                    // ← Size बढ़ाई (520px)
-    "symbol": "NSEIX:NIFTY1!",        // Gift Nifty symbol (notification कम करने की कोशिश)
-    "interval": "D",
-    "timezone": "Asia/Kolkata",
-    "theme": "dark",
-    "style": "1",
-    "locale": "in",
-    "toolbar_bg": "#111111",
-    "enable_publishing": false,
-    "allow_symbol_change": true,
-    "hideideas": true,
-    "container_id": "nifty-chart"
-  });
+  <!-- Nifty 50 Card (Chart हटा दिया) -->
+  <div class="card">
+    <h2>Nifty 50</h2>
+    <p class="price">22,331.40 <span class="down">-488.20 (-2.14%)</span></p>
+    <p class="signal">AI Signal: <span style="color: orange;">CAUTION - Sell on Rise</span></p>
+    <p>Support: 22,200 | Resistance: 22,700</p>
+    <p>Confidence: 68%</p>
+  </div>
 
-  // Sensex Chart (Bigger)
-  new TradingView.widget({
-    "width": "100%",
-    "height": 520,                    // ← Size बढ़ाई (520px)
-    "symbol": "BSE:SENSEX",
-    "interval": "D",
-    "timezone": "Asia/Kolkata",
-    "theme": "dark",
-    "style": "1",
-    "locale": "in",
-    "toolbar_bg": "#111111",
-    "enable_publishing": false,
-    "allow_symbol_change": true,
-    "hideideas": true,
-    "container_id": "sensex-chart"
-  });
-</script>
+  <!-- Sensex Card + Chart -->
+  <div class="card">
+    <h2>Sensex</h2>
+    <p class="price">71,947.55 <span class="down">-1,635.67 (-2.22%)</span></p>
+    <p class="signal">AI Signal: <span style="color: orange;">CAUTION - Sell on Rise</span></p>
+    <p>Support: 71,500 | Resistance: 73,000</p>
+    <p>Confidence: 65%</p>
+  </div>
+
+  <!-- Sensex Live Chart (बड़ा size) -->
+  <div class="chart-container">
+    <h3>Sensex Live Chart</h3>
+    <div id="sensex-chart" style="height: 520px; width: 100%;"></div>
+  </div>
+
+  <p style="color: #888; margin-top: 40px; font-size: 0.9em;">
+    ⚠️ Demo Dashboard • असली AI signals जल्दी ऐड किए जाएंगे<br>
+    Market आज गिरावट में बंद हुआ है।
+  </p>
+
+  <!-- TradingView Script (सिर्फ Sensex के लिए) -->
+  <script src="https://s3.tradingview.com/tv.js"></script>
+  <script>
+    new TradingView.widget({
+      "width": "100%",
+      "height": 520,
+      "symbol": "BSE:SENSEX",
+      "interval": "D",
+      "timezone": "Asia/Kolkata",
+      "theme": "dark",
+      "style": "1",
+      "locale": "in",
+      "toolbar_bg": "#111111",
+      "enable_publishing": false,
+      "allow_symbol_change": true,
+      "hideideas": true,
+      "container_id": "sensex-chart"
+    });
+  </script>
+
+</body>
+</html>
