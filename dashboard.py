@@ -1,51 +1,56 @@
-import yfinance as yf
-import pandas as pd
-import pandas_ta as ta
-import json
+import requests
+import os
+import time
+from datetime import datetime
 
-def get_signal(df):
-    rsi = df['RSI'].iloc[-1]
-    ema_20 = df['EMA_20'].iloc[-1]
-    price = df['Close'].iloc[-1]
-    
-    if rsi < 30 and price > ema_20:
-        return "🔥 STRONG BUY"
-    elif rsi > 70 and price < ema_20:
-        return "🚨 STRONG SELL"
-    elif price > ema_20:
-        return "📈 BULLISH"
-    else:
-        return "📉 BEARISH"
+# --- RISK CONTROL ---
+MAX_LOSS_ALLOWED = -1000 
+TARGET_PROFIT = 3000     
 
-def update_market():
-    symbols = {
-        "NIFTY 50": "^NSEI",
-        "SENSEX": "^BSESN",
-        "BANK NIFTY": "^NSEBANK"
-    }
-    results = {}
+def speak(text):
+    os.system(f'termux-tts-speak "{text}"')
+
+def main():
+    if not os.path.exists('token.txt'): return
+    with open('token.txt', 'r') as f: token = f.read().strip()
     
-    for name, sym in symbols.items():
+    headers = {'Authorization': f'Bearer {token}', 'Accept': 'application/json'}
+    instruments = 'NSE_INDEX|Nifty 50,BSE_INDEX|SENSEX'
+
+    while True:
         try:
-            df = yf.download(sym, period="5d", interval="15m", progress=False)
-            if not df.empty:
-                df['RSI'] = ta.rsi(df['Close'], length=14)
-                df['EMA_20'] = ta.ema(df['Close'], length=20)
-                
-                price = round(df['Close'].iloc[-1], 2)
-                rsi_val = round(df['RSI'].iloc[-1], 1)
-                signal = get_signal(df)
-                
-                results[name] = {
-                    "price": str(price),
-                    "rsi": str(rsi_val),
-                    "signal": signal
-                }
-        except:
-            results[name] = {"price": "Data Error", "rsi": "0", "signal": "WAIT"}
+            # 1 = Tuesday (Nifty), 3 = Thursday (Sensex)
+            today_day = datetime.now().weekday()
             
-    with open('data.json', 'w') as f:
-        json.dump(results, f)
+            url = f'https://api.upstox.com/v2/market-quote/ltp?instrument_key={instruments}'
+            res = requests.get(url, headers=headers).json()
+            
+            nifty = res['data']['NSE_INDEX:Nifty 50']['last_price']
+            sensex = res['data']['BSE_INDEX:SENSEX']['last_price']
+            
+            print("\033[H\033[J")
+            print("==============================================")
+            print(f"      🛡️  KAMAL MARKET-WATCH v48.0 🛡️        ")
+            print("==============================================")
+            print(f"LIVE NIFTY  : ₹{nifty}")
+            print(f"LIVE SENSEX : ₹{sensex}")
+            print("-" * 46)
+            
+            # Corrected Expiry Logic
+            if today_day == 1: 
+                print("⚠️  STATUS: NIFTY 50 EXPIRY (Tuesday) ⚠️")
+            elif today_day == 3:
+                print("⚠️  STATUS: SENSEX EXPIRY (Thursday) ⚠️")
+                if abs(sensex % 100) < 20:
+                    speak("Kamal Ji, Sensex expiry level alert! Dhyan dein.")
+            else:
+                print(f"STATUS: NORMAL TRADING DAY")
 
-if __name__ == "__main__":
-    update_market()
+            print("-" * 46)
+            print(f"Safety: ACTIVE | {time.strftime('%H:%M:%S')}")
+            print("==============================================")
+            
+        except: pass
+        time.sleep(2)
+
+main()
