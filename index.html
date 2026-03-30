@@ -38,18 +38,18 @@
     }
     .chart-container {
       margin: 30px auto;
-      max-width: 700px;
+      max-width: 720px;
       width: 100%;
     }
-    h3 { color: #00ffaa; margin-bottom: 10px; }
+    h3 { color: #00ffaa; margin: 15px 0 10px; }
   </style>
 </head>
 <body>
 
   <h1>🚀 AI PRO TERMINAL V2 - LIVE</h1>
-  <p><strong>Nifty 50 & Sensex Signals</strong> | 30 मार्च 2026</p>
+  <p><strong>Nifty 50 & Sensex AI Signals</strong> | 30 मार्च 2026</p>
 
-  <!-- Nifty 50 Card (Chart हटा दिया) -->
+  <!-- Nifty 50 Card -->
   <div class="card">
     <h2>Nifty 50</h2>
     <p class="price">22,331.40 <span class="down">-488.20 (-2.14%)</span></p>
@@ -58,7 +58,7 @@
     <p>Confidence: 68%</p>
   </div>
 
-  <!-- Sensex Card + Chart -->
+  <!-- Sensex Card -->
   <div class="card">
     <h2>Sensex</h2>
     <p class="price">71,947.55 <span class="down">-1,635.67 (-2.22%)</span></p>
@@ -67,23 +67,22 @@
     <p>Confidence: 65%</p>
   </div>
 
-  <!-- Sensex Live Chart (बड़ा size) -->
+  <!-- केवल Sensex Live Chart (बड़ा size) -->
   <div class="chart-container">
     <h3>Sensex Live Chart</h3>
-    <div id="sensex-chart" style="height: 520px; width: 100%;"></div>
+    <div id="sensex-chart" style="height: 550px; width: 100%;"></div>
   </div>
 
   <p style="color: #888; margin-top: 40px; font-size: 0.9em;">
-    ⚠️ Demo Dashboard • असली AI signals जल्दी ऐड किए जाएंगे<br>
-    Market आज गिरावट में बंद हुआ है।
+    ⚠️ यह Demo Dashboard है। असली AI signals जल्दी ऐड किए जाएंगे।
   </p>
 
-  <!-- TradingView Script (सिर्फ Sensex के लिए) -->
+  <!-- TradingView Script - सिर्फ Sensex -->
   <script src="https://s3.tradingview.com/tv.js"></script>
   <script>
     new TradingView.widget({
       "width": "100%",
-      "height": 520,
+      "height": 550,
       "symbol": "BSE:SENSEX",
       "interval": "D",
       "timezone": "Asia/Kolkata",
