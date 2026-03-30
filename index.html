@@ -1,41 +1,54 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Pro Terminal v2</title>
-    <style>
-        body { background: #0b0e11; color: white; font-family: sans-serif; text-align: center; }
-        .grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 20px; }
-        .card { background: #1e2329; border-radius: 15px; padding: 20px; width: 280px; border: 1px solid #30363d; }
-        .price { font-size: 2.2rem; font-weight: bold; color: #f0b90b; }
-        .signal { margin-top: 15px; padding: 10px; border-radius: 8px; font-weight: bold; }
-        .buy { background: #2ebd85; color: white; }
-        .sell { background: #f6465d; color: white; }
-        .neutral { background: #474d57; color: white; }
-    </style>
+  <meta charset="UTF-8">
+  <title>AI Pro Terminal V2</title>
+  <style>
+    body { background: #000; color: #0f0; font-family: monospace; text-align: center; margin: 0; padding: 0; }
+    .loading { margin-top: 100px; }
+    .dashboard { display: none; padding: 20px; }
+    h1 { color: #00ff00; }
+  </style>
 </head>
 <body>
+
+  <!-- Loading Screen -->
+  <div id="loading" class="loading">
     <h1>🚀 AI PRO TERMINAL V2 🚀</h1>
-    <div id="display" class="grid">Loading Advanced Signals...</div>
-    <script>
-        async function loadData() {
-            const res = await fetch('data.json?t=' + Date.now());
-            const data = await res.json();
-            let html = '';
-            for(let k in data) {
-                let sigClass = data[k].signal.includes('BUY') ? 'buy' : (data[k].signal.includes('SELL') ? 'sell' : 'neutral');
-                html += `<div class="card">
-                    <h3>${k}</h3>
-                    <div class="price">₹${data[k].price}</div>
-                    <p>RSI: ${data[k].rsi}</p>
-                    <div class="signal ${sigClass}">${data[k].signal}</div>
-                </div>`;
-            }
-            document.getElementById('display').innerHTML = html;
-        }
-        setInterval(loadData, 10000);
-        loadData();
-    </script>
+    <p>Loading Advanced Signals...</p>
+  </div>
+
+  <!-- Dashboard (ये 5 सेकंड बाद दिखेगा) -->
+  <div id="dashboard" class="dashboard">
+    <h1>🚀 AI Pro Terminal V2 - Live</h1>
+    <h2>Nifty 50 & Sensex Signals</h2>
+
+    <div style="margin: 30px; padding: 20px; background: #111; border: 1px solid #0f0;">
+      <h3>Nifty 50 (30 मार्च 2026)</h3>
+      <p><strong>22,331.40</strong> <span style="color: red;">-488.20 (-2.14%)</span></p>
+      <p><strong>AI Signal:</strong> <span style="color: orange;">CAUTION - Sell on Rise</span></p>
+      <p>Support: 22,200 | Resistance: 22,700</p>
+    </div>
+
+    <div style="margin: 30px; padding: 20px; background: #111; border: 1px solid #0f0;">
+      <h3>Sensex (30 मार्च 2026)</h3>
+      <p><strong>71,947.55</strong> <span style="color: red;">-1,635.67 (-2.22%)</span></p>
+      <p><strong>AI Signal:</strong> <span style="color: orange;">CAUTION - Sell on Rise</span></p>
+      <p>Support: 71,500 | Resistance: 73,000</p>
+    </div>
+
+    <p style="color: #888; margin-top: 50px;">
+      ⚠️ ये Demo Dashboard है। असली signals बाद में AI से जोड़ देंगे।
+    </p>
+  </div>
+
+  <script>
+    // 5 सेकंड बाद loading हटाकर dashboard दिखाओ
+    setTimeout(() => {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+    }, 5000);   // 5000 = 5 सेकंड
+  </script>
+
 </body>
 </html>
