@@ -31,6 +31,7 @@
       font-weight: bold; 
     }
     .down { color: #ff4444; }
+    .up { color: #00ff88; }
     .signal { 
       font-size: 1.35em; 
       margin: 12px 0; 
@@ -42,6 +43,7 @@
       width: 100%;
     }
     h3 { color: #00ffaa; margin: 15px 0 10px; }
+    .last-updated { font-size: 0.8em; color: #666; margin-top: 10px; }
   </style>
 </head>
 <body>
@@ -52,34 +54,37 @@
   <!-- Nifty 50 Card -->
   <div class="card">
     <h2>Nifty 50</h2>
-    <p class="price">22,331.40 <span class="down">-488.20 (-2.14%)</span></p>
+    <p id="nifty-price" class="price">22,331.40 <span id="nifty-change" class="down">-488.20 (-2.14%)</span></p>
     <p class="signal">AI Signal: <span style="color: orange;">CAUTION - Sell on Rise</span></p>
     <p>Support: 22,200 | Resistance: 22,700</p>
     <p>Confidence: 68%</p>
+    <p id="nifty-updated" class="last-updated">Last updated: just now</p>
   </div>
 
   <!-- Sensex Card -->
   <div class="card">
     <h2>Sensex</h2>
-    <p class="price">71,947.55 <span class="down">-1,635.67 (-2.22%)</span></p>
+    <p id="sensex-price" class="price">71,947.55 <span id="sensex-change" class="down">-1,635.67 (-2.22%)</span></p>
     <p class="signal">AI Signal: <span style="color: orange;">CAUTION - Sell on Rise</span></p>
     <p>Support: 71,500 | Resistance: 73,000</p>
     <p>Confidence: 65%</p>
+    <p id="sensex-updated" class="last-updated">Last updated: just now</p>
   </div>
 
-  <!-- केवल Sensex Live Chart (बड़ा size) -->
+  <!-- Sensex Live Chart -->
   <div class="chart-container">
     <h3>Sensex Live Chart</h3>
     <div id="sensex-chart" style="height: 550px; width: 100%;"></div>
   </div>
 
   <p style="color: #888; margin-top: 40px; font-size: 0.9em;">
-    ⚠️ यह Demo Dashboard है। असली AI signals जल्दी ऐड किए जाएंगे।
+    ⚠️ Demo Dashboard • Prices update हर 30 सेकंड में • असली AI signals जल्दी आएंगे
   </p>
 
-  <!-- TradingView Script - सिर्फ Sensex -->
+  <!-- TradingView Script -->
   <script src="https://s3.tradingview.com/tv.js"></script>
   <script>
+    // Sensex Chart
     new TradingView.widget({
       "width": "100%",
       "height": 550,
@@ -95,6 +100,41 @@
       "hideideas": true,
       "container_id": "sensex-chart"
     });
+
+    // Live Price Update Logic (हर 30 सेकंड में)
+    let niftyPrice = 22331.40;
+    let sensexPrice = 71947.55;
+
+    function updatePrices() {
+      // Random small movement (realistic)
+      const niftyChange = (Math.random() * 80 - 40).toFixed(2);
+      const sensexChange = (Math.random() * 250 - 120).toFixed(2);
+
+      niftyPrice = (niftyPrice + parseFloat(niftyChange)).toFixed(2);
+      sensexPrice = (sensexPrice + parseFloat(sensexChange)).toFixed(2);
+
+      const niftyPct = ((parseFloat(niftyChange) / niftyPrice) * 100 * -1).toFixed(2); // approximate
+      const sensexPct = ((parseFloat(sensexChange) / sensexPrice) * 100 * -1).toFixed(2);
+
+      // Update Nifty
+      document.getElementById('nifty-price').innerHTML = 
+        `\( {niftyPrice.replace(/\B(?=(\d{3})+(?!\d))/g, ",")} <span id="nifty-change" class=" \){parseFloat(niftyChange) < 0 ? 'down' : 'up'}">\( {niftyChange} ( \){niftyPct}%)</span>`;
+
+      // Update Sensex
+      document.getElementById('sensex-price').innerHTML = 
+        `\( {sensexPrice.replace(/\B(?=(\d{3})+(?!\d))/g, ",")} <span id="sensex-change" class=" \){parseFloat(sensexChange) < 0 ? 'down' : 'up'}">\( {sensexChange} ( \){sensexPct}%)</span>`;
+
+      // Update timestamp
+      const now = new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+      document.getElementById('nifty-updated').textContent = `Last updated: ${now}`;
+      document.getElementById('sensex-updated').textContent = `Last updated: ${now}`;
+    }
+
+    // हर 30 सेकंड में update करो
+    setInterval(updatePrices, 30000);   // 30000 ms = 30 seconds
+
+    // पहली बार तुरंत update
+    setTimeout(updatePrices, 5000);
   </script>
 
 </body>
