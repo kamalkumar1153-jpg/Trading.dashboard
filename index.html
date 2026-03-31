@@ -5,138 +5,94 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Pro Terminal V2</title>
   <style>
-    body {
-      background: #0a0a0a;
-      color: #00ff88;
-      font-family: 'Courier New', monospace;
-      margin: 0;
-      padding: 15px;
-      text-align: center;
-    }
+    body { background: #0a0a0a; color: #00ff88; font-family: 'Courier New', monospace; margin: 0; padding: 15px; text-align: center; }
     h1 { color: #00ff00; margin: 15px 0 5px; }
-    .card {
-      background: #111;
-      border: 1px solid #00ff88;
-      border-radius: 12px;
-      padding: 20px;
-      margin: 20px auto;
-      max-width: 650px;
-      text-align: left;
-    }
+    .card { background: #111; border: 1px solid #00ff88; border-radius: 12px; padding: 20px; margin: 20px auto; max-width: 650px; text-align: left; }
     .price { font-size: 1.9em; font-weight: bold; }
     .down { color: #ff4444; }
+    .up { color: #00ff88; }
     .signal { font-size: 1.35em; margin: 12px 0; font-weight: bold; }
-    .backtest-box {
-      background: #1a1a1a;
-      padding: 15px;
-      border-radius: 8px;
-      margin: 15px 0;
-      border: 1px solid #333;
-    }
-    .bt-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px solid #222;
-    }
-    .bt-row:last-child { border-bottom: none; }
-    .label { color: #aaa; }
-    .value { font-weight: bold; }
-    .green { color: #00ff88; }
-    .red { color: #ff6666; }
-    .chart-container {
-      margin: 30px auto;
-      max-width: 720px;
-      width: 100%;
-    }
-    h3 { color: #00ffaa; margin: 20px 0 10px; }
+    .last-updated { font-size: 0.85em; color: #666; margin-top: 8px; }
+    .error { color: #ff6666; }
   </style>
 </head>
 <body>
 
   <h1>🚀 AI PRO TERMINAL V2 - LIVE</h1>
-  <p><strong>Nifty 50 & Sensex AI Signals</strong> | 31 मार्च 2026</p>
+  <p><strong>Nifty 50 & Sensex AI Signals</strong> | Real API Connected</p>
 
   <!-- Nifty 50 Card -->
   <div class="card">
     <h2>Nifty 50</h2>
-    <p class="price">22,331.40 <span class="down">-488.20 (-2.14%)</span></p>
+    <p id="nifty-price" class="price">Loading...</p>
     <p class="signal">AI Signal: <span style="color: orange;">CAUTION - Sell on Rise</span></p>
-    
-    <h3 style="margin-top:20px; color:#ffcc00;">Multi-Timeframe Analysis</h3>
-    <div style="display:flex;justify-content:space-between;padding:8px 0;"><span>5 Min</span><span style="color:#ff6666;">Strong Sell</span></div>
-    <div style="display:flex;justify-content:space-between;padding:8px 0;"><span>15 Min</span><span style="color:#ff6666;">Sell</span></div>
-    <div style="display:flex;justify-content:space-between;padding:8px 0;"><span>1 Hour</span><span style="color:#ffcc00;">Caution</span></div>
-    <div style="display:flex;justify-content:space-between;padding:8px 0;"><span>Daily</span><span style="color:#ff6666;">Strong Sell</span></div>
-    
-    <div style="margin:15px 0; padding:10px; background:#1a1a1a; border-radius:8px;">
-      <strong>Confluence Score:</strong> <span style="color:#ff6666;">82% Bearish</span>
-    </div>
-
-    <div class="backtest-box">
-      <h3 style="margin:0 0 12px 0; color:#ffcc00;">Backtesting Results (Last 30 Days)</h3>
-      <div class="bt-row"><span class="label">Total Signals</span><span class="value">28</span></div>
-      <div class="bt-row"><span class="label">Win Rate</span><span class="value green">71.4%</span></div>
-      <div class="bt-row"><span class="label">Profit Factor</span><span class="value green">2.15</span></div>
-      <div class="bt-row"><span class="label">Max Drawdown</span><span class="value red">-4.8%</span></div>
-      <div class="bt-row"><span class="label">Avg. R:R</span><span class="value green">1:2.4</span></div>
-    </div>
+    <p id="nifty-updated" class="last-updated">Loading...</p>
   </div>
 
   <!-- Sensex Card -->
   <div class="card">
     <h2>Sensex</h2>
-    <p class="price">71,947.55 <span class="down">-1,635.67 (-2.22%)</span></p>
+    <p id="sensex-price" class="price">Loading...</p>
     <p class="signal">AI Signal: <span style="color: orange;">CAUTION - Sell on Rise</span></p>
-    
-    <h3 style="margin-top:20px; color:#ffcc00;">Multi-Timeframe Analysis</h3>
-    <div style="display:flex;justify-content:space-between;padding:8px 0;"><span>5 Min</span><span style="color:#ff6666;">Sell</span></div>
-    <div style="display:flex;justify-content:space-between;padding:8px 0;"><span>15 Min</span><span style="color:#ff6666;">Strong Sell</span></div>
-    <div style="display:flex;justify-content:space-between;padding:8px 0;"><span>1 Hour</span><span style="color:#ffcc00;">Caution</span></div>
-    <div style="display:flex;justify-content:space-between;padding:8px 0;"><span>Daily</span><span style="color:#ff6666;">Strong Sell</span></div>
-    
-    <div style="margin:15px 0; padding:10px; background:#1a1a1a; border-radius:8px;">
-      <strong>Confluence Score:</strong> <span style="color:#ff6666;">78% Bearish</span>
-    </div>
-
-    <div class="backtest-box">
-      <h3 style="margin:0 0 12px 0; color:#ffcc00;">Backtesting Results (Last 30 Days)</h3>
-      <div class="bt-row"><span class="label">Total Signals</span><span class="value">26</span></div>
-      <div class="bt-row"><span class="label">Win Rate</span><span class="value green">69.2%</span></div>
-      <div class="bt-row"><span class="label">Profit Factor</span><span class="value green">1.98</span></div>
-      <div class="bt-row"><span class="label">Max Drawdown</span><span class="value red">-5.2%</span></div>
-    </div>
+    <p id="sensex-updated" class="last-updated">Loading...</p>
   </div>
 
   <!-- Sensex Live Chart -->
-  <div class="chart-container">
+  <div style="margin: 30px auto; max-width: 720px; width: 100%;">
     <h3>Sensex Live Chart</h3>
     <div id="sensex-chart" style="height: 520px; width: 100%;"></div>
   </div>
 
   <p style="color: #888; margin-top: 40px; font-size: 0.9em;">
-    ⚠️ Demo Dashboard • Backtesting dummy & historical data पर आधारित<br>
-    Past performance future results की गारंटी नहीं। Trading में जोखिम है।
+    ⚠️ Demo Dashboard • Real prices from Yahoo Finance API<br>
+    Market data में 1-2 मिनट delay हो सकता है।
   </p>
 
   <!-- TradingView Script -->
   <script src="https://s3.tradingview.com/tv.js"></script>
   <script>
+    // Sensex Chart
     new TradingView.widget({
-      "width": "100%",
-      "height": 520,
-      "symbol": "BSE:SENSEX",
-      "interval": "D",
-      "timezone": "Asia/Kolkata",
-      "theme": "dark",
-      "style": "1",
-      "locale": "in",
-      "toolbar_bg": "#111111",
-      "enable_publishing": false,
-      "allow_symbol_change": true,
-      "hideideas": true,
+      "width": "100%", "height": 520, "symbol": "BSE:SENSEX", "interval": "D",
+      "timezone": "Asia/Kolkata", "theme": "dark", "style": "1", "locale": "in",
+      "toolbar_bg": "#111111", "enable_publishing": false, "allow_symbol_change": true,
       "container_id": "sensex-chart"
     });
+
+    // Real API Function (Yahoo Finance)
+    async function fetchLivePrice(symbol, elementId, changeId, updatedId) {
+      try {
+        const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        const quote = data.quoteResponse.result[0];
+        if (!quote) throw new Error("No data");
+
+        const price = quote.regularMarketPrice.toFixed(2);
+        const change = quote.regularMarketChange.toFixed(2);
+        const changePercent = quote.regularMarketChangePercent.toFixed(2);
+
+        const isDown = change < 0;
+        document.getElementById(elementId).innerHTML = 
+          `\( {price} <span class=" \){isDown ? 'down' : 'up'}">\( {change} ( \){changePercent}%)</span>`;
+
+        const now = new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+        document.getElementById(updatedId).textContent = `Last updated: ${now}`;
+      } catch (error) {
+        document.getElementById(elementId).innerHTML = `Error loading price <span class="error">(API issue)</span>`;
+      }
+    }
+
+    // Update Nifty and Sensex
+    function updateAllPrices() {
+      fetchLivePrice('^NSEI', 'nifty-price', null, 'nifty-updated');   // Nifty 50
+      fetchLivePrice('^BSESN', 'sensex-price', null, 'sensex-updated'); // Sensex
+    }
+
+    // Initial load + every 30 seconds
+    updateAllPrices();
+    setInterval(updateAllPrices, 30000);   // 30 seconds
   </script>
 
 </body>
