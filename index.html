@@ -34,7 +34,7 @@
       border-bottom: 1px solid #222;
     }
     .tf-name { color: #aaa; }
-    .rr-box, .bt-box {
+    .rr-box {
       background: #1a1a1a;
       padding: 16px;
       border-radius: 10px;
@@ -46,7 +46,6 @@
       justify-content: space-between;
       padding: 7px 0;
     }
-    .row:last-child { border-bottom: none; }
     .label { color: #ccc; }
     .green { color: #00ff88; }
     .red { color: #ff6666; }
@@ -87,7 +86,7 @@
     <p id="nifty-updated" class="last-updated">Last updated: just now</p>
   </div>
 
-  <!-- Sensex Card (similar structure) -->
+  <!-- Sensex Card -->
   <div class="card">
     <h2>Sensex</h2>
     <p id="sensex-price" class="price">Loading...</p>
@@ -122,8 +121,8 @@
       "container_id": "sensex-chart"
     });
 
-    // Live Price Update - FIXED VERSION
-    let niftyPrice = 22331.40;
+    // Live Price Update - Corrected
+    let niftyPrice = 22307.29;
     let sensexPrice = 71947.55;
 
     function updatePrices() {
@@ -136,7 +135,7 @@
       const niftyPct = (parseFloat(niftyChg) / niftyPrice * 100).toFixed(2);
       const sensexPct = (parseFloat(sensexChg) / sensexPrice * 100).toFixed(2);
 
-      // Correct way - no code leak
+      // Fixed: No code leak
       document.getElementById('nifty-price').innerHTML = 
         niftyPrice.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 
         ` <span class="\( {parseFloat(niftyChg) < 0 ? 'down' : 'up'}"> \){niftyChg} (${niftyPct}%)</span>`;
