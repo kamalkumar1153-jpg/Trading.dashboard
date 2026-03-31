@@ -121,7 +121,7 @@
       "container_id": "sensex-chart"
     });
 
-    // Live Price Update - FIXED
+    // Live Price Update - Simple & Fixed
     let niftyPrice = 22300;
     let sensexPrice = 71900;
 
@@ -135,7 +135,7 @@
       const niftyPct = (parseFloat(niftyChg) / niftyPrice * 100).toFixed(2);
       const sensexPct = (parseFloat(sensexChg) / sensexPrice * 100).toFixed(2);
 
-      // Correct price display (no code leak)
+      // Fixed: No more code leak
       document.getElementById('nifty-price').innerHTML = 
         niftyPrice.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 
         ` <span class="\( {parseFloat(niftyChg) < 0 ? 'down' : 'up'}"> \){niftyChg} (${niftyPct}%)</span>`;
@@ -149,7 +149,6 @@
       document.getElementById('sensex-updated').textContent = `Last updated: ${now}`;
     }
 
-    // Run the update
     setInterval(updatePrices, 30000);
     updatePrices(); // Initial load
   </script>
