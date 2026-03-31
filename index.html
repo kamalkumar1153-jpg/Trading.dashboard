@@ -57,21 +57,22 @@
     }
     input {
       width: 100%;
-      padding: 8px;
-      margin: 5px 0;
+      padding: 10px;
+      margin: 6px 0;
       background: #222;
       color: #fff;
       border: 1px solid #00ff88;
-      border-radius: 5px;
+      border-radius: 6px;
     }
     button {
+      width: 100%;
+      padding: 12px;
       margin-top: 10px;
-      padding: 10px 20px;
       background: #00ff88;
       color: #000;
       border: none;
       font-weight: bold;
-      border-radius: 5px;
+      border-radius: 6px;
       cursor: pointer;
     }
   </style>
@@ -122,21 +123,24 @@
 
   <!-- Position Sizing Calculator -->
   <div class="card">
-    <h2>Position Sizing Calculator</h2>
-    <p style="color:#ffcc00;">एक ट्रेड में कितनी Quantity लेनी चाहिए?</p>
+    <h2>Position Sizing Calculator (Nifty 50)</h2>
+    <p style="color:#ffcc00; margin-bottom:15px;">एक ट्रेड में कितनी Quantity लेनी चाहिए?</p>
 
     <input type="number" id="capital" placeholder="Account Capital (₹)" value="100000">
     <input type="number" id="riskPercent" placeholder="Risk per Trade (%)" value="1" step="0.1">
-    <input type="number" id="entry" placeholder="Entry Price" value="22320">
+    <input type="number" id="entry" placeholder="Entry Price (Sell)" value="22320">
     <input type="number" id="stoploss" placeholder="Stop Loss" value="22450">
+    <input type="number" id="target" placeholder="Target Price" value="22000">
 
     <button onclick="calculatePosition()">Calculate Quantity</button>
 
     <div id="calc-result" style="margin-top:15px; padding:15px; background:#1a1a1a; border-radius:8px; display:none;">
+      <h3 style="color:#ffcc00;">Result</h3>
       <p id="risk-amt"></p>
       <p id="quantity"></p>
       <p id="pos-value"></p>
-      <small style="color:#888;">* Nifty Lot Size = 25 units</small>
+      <p id="rr-ratio"></p>
+      <small style="color:#888;">* Nifty Lot Size = 65 units</small>
     </div>
   </div>
 
@@ -162,25 +166,30 @@
 
     // Position Sizing Calculator
     function calculatePosition() {
-      const capital = parseFloat(document.getElementById('capital').value);
-      const riskPct = parseFloat(document.getElementById('riskPercent').value);
-      const entry = parseFloat(document.getElementById('entry').value);
-      const sl = parseFloat(document.getElementById('stoploss').value);
+      const capital = parseFloat(document.getElementById('capital').value) || 0;
+      const riskPct = parseFloat(document.getElementById('riskPercent').value) || 0;
+      const entry = parseFloat(document.getElementById('entry').value) || 0;
+      const sl = parseFloat(document.getElementById('stoploss').value) || 0;
+      const target = parseFloat(document.getElementById('target').value) || 0;
 
-      if (!capital || !riskPct || !entry || !sl || sl >= entry) {
-        alert("सही वैल्यू डालें (Stop Loss Entry से कम होना चाहिए)");
+      if (capital <= 0 || riskPct <= 0 || entry <= 0 || sl <= 0 || sl >= entry) {
+        alert("सही वैल्यू डालें। Stop Loss Entry Price से कम होना चाहिए।");
         return;
       }
 
-      const riskAmount = (capital * riskPct / 100).toFixed(0);
-      const riskPerUnit = (entry - sl).toFixed(2);
+      const riskAmount = (capital * riskPct / 100);
+      const riskPerUnit = entry - sl;
       let qty = Math.floor(riskAmount / riskPerUnit);
-      const lots = Math.floor(qty / 25);   // Nifty lot size
+      const lots = Math.floor(qty / 65);   // Nifty Lot Size = 65
+
+      const rewardPerUnit = target - entry;
+      const rrRatio = rewardPerUnit > 0 ? (rewardPerUnit / riskPerUnit).toFixed(1) : "N/A";
 
       document.getElementById('calc-result').style.display = 'block';
-      document.getElementById('risk-amt').innerHTML = `Maximum Risk: <strong>₹${riskAmount}</strong>`;
+      document.getElementById('risk-amt').innerHTML = `Maximum Risk: <strong>₹${riskAmount.toFixed(0)}</strong>`;
       document.getElementById('quantity').innerHTML = `Quantity: <strong>\( {qty} shares</strong> ( \){lots} lots)`;
-      document.getElementById('pos-value').innerHTML = `Total Position Value: <strong>₹${(qty * entry).toFixed(0)}</strong>`;
+      document.getElementById('pos-value').innerHTML = `Position Value: <strong>₹${(qty * entry).toFixed(0)}</strong>`;
+      document.getElementById('rr-ratio').innerHTML = `Risk : Reward = <strong>1 : ${rrRatio}</strong>`;
     }
   </script>
 
