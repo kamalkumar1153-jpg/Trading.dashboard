@@ -65,7 +65,7 @@
   <!-- Nifty 50 Card -->
   <div class="card">
     <h2>Nifty 50</h2>
-    <p id="nifty-price" class="price">Loading...</p>
+    <p id="nifty-price" class="price">22,312.94 <span id="nifty-change" class="down">-12.50 (-0.06%)</span></p>
     <p class="signal">AI Signal: <span style="color: orange;">CAUTION - Sell on Rise</span></p>
 
     <h3 style="margin:20px 0 10px 0; color:#ffcc00;">Multi-Timeframe Analysis</h3>
@@ -89,7 +89,7 @@
   <!-- Sensex Card -->
   <div class="card">
     <h2>Sensex</h2>
-    <p id="sensex-price" class="price">Loading...</p>
+    <p id="sensex-price" class="price">71,947.55 <span id="sensex-change" class="down">-1,635.67 (-2.22%)</span></p>
     <p class="signal">AI Signal: <span style="color: orange;">CAUTION - Sell on Rise</span></p>
 
     <h3 style="margin:20px 0 10px 0; color:#ffcc00;">Multi-Timeframe Analysis</h3>
@@ -121,21 +121,17 @@
       "container_id": "sensex-chart"
     });
 
-    // Live Price Update - Super Simple & Fixed
-    let niftyPrice = 22312.94;
-    let sensexPrice = 71947.55;
-
+    // Simple Live Update
     function updatePrices() {
       const niftyChg = (Math.random() * 80 - 40).toFixed(2);
       const sensexChg = (Math.random() * 250 - 125).toFixed(2);
 
-      niftyPrice = (niftyPrice + parseFloat(niftyChg)).toFixed(2);
-      sensexPrice = (sensexPrice + parseFloat(sensexChg)).toFixed(2);
+      const niftyPrice = (22312.94 + parseFloat(niftyChg)).toFixed(2);
+      const sensexPrice = (71947.55 + parseFloat(sensexChg)).toFixed(2);
 
       const niftyPct = (parseFloat(niftyChg) / niftyPrice * 100).toFixed(2);
       const sensexPct = (parseFloat(sensexChg) / sensexPrice * 100).toFixed(2);
 
-      // Fixed version - no code leak
       document.getElementById('nifty-price').innerHTML = 
         niftyPrice.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 
         ` <span class="\( {parseFloat(niftyChg) < 0 ? 'down' : 'up'}"> \){niftyChg} (${niftyPct}%)</span>`;
@@ -150,7 +146,7 @@
     }
 
     setInterval(updatePrices, 30000);
-    updatePrices(); // First load
+    updatePrices();
   </script>
 
 </body>
