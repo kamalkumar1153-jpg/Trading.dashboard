@@ -23,26 +23,27 @@
       max-width: 650px;
       text-align: left;
     }
-    .timeframe {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 0;
-      border-bottom: 1px solid #222;
-    }
-    .timeframe:last-child { border-bottom: none; }
-    .tf-name { color: #aaa; font-weight: bold; }
-    .tf-signal { font-weight: bold; }
-    .sell { color: #ff6666; }
-    .caution { color: #ffcc00; }
-    .rr-box {
+    .price { font-size: 1.9em; font-weight: bold; }
+    .down { color: #ff4444; }
+    .signal { font-size: 1.35em; margin: 12px 0; font-weight: bold; }
+    .backtest-box {
       background: #1a1a1a;
       padding: 15px;
       border-radius: 8px;
       margin: 15px 0;
       border: 1px solid #333;
     }
-    .price { font-size: 1.9em; font-weight: bold; }
-    .down { color: #ff4444; }
+    .bt-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #222;
+    }
+    .bt-row:last-child { border-bottom: none; }
+    .label { color: #aaa; }
+    .value { font-weight: bold; }
+    .green { color: #00ff88; }
+    .red { color: #ff6666; }
     .chart-container {
       margin: 30px auto;
       max-width: 720px;
@@ -54,31 +55,31 @@
 <body>
 
   <h1>🚀 AI PRO TERMINAL V2 - LIVE</h1>
-  <p><strong>Nifty 50 & Sensex AI Signals</strong> | 30 मार्च 2026</p>
+  <p><strong>Nifty 50 & Sensex AI Signals</strong> | 31 मार्च 2026</p>
 
-  <!-- Nifty 50 Card with Multi-Timeframe -->
+  <!-- Nifty 50 Card -->
   <div class="card">
     <h2>Nifty 50</h2>
     <p class="price">22,331.40 <span class="down">-488.20 (-2.14%)</span></p>
     <p class="signal">AI Signal: <span style="color: orange;">CAUTION - Sell on Rise</span></p>
     
     <h3 style="margin-top:20px; color:#ffcc00;">Multi-Timeframe Analysis</h3>
-    <div class="timeframe"><span class="tf-name">5 Min</span><span class="tf-signal sell">Strong Sell</span></div>
-    <div class="timeframe"><span class="tf-name">15 Min</span><span class="tf-signal sell">Sell</span></div>
-    <div class="timeframe"><span class="tf-name">1 Hour</span><span class="tf-signal caution">Caution</span></div>
-    <div class="timeframe"><span class="tf-name">Daily</span><span class="tf-signal sell">Strong Sell</span></div>
+    <div style="display:flex;justify-content:space-between;padding:8px 0;"><span>5 Min</span><span style="color:#ff6666;">Strong Sell</span></div>
+    <div style="display:flex;justify-content:space-between;padding:8px 0;"><span>15 Min</span><span style="color:#ff6666;">Sell</span></div>
+    <div style="display:flex;justify-content:space-between;padding:8px 0;"><span>1 Hour</span><span style="color:#ffcc00;">Caution</span></div>
+    <div style="display:flex;justify-content:space-between;padding:8px 0;"><span>Daily</span><span style="color:#ff6666;">Strong Sell</span></div>
     
-    <div style="margin-top:15px; padding:10px; background:#1a1a1a; border-radius:8px;">
-      <strong>Confluence Score:</strong> <span style="color:#ff6666;">82% Bearish</span><br>
-      <small>3/4 Timeframes Bearish • Higher timeframe confirm कर रहा है Downtrend</small>
+    <div style="margin:15px 0; padding:10px; background:#1a1a1a; border-radius:8px;">
+      <strong>Confluence Score:</strong> <span style="color:#ff6666;">82% Bearish</span>
     </div>
 
-    <div class="rr-box">
-      <h3 style="margin:0 0 10px 0; color:#ffcc00;">Risk-Reward Setup</h3>
-      <div style="display:flex;justify-content:space-between;padding:6px 0;"><span>Entry</span><span>22,300 - 22,350</span></div>
-      <div style="display:flex;justify-content:space-between;padding:6px 0;"><span>Stop Loss</span><span style="color:#ff6666;">22,450</span></div>
-      <div style="display:flex;justify-content:space-between;padding:6px 0;"><span>Target 1</span><span style="color:#00ff88;">22,000</span></div>
-      <div style="display:flex;justify-content:space-between;padding:6px 0;"><span>R:R Ratio</span><span style="color:#00ff88;">1 : 2.8</span></div>
+    <div class="backtest-box">
+      <h3 style="margin:0 0 12px 0; color:#ffcc00;">Backtesting Results (Last 30 Days)</h3>
+      <div class="bt-row"><span class="label">Total Signals</span><span class="value">28</span></div>
+      <div class="bt-row"><span class="label">Win Rate</span><span class="value green">71.4%</span></div>
+      <div class="bt-row"><span class="label">Profit Factor</span><span class="value green">2.15</span></div>
+      <div class="bt-row"><span class="label">Max Drawdown</span><span class="value red">-4.8%</span></div>
+      <div class="bt-row"><span class="label">Avg. R:R</span><span class="value green">1:2.4</span></div>
     </div>
   </div>
 
@@ -89,14 +90,21 @@
     <p class="signal">AI Signal: <span style="color: orange;">CAUTION - Sell on Rise</span></p>
     
     <h3 style="margin-top:20px; color:#ffcc00;">Multi-Timeframe Analysis</h3>
-    <div class="timeframe"><span class="tf-name">5 Min</span><span class="tf-signal sell">Sell</span></div>
-    <div class="timeframe"><span class="tf-name">15 Min</span><span class="tf-signal sell">Strong Sell</span></div>
-    <div class="timeframe"><span class="tf-name">1 Hour</span><span class="tf-signal caution">Caution</span></div>
-    <div class="timeframe"><span class="tf-name">Daily</span><span class="tf-signal sell">Strong Sell</span></div>
+    <div style="display:flex;justify-content:space-between;padding:8px 0;"><span>5 Min</span><span style="color:#ff6666;">Sell</span></div>
+    <div style="display:flex;justify-content:space-between;padding:8px 0;"><span>15 Min</span><span style="color:#ff6666;">Strong Sell</span></div>
+    <div style="display:flex;justify-content:space-between;padding:8px 0;"><span>1 Hour</span><span style="color:#ffcc00;">Caution</span></div>
+    <div style="display:flex;justify-content:space-between;padding:8px 0;"><span>Daily</span><span style="color:#ff6666;">Strong Sell</span></div>
     
-    <div style="margin-top:15px; padding:10px; background:#1a1a1a; border-radius:8px;">
-      <strong>Confluence Score:</strong> <span style="color:#ff6666;">78% Bearish</span><br>
-      <small>Higher timeframe strongly bearish</small>
+    <div style="margin:15px 0; padding:10px; background:#1a1a1a; border-radius:8px;">
+      <strong>Confluence Score:</strong> <span style="color:#ff6666;">78% Bearish</span>
+    </div>
+
+    <div class="backtest-box">
+      <h3 style="margin:0 0 12px 0; color:#ffcc00;">Backtesting Results (Last 30 Days)</h3>
+      <div class="bt-row"><span class="label">Total Signals</span><span class="value">26</span></div>
+      <div class="bt-row"><span class="label">Win Rate</span><span class="value green">69.2%</span></div>
+      <div class="bt-row"><span class="label">Profit Factor</span><span class="value green">1.98</span></div>
+      <div class="bt-row"><span class="label">Max Drawdown</span><span class="value red">-5.2%</span></div>
     </div>
   </div>
 
@@ -107,8 +115,8 @@
   </div>
 
   <p style="color: #888; margin-top: 40px; font-size: 0.9em;">
-    ⚠️ Demo Dashboard • Multi-Timeframe Analysis dummy data पर आधारित<br>
-    Trading में जोखिम होता है। अपना research करें।
+    ⚠️ Demo Dashboard • Backtesting dummy & historical data पर आधारित<br>
+    Past performance future results की गारंटी नहीं। Trading में जोखिम है।
   </p>
 
   <!-- TradingView Script -->
