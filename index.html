@@ -113,7 +113,6 @@
 
   <script src="https://s3.tradingview.com/tv.js"></script>
   <script>
-    // Sensex Chart
     new TradingView.widget({
       "width": "100%", "height": 520, "symbol": "BSE:SENSEX", "interval": "D",
       "timezone": "Asia/Kolkata", "theme": "dark", "style": "1", "locale": "in",
@@ -121,23 +120,23 @@
       "container_id": "sensex-chart"
     });
 
-    // Simple Live Update
+    // Simple Price Update
     function updatePrices() {
       const niftyChg = (Math.random() * 80 - 40).toFixed(2);
       const sensexChg = (Math.random() * 250 - 125).toFixed(2);
 
-      const niftyPrice = (22312.94 + parseFloat(niftyChg)).toFixed(2);
-      const sensexPrice = (71947.55 + parseFloat(sensexChg)).toFixed(2);
+      const niftyNew = (22312.94 + parseFloat(niftyChg)).toFixed(2);
+      const sensexNew = (71947.55 + parseFloat(sensexChg)).toFixed(2);
 
-      const niftyPct = (parseFloat(niftyChg) / niftyPrice * 100).toFixed(2);
-      const sensexPct = (parseFloat(sensexChg) / sensexPrice * 100).toFixed(2);
+      const niftyPct = (parseFloat(niftyChg) / niftyNew * 100).toFixed(2);
+      const sensexPct = (parseFloat(sensexChg) / sensexNew * 100).toFixed(2);
 
       document.getElementById('nifty-price').innerHTML = 
-        niftyPrice.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 
+        niftyNew.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 
         ` <span class="\( {parseFloat(niftyChg) < 0 ? 'down' : 'up'}"> \){niftyChg} (${niftyPct}%)</span>`;
 
       document.getElementById('sensex-price').innerHTML = 
-        sensexPrice.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 
+        sensexNew.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 
         ` <span class="\( {parseFloat(sensexChg) < 0 ? 'down' : 'up'}"> \){sensexChg} (${sensexPct}%)</span>`;
 
       const now = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
