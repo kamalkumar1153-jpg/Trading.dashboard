@@ -65,7 +65,7 @@
   <!-- Nifty 50 Card -->
   <div class="card">
     <h2>Nifty 50</h2>
-    <p id="nifty-price" class="price">22,312.94 <span id="nifty-change" class="down">-12.50 (-0.06%)</span></p>
+    <p class="price">22,312.94 <span class="down">-12.50 (-0.06%)</span></p>
     <p class="signal">AI Signal: <span style="color: orange;">CAUTION - Sell on Rise</span></p>
 
     <h3 style="margin:20px 0 10px 0; color:#ffcc00;">Multi-Timeframe Analysis</h3>
@@ -83,13 +83,13 @@
       <div class="row"><span class="label">R:R Ratio</span><span class="green">1 : 2.8</span></div>
     </div>
 
-    <p id="nifty-updated" class="last-updated">Last updated: just now</p>
+    <p class="last-updated">Last updated: 31 मार्च 2026</p>
   </div>
 
   <!-- Sensex Card -->
   <div class="card">
     <h2>Sensex</h2>
-    <p id="sensex-price" class="price">71,947.55 <span id="sensex-change" class="down">-1,635.67 (-2.22%)</span></p>
+    <p class="price">71,947.55 <span class="down">-1,635.67 (-2.22%)</span></p>
     <p class="signal">AI Signal: <span style="color: orange;">CAUTION - Sell on Rise</span></p>
 
     <h3 style="margin:20px 0 10px 0; color:#ffcc00;">Multi-Timeframe Analysis</h3>
@@ -98,7 +98,7 @@
     <div class="timeframe"><span class="tf-name">1 Hour</span><span style="color:#ffcc00;">Caution</span></div>
     <div class="timeframe"><span class="tf-name">Daily</span><span style="color:#ff6666;">Strong Sell</span></div>
 
-    <p id="sensex-updated" class="last-updated">Last updated: just now</p>
+    <p class="last-updated">Last updated: 31 मार्च 2026</p>
   </div>
 
   <!-- Sensex Live Chart -->
@@ -108,44 +108,18 @@
   </div>
 
   <p style="color: #888; margin-top: 40px; font-size: 0.9em;">
-    ⚠️ Demo Dashboard • Prices हर 30 सेकंड में update होते हैं
+    ⚠️ Demo Dashboard • Auto update हटा दिया गया है
   </p>
 
   <script src="https://s3.tradingview.com/tv.js"></script>
   <script>
+    // Sensex Chart
     new TradingView.widget({
       "width": "100%", "height": 520, "symbol": "BSE:SENSEX", "interval": "D",
       "timezone": "Asia/Kolkata", "theme": "dark", "style": "1", "locale": "in",
       "toolbar_bg": "#111111", "enable_publishing": false, "allow_symbol_change": true,
       "container_id": "sensex-chart"
     });
-
-    // Simple Price Update
-    function updatePrices() {
-      const niftyChg = (Math.random() * 80 - 40).toFixed(2);
-      const sensexChg = (Math.random() * 250 - 125).toFixed(2);
-
-      const niftyNew = (22312.94 + parseFloat(niftyChg)).toFixed(2);
-      const sensexNew = (71947.55 + parseFloat(sensexChg)).toFixed(2);
-
-      const niftyPct = (parseFloat(niftyChg) / niftyNew * 100).toFixed(2);
-      const sensexPct = (parseFloat(sensexChg) / sensexNew * 100).toFixed(2);
-
-      document.getElementById('nifty-price').innerHTML = 
-        niftyNew.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 
-        ` <span class="\( {parseFloat(niftyChg) < 0 ? 'down' : 'up'}"> \){niftyChg} (${niftyPct}%)</span>`;
-
-      document.getElementById('sensex-price').innerHTML = 
-        sensexNew.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 
-        ` <span class="\( {parseFloat(sensexChg) < 0 ? 'down' : 'up'}"> \){sensexChg} (${sensexPct}%)</span>`;
-
-      const now = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-      document.getElementById('nifty-updated').textContent = `Last updated: ${now}`;
-      document.getElementById('sensex-updated').textContent = `Last updated: ${now}`;
-    }
-
-    setInterval(updatePrices, 30000);
-    updatePrices();
   </script>
 
 </body>
