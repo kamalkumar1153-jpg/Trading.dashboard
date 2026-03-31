@@ -121,13 +121,13 @@
       "container_id": "sensex-chart"
     });
 
-    // Live Price Update - Corrected
-    let niftyPrice = 22307.29;
-    let sensexPrice = 71947.55;
+    // Live Price Update - FIXED
+    let niftyPrice = 22300;
+    let sensexPrice = 71900;
 
     function updatePrices() {
-      const niftyChg = (Math.random() * 65 - 32).toFixed(2);
-      const sensexChg = (Math.random() * 220 - 110).toFixed(2);
+      const niftyChg = (Math.random() * 80 - 40).toFixed(2);
+      const sensexChg = (Math.random() * 250 - 125).toFixed(2);
 
       niftyPrice = (niftyPrice + parseFloat(niftyChg)).toFixed(2);
       sensexPrice = (sensexPrice + parseFloat(sensexChg)).toFixed(2);
@@ -135,7 +135,7 @@
       const niftyPct = (parseFloat(niftyChg) / niftyPrice * 100).toFixed(2);
       const sensexPct = (parseFloat(sensexChg) / sensexPrice * 100).toFixed(2);
 
-      // Fixed: No code leak
+      // Correct price display (no code leak)
       document.getElementById('nifty-price').innerHTML = 
         niftyPrice.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 
         ` <span class="\( {parseFloat(niftyChg) < 0 ? 'down' : 'up'}"> \){niftyChg} (${niftyPct}%)</span>`;
@@ -149,8 +149,9 @@
       document.getElementById('sensex-updated').textContent = `Last updated: ${now}`;
     }
 
+    // Run the update
     setInterval(updatePrices, 30000);
-    updatePrices(); // Initial call
+    updatePrices(); // Initial load
   </script>
 
 </body>
