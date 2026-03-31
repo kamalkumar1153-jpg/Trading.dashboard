@@ -121,29 +121,30 @@
     <p class="last-updated">Last updated: 31 मार्च 2026</p>
   </div>
 
-  <!-- Position Sizing Calculator -->
-  <div class="card">
-    <h2>Position Sizing Calculator (Nifty 50)</h2>
-    <p style="color:#ffcc00; margin-bottom:15px;">एक ट्रेड में कितनी Quantity लेनी चाहिए?</p>
+  <!-- Position Sizing Calculator - Nifty Lot Size 65 -->
+<div class="card">
+  <h2>Position Sizing Calculator (Nifty 50)</h2>
+  <p style="color:#ffcc00; margin-bottom:15px;">एक ट्रेड में कितनी Quantity लेनी चाहिए?</p>
 
-    <input type="number" id="capital" placeholder="Account Capital (₹)" value="100000">
-    <input type="number" id="riskPercent" placeholder="Risk per Trade (%)" value="1" step="0.1">
-    <input type="number" id="entry" placeholder="Entry Price (Sell)" value="22320">
-    <input type="number" id="stoploss" placeholder="Stop Loss" value="22450">
-    <input type="number" id="target" placeholder="Target Price" value="22000">
+  <input type="number" id="capital" placeholder="Account Capital (₹)" value="100000">
+  <input type="number" id="riskPercent" placeholder="Risk per Trade (%)" value="1" step="0.1">
+  <input type="number" id="entry" placeholder="Entry Price (Sell)" value="22320">
+  <input type="number" id="stoploss" placeholder="Stop Loss" value="22450">
+  <input type="number" id="target" placeholder="Target Price" value="22000">
 
-    <button onclick="calculatePosition()">Calculate Quantity</button>
+  <button onclick="calculatePosition()" style="width:100%; margin-top:12px; padding:12px; background:#00ff88; color:#000; border:none; font-weight:bold; border-radius:6px;">
+    Calculate Quantity
+  </button>
 
-    <div id="calc-result" style="margin-top:15px; padding:15px; background:#1a1a1a; border-radius:8px; display:none;">
-      <h3 style="color:#ffcc00;">Result</h3>
-      <p id="risk-amt"></p>
-      <p id="quantity"></p>
-      <p id="pos-value"></p>
-      <p id="rr-ratio"></p>
-      <small style="color:#888;">* Nifty Lot Size = 65 units</small>
-    </div>
+  <div id="calc-result" style="margin-top:15px; padding:15px; background:#1a1a1a; border-radius:8px; display:none;">
+    <h3 style="color:#ffcc00;">Result</h3>
+    <p id="risk-amt"></p>
+    <p id="quantity"></p>
+    <p id="pos-value"></p>
+    <p id="rr-ratio"></p>
+    <small style="color:#888;">* Nifty Lot Size = 65 units</small>
   </div>
-
+</div>
   <!-- Sensex Live Chart -->
   <div class="chart-container">
     <h3>Sensex Live Chart</h3>
