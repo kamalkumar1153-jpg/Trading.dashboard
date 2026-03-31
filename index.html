@@ -27,7 +27,33 @@
     .down { color: #ff4444; }
     .up { color: #00ff88; }
     .signal { font-size: 1.35em; margin: 12px 0; font-weight: bold; }
+    .timeframe {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #222;
+    }
+    .tf-name { color: #aaa; }
     .last-updated { font-size: 0.85em; color: #666; margin-top: 8px; }
+    .rr-box {
+      background: #1a1a1a;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      border: 1px solid #333;
+    }
+    .rr-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+    }
+    .green { color: #00ff88; }
+    .red { color: #ff6666; }
+    .chart-container {
+      margin: 30px auto;
+      max-width: 720px;
+      width: 100%;
+    }
   </style>
 </head>
 <body>
@@ -38,21 +64,43 @@
   <!-- Nifty 50 Card -->
   <div class="card">
     <h2>Nifty 50</h2>
-    <p id="nifty-price" class="price">Loading...</p>
+    <p id="nifty-price" class="price">22,331.40 <span id="nifty-change" class="down">-488.20 (-2.14%)</span></p>
     <p class="signal">AI Signal: <span style="color: orange;">CAUTION - Sell on Rise</span></p>
+
+    <h3 style="margin: 18px 0 10px 0; color:#ffcc00;">Multi-Timeframe Analysis</h3>
+    <div class="timeframe"><span class="tf-name">5 Min</span><span style="color:#ff6666;">Strong Sell</span></div>
+    <div class="timeframe"><span class="tf-name">15 Min</span><span style="color:#ff6666;">Sell</span></div>
+    <div class="timeframe"><span class="tf-name">1 Hour</span><span style="color:#ffcc00;">Caution</span></div>
+    <div class="timeframe"><span class="tf-name">Daily</span><span style="color:#ff6666;">Strong Sell</span></div>
+
+    <div class="rr-box">
+      <h3 style="margin:0 0 10px 0; color:#ffcc00;">Risk-Reward Setup</h3>
+      <div class="rr-row"><span>Entry</span><span>22,300 - 22,350</span></div>
+      <div class="rr-row"><span>Stop Loss</span><span class="red">22,450</span></div>
+      <div class="rr-row"><span>Target 1</span><span class="green">22,000</span></div>
+      <div class="rr-row"><span>R:R Ratio</span><span class="green">1 : 2.8</span></div>
+    </div>
+
     <p id="nifty-updated" class="last-updated">Last updated: just now</p>
   </div>
 
   <!-- Sensex Card -->
   <div class="card">
     <h2>Sensex</h2>
-    <p id="sensex-price" class="price">Loading...</p>
+    <p id="sensex-price" class="price">71,947.55 <span id="sensex-change" class="down">-1,635.67 (-2.22%)</span></p>
     <p class="signal">AI Signal: <span style="color: orange;">CAUTION - Sell on Rise</span></p>
+
+    <h3 style="margin: 18px 0 10px 0; color:#ffcc00;">Multi-Timeframe Analysis</h3>
+    <div class="timeframe"><span class="tf-name">5 Min</span><span style="color:#ff6666;">Sell</span></div>
+    <div class="timeframe"><span class="tf-name">15 Min</span><span style="color:#ff6666;">Strong Sell</span></div>
+    <div class="timeframe"><span class="tf-name">1 Hour</span><span style="color:#ffcc00;">Caution</span></div>
+    <div class="timeframe"><span class="tf-name">Daily</span><span style="color:#ff6666;">Strong Sell</span></div>
+
     <p id="sensex-updated" class="last-updated">Last updated: just now</p>
   </div>
 
   <!-- Sensex Live Chart -->
-  <div style="margin: 30px auto; max-width: 720px; width: 100%;">
+  <div class="chart-container">
     <h3>Sensex Live Chart</h3>
     <div id="sensex-chart" style="height: 520px; width: 100%;"></div>
   </div>
@@ -86,7 +134,7 @@
       const niftyPct = (parseFloat(niftyChg) / niftyPrice * 100).toFixed(2);
       const sensexPct = (parseFloat(sensexChg) / sensexPrice * 100).toFixed(2);
 
-      // Correct way to update price
+      // Correct price display
       document.getElementById('nifty-price').innerHTML = 
         niftyPrice.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 
         ` <span class="\( {parseFloat(niftyChg) < 0 ? 'down' : 'up'}"> \){niftyChg} (${niftyPct}%)</span>`;
@@ -100,10 +148,9 @@
       document.getElementById('sensex-updated').textContent = `Last updated: ${now}`;
     }
 
-    // Run updates
-    setInterval(updatePrices, 30000);   // every 30 seconds
-    updatePrices();                     // initial call
+    setInterval(updatePrices, 30000);
+    updatePrices();   // Initial load
   </script>
 
 </body>
-</html>
+        </html>
