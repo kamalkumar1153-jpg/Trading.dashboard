@@ -23,9 +23,17 @@
       max-width: 650px;
       text-align: left;
     }
-    .price { font-size: 1.9em; font-weight: bold; }
-    .down { color: #ff4444; }
-    .signal { font-size: 1.35em; margin: 12px 0; font-weight: bold; }
+    .timeframe {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #222;
+    }
+    .timeframe:last-child { border-bottom: none; }
+    .tf-name { color: #aaa; font-weight: bold; }
+    .tf-signal { font-weight: bold; }
+    .sell { color: #ff6666; }
+    .caution { color: #ffcc00; }
     .rr-box {
       background: #1a1a1a;
       padding: 15px;
@@ -33,17 +41,8 @@
       margin: 15px 0;
       border: 1px solid #333;
     }
-    .rr-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 6px 0;
-      border-bottom: 1px solid #222;
-    }
-    .rr-row:last-child { border-bottom: none; }
-    .label { color: #aaa; }
-    .value { font-weight: bold; }
-    .green { color: #00ff88; }
-    .red { color: #ff6666; }
+    .price { font-size: 1.9em; font-weight: bold; }
+    .down { color: #ff4444; }
     .chart-container {
       margin: 30px auto;
       max-width: 720px;
@@ -57,23 +56,30 @@
   <h1>🚀 AI PRO TERMINAL V2 - LIVE</h1>
   <p><strong>Nifty 50 & Sensex AI Signals</strong> | 30 मार्च 2026</p>
 
-  <!-- Nifty 50 Card -->
+  <!-- Nifty 50 Card with Multi-Timeframe -->
   <div class="card">
     <h2>Nifty 50</h2>
     <p class="price">22,331.40 <span class="down">-488.20 (-2.14%)</span></p>
     <p class="signal">AI Signal: <span style="color: orange;">CAUTION - Sell on Rise</span></p>
     
+    <h3 style="margin-top:20px; color:#ffcc00;">Multi-Timeframe Analysis</h3>
+    <div class="timeframe"><span class="tf-name">5 Min</span><span class="tf-signal sell">Strong Sell</span></div>
+    <div class="timeframe"><span class="tf-name">15 Min</span><span class="tf-signal sell">Sell</span></div>
+    <div class="timeframe"><span class="tf-name">1 Hour</span><span class="tf-signal caution">Caution</span></div>
+    <div class="timeframe"><span class="tf-name">Daily</span><span class="tf-signal sell">Strong Sell</span></div>
+    
+    <div style="margin-top:15px; padding:10px; background:#1a1a1a; border-radius:8px;">
+      <strong>Confluence Score:</strong> <span style="color:#ff6666;">82% Bearish</span><br>
+      <small>3/4 Timeframes Bearish • Higher timeframe confirm कर रहा है Downtrend</small>
+    </div>
+
     <div class="rr-box">
       <h3 style="margin:0 0 10px 0; color:#ffcc00;">Risk-Reward Setup</h3>
-      <div class="rr-row"><span class="label">Recommended Entry</span><span class="value">22,300 - 22,350</span></div>
-      <div class="rr-row"><span class="label">Stop Loss</span><span class="value red">22,450</span></div>
-      <div class="rr-row"><span class="label">Target 1</span><span class="value green">22,000</span></div>
-      <div class="rr-row"><span class="label">Target 2</span><span class="value green">21,700</span></div>
-      <div class="rr-row"><span class="label">Risk : Reward</span><span class="value green">1 : 2.8</span></div>
-      <div class="rr-row"><span class="label">Potential Profit (₹10,000 risk पर)</span><span class="value green">₹28,000</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;"><span>Entry</span><span>22,300 - 22,350</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;"><span>Stop Loss</span><span style="color:#ff6666;">22,450</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;"><span>Target 1</span><span style="color:#00ff88;">22,000</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;"><span>R:R Ratio</span><span style="color:#00ff88;">1 : 2.8</span></div>
     </div>
-    
-    <p style="color:#888; font-size:0.9em;">Strong Bearish • RSI 32 (Oversold लेकिन Downtrend मजबूत)</p>
   </div>
 
   <!-- Sensex Card -->
@@ -82,14 +88,15 @@
     <p class="price">71,947.55 <span class="down">-1,635.67 (-2.22%)</span></p>
     <p class="signal">AI Signal: <span style="color: orange;">CAUTION - Sell on Rise</span></p>
     
-    <div class="rr-box">
-      <h3 style="margin:0 0 10px 0; color:#ffcc00;">Risk-Reward Setup</h3>
-      <div class="rr-row"><span class="label">Recommended Entry</span><span class="value">71,900 - 72,000</span></div>
-      <div class="rr-row"><span class="label">Stop Loss</span><span class="value red">72,300</span></div>
-      <div class="rr-row"><span class="label">Target 1</span><span class="value green">71,200</span></div>
-      <div class="rr-row"><span class="label">Target 2</span><span class="value green">70,500</span></div>
-      <div class="rr-row"><span class="label">Risk : Reward</span><span class="value green">1 : 2.5</span></div>
-      <div class="rr-row"><span class="label">Potential Profit (₹10,000 risk पर)</span><span class="value green">₹25,000</span></div>
+    <h3 style="margin-top:20px; color:#ffcc00;">Multi-Timeframe Analysis</h3>
+    <div class="timeframe"><span class="tf-name">5 Min</span><span class="tf-signal sell">Sell</span></div>
+    <div class="timeframe"><span class="tf-name">15 Min</span><span class="tf-signal sell">Strong Sell</span></div>
+    <div class="timeframe"><span class="tf-name">1 Hour</span><span class="tf-signal caution">Caution</span></div>
+    <div class="timeframe"><span class="tf-name">Daily</span><span class="tf-signal sell">Strong Sell</span></div>
+    
+    <div style="margin-top:15px; padding:10px; background:#1a1a1a; border-radius:8px;">
+      <strong>Confluence Score:</strong> <span style="color:#ff6666;">78% Bearish</span><br>
+      <small>Higher timeframe strongly bearish</small>
     </div>
   </div>
 
@@ -100,8 +107,8 @@
   </div>
 
   <p style="color: #888; margin-top: 40px; font-size: 0.9em;">
-    ⚠️ Demo Dashboard • ये सुझाव केवल educational purpose के लिए हैं<br>
-    Trading में पूंजी का जोखिम होता है। अपना research करें।
+    ⚠️ Demo Dashboard • Multi-Timeframe Analysis dummy data पर आधारित<br>
+    Trading में जोखिम होता है। अपना research करें।
   </p>
 
   <!-- TradingView Script -->
