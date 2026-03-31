@@ -193,6 +193,88 @@
       document.getElementById('rr-ratio').innerHTML = `Risk : Reward = <strong>1 : ${rrRatio}</strong>`;
     }
   </script>
+<script>
+    function calculatePosition() {
+      const capital = parseFloat(document.getElementById('capital').value) || 0;
+      const riskPct = parseFloat(document.getElementById('riskPercent').value) || 0;
+      const entry = parseFloat(document.getElementById('entry').value) || 0;
+      const sl = parseFloat(document.getElementById('stoploss').value) || 0;
+      const target = parseFloat(document.getElementById('target').value) || 0;
 
-</body>
+      if (capital <= 0 || riskPct <= 0 || entry <= 0 || sl <= 0 || sl >= entry) {
+        alert("सही वैल्यू डालें। Stop Loss Entry से कम होना चाहिए।");
+        return;
+      }
+
+      const riskAmount = (capital * riskPct / 100);
+      const riskPerUnit = entry - sl;
+      let qty = Math.floor(riskAmount / riskPerUnit);
+      const lots = Math.floor(qty / 65);
+
+      const rewardPerUnit = target > entry ? target - entry : 0;
+      const rrRatio = rewardPerUnit > 0 ? (rewardPerUnit / riskPerUnit).toFixed(1) : "N/A";
+
+      document.getElementById('calc-result').style.display = 'block';
+      document.getElementById('risk-amt').innerHTML = `Maximum Risk: <strong>₹${riskAmount.toFixed(0)}</strong>`;
+      document.getElementById('quantity').innerHTML = `Quantity: <strong>\( {qty} shares</strong> ( \){lots} lots)`;
+      document.getElementById('pos-value').innerHTML = `Position Value: <strong>₹${(qty * entry).toFixed(0)}</strong>`;
+      document.getElementById('rr-ratio').innerHTML = `Risk : Reward = <strong>1 : ${rrRatio}</strong>`;
+    }
+  </script>
+</body><script>
+    function calculatePosition() {
+      const capital = parseFloat(document.getElementById('capital').value) || 0;
+      const riskPct = parseFloat(document.getElementById('riskPercent').value) || 0;
+      const entry = parseFloat(document.getElementById('entry').value) || 0;
+      const sl = parseFloat(document.getElementById('stoploss').value) || 0;
+      const target = parseFloat(document.getElementById('target').value) || 0;
+
+      if (capital <= 0 || riskPct <= 0 || entry <= 0 || sl <= 0 || sl >= entry) {
+        alert("सही वैल्यू डालें। Stop Loss Entry से कम होना चाहिए।");
+        return;
+      }
+
+      const riskAmount = (capital * riskPct / 100);
+      const riskPerUnit = entry - sl;
+      let qty = Math.floor(riskAmount / riskPerUnit);
+      const lots = Math.floor(qty / 65);
+
+      const rewardPerUnit = target > entry ? target - entry : 0;
+      const rrRatio = rewardPerUnit > 0 ? (rewardPerUnit / riskPerUnit).toFixed(1) : "N/A";
+
+      document.getElementById('calc-result').style.display = 'block';
+      document.getElementById('risk-amt').innerHTML = `Maximum Risk: <strong>₹${riskAmount.toFixed(0)}</strong>`;
+      document.getElementById('quantity').innerHTML = `Quantity: <strong>\( {qty} shares</strong> ( \){lots} lots)`;
+      document.getElementById('pos-value').innerHTML = `Position Value: <strong>₹${(qty * entry).toFixed(0)}</strong>`;
+      document.getElementById('rr-ratio').innerHTML = `Risk : Reward = <strong>1 : ${rrRatio}</strong>`;
+    }
+</script>
 </html>
+<script>
+    function calculatePosition() {
+      const capital = parseFloat(document.getElementById('capital').value) || 0;
+      const riskPct = parseFloat(document.getElementById('riskPercent').value) || 0;
+      const entry = parseFloat(document.getElementById('entry').value) || 0;
+      const sl = parseFloat(document.getElementById('stoploss').value) || 0;
+      const target = parseFloat(document.getElementById('target').value) || 0;
+
+      if (capital <= 0 || riskPct <= 0 || entry <= 0 || sl <= 0 || sl >= entry) {
+        alert("सही वैल्यू डालें। Stop Loss Entry से कम होना चाहिए।");
+        return;
+      }
+
+      const riskAmount = (capital * riskPct / 100);
+      const riskPerUnit = entry - sl;
+      let qty = Math.floor(riskAmount / riskPerUnit);
+      const lots = Math.floor(qty / 65);
+
+      const rewardPerUnit = target > entry ? target - entry : 0;
+      const rrRatio = rewardPerUnit > 0 ? (rewardPerUnit / riskPerUnit).toFixed(1) : "N/A";
+
+      document.getElementById('calc-result').style.display = 'block';
+      document.getElementById('risk-amt').innerHTML = `Maximum Risk: <strong>₹${riskAmount.toFixed(0)}</strong>`;
+      document.getElementById('quantity').innerHTML = `Quantity: <strong>\( {qty} shares</strong> ( \){lots} lots)`;
+      document.getElementById('pos-value').innerHTML = `Position Value: <strong>₹${(qty * entry).toFixed(0)}</strong>`;
+      document.getElementById('rr-ratio').innerHTML = `Risk : Reward = <strong>1 : ${rrRatio}</strong>`;
+    }
+  </script>
