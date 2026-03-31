@@ -34,7 +34,7 @@
       border-bottom: 1px solid #222;
     }
     .tf-name { color: #aaa; }
-    .rr-box {
+    .rr-box, .calc-box {
       background: #1a1a1a;
       padding: 16px;
       border-radius: 10px;
@@ -54,6 +54,25 @@
       margin: 30px auto;
       max-width: 720px;
       width: 100%;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0;
+      background: #222;
+      color: #fff;
+      border: 1px solid #00ff88;
+      border-radius: 5px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      background: #00ff88;
+      color: #000;
+      border: none;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -76,7 +95,7 @@
 
     <div class="rr-box">
       <h3 style="margin:0 0 12px 0; color:#ffcc00;">Risk-Reward Setup</h3>
-      <div class="row"><span class="label">Entry</span><span>22,300 – 22,350</span></div>
+      <div class="row"><span class="label">Entry (Sell)</span><span>22,320 – 22,350</span></div>
       <div class="row"><span class="label">Stop Loss</span><span class="red">22,450</span></div>
       <div class="row"><span class="label">Target 1</span><span class="green">22,000</span></div>
       <div class="row"><span class="label">Target 2</span><span class="green">21,700</span></div>
@@ -101,6 +120,26 @@
     <p class="last-updated">Last updated: 31 मार्च 2026</p>
   </div>
 
+  <!-- Position Sizing Calculator -->
+  <div class="card">
+    <h2>Position Sizing Calculator</h2>
+    <p style="color:#ffcc00;">एक ट्रेड में कितनी Quantity लेनी चाहिए?</p>
+
+    <input type="number" id="capital" placeholder="Account Capital (₹)" value="100000">
+    <input type="number" id="riskPercent" placeholder="Risk per Trade (%)" value="1" step="0.1">
+    <input type="number" id="entry" placeholder="Entry Price" value="22320">
+    <input type="number" id="stoploss" placeholder="Stop Loss" value="22450">
+
+    <button onclick="calculatePosition()">Calculate Quantity</button>
+
+    <div id="calc-result" style="margin-top:15px; padding:15px; background:#1a1a1a; border-radius:8px; display:none;">
+      <p id="risk-amt"></p>
+      <p id="quantity"></p>
+      <p id="pos-value"></p>
+      <small style="color:#888;">* Nifty Lot Size = 25 units</small>
+    </div>
+  </div>
+
   <!-- Sensex Live Chart -->
   <div class="chart-container">
     <h3>Sensex Live Chart</h3>
@@ -108,7 +147,7 @@
   </div>
 
   <p style="color: #888; margin-top: 40px; font-size: 0.9em;">
-    ⚠️ Demo Dashboard • Auto update हटा दिया गया है
+    ⚠️ Demo Dashboard • Trading में जोखिम होता है। अपना research करें।
   </p>
 
   <script src="https://s3.tradingview.com/tv.js"></script>
@@ -120,6 +159,29 @@
       "toolbar_bg": "#111111", "enable_publishing": false, "allow_symbol_change": true,
       "container_id": "sensex-chart"
     });
+
+    // Position Sizing Calculator
+    function calculatePosition() {
+      const capital = parseFloat(document.getElementById('capital').value);
+      const riskPct = parseFloat(document.getElementById('riskPercent').value);
+      const entry = parseFloat(document.getElementById('entry').value);
+      const sl = parseFloat(document.getElementById('stoploss').value);
+
+      if (!capital || !riskPct || !entry || !sl || sl >= entry) {
+        alert("सही वैल्यू डालें (Stop Loss Entry से कम होना चाहिए)");
+        return;
+      }
+
+      const riskAmount = (capital * riskPct / 100).toFixed(0);
+      const riskPerUnit = (entry - sl).toFixed(2);
+      let qty = Math.floor(riskAmount / riskPerUnit);
+      const lots = Math.floor(qty / 25);   // Nifty lot size
+
+      document.getElementById('calc-result').style.display = 'block';
+      document.getElementById('risk-amt').innerHTML = `Maximum Risk: <strong>₹${riskAmount}</strong>`;
+      document.getElementById('quantity').innerHTML = `Quantity: <strong>\( {qty} shares</strong> ( \){lots} lots)`;
+      document.getElementById('pos-value').innerHTML = `Total Position Value: <strong>₹${(qty * entry).toFixed(0)}</strong>`;
+    }
   </script>
 
 </body>
