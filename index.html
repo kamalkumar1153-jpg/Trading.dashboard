@@ -185,5 +185,62 @@
     updatePrices();
   </script>
 
-</body>
+</body><!-- Position Sizing Calculator Card -->
+<div class="card">
+  <h2>Position Sizing Calculator</h2>
+  <p style="color:#ffcc00; margin-bottom:15px;">Risk Management Tool</p>
+
+  <div style="display:grid; gap:10px; text-align:left;">
+    <label>Account Capital (₹)</label>
+    <input id="capital" type="number" value="100000" style="padding:8px; background:#222; color:#fff; border:1px solid #00ff88;">
+
+    <label>Risk per Trade (%)</label>
+    <input id="riskPercent" type="number" value="1" step="0.1" style="padding:8px; background:#222; color:#fff; border:1px solid #00ff88;">
+
+    <label>Entry Price</label>
+    <input id="entry" type="number" value="22300" style="padding:8px; background:#222; color:#fff; border:1px solid #00ff88;">
+
+    <label>Stop Loss</label>
+    <input id="stoploss" type="number" value="22450" style="padding:8px; background:#222; color:#fff; border:1px solid #00ff88;">
+  </div>
+
+  <button onclick="calculatePosition()" style="margin-top:15px; padding:10px 20px; background:#00ff88; color:#000; border:none; font-weight:bold; cursor:pointer;">
+    Calculate Position Size
+  </button>
+
+  <div id="result" style="margin-top:20px; padding:15px; background:#1a1a1a; border-radius:8px; display:none;">
+    <h3 style="color:#ffcc00;">Result</h3>
+    <p id="riskAmount"></p>
+    <p id="qty"></p>
+    <p id="positionValue"></p>
+    <small style="color:#888;">* Nifty में 1 lot = 25 units</small>
+  </div>
+</div>
+
+<script>
+function calculatePosition() {
+  const capital = parseFloat(document.getElementById('capital').value);
+  const riskPct = parseFloat(document.getElementById('riskPercent').value);
+  const entry = parseFloat(document.getElementById('entry').value);
+  const sl = parseFloat(document.getElementById('stoploss').value);
+
+  if (!capital || !riskPct || !entry || !sl || sl >= entry) {
+    alert("सही वैल्यू डालें (Stop Loss Entry से कम होना चाहिए)");
+    return;
+  }
+
+  const riskAmount = (capital * riskPct / 100).toFixed(0);
+  const riskPerUnit = (entry - sl).toFixed(2);
+  let qty = Math.floor(riskAmount / riskPerUnit);
+
+  // Nifty lot size adjustment (optional)
+  const lotSize = 25; // Nifty lot size
+  const lots = Math.floor(qty / lotSize);
+
+  document.getElementById('result').style.display = 'block';
+  document.getElementById('riskAmount').innerHTML = `Maximum Risk: <strong>₹${riskAmount}</strong>`;
+  document.getElementById('qty').innerHTML = `Quantity: <strong>\( {qty} shares</strong> ( \){lots} lots)`;
+  document.getElementById('positionValue').innerHTML = `Total Position Value: <strong>₹${(qty * entry).toFixed(0)}</strong>`;
+}
+</script>
                                                                                              </html>
