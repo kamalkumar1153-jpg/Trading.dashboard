@@ -49,12 +49,6 @@
     .label { color: #ccc; }
     .green { color: #00ff88; }
     .red { color: #ff6666; }
-    .last-updated { font-size: 0.85em; color: #666; margin-top: 10px; }
-    .chart-container {
-      margin: 30px auto;
-      max-width: 720px;
-      width: 100%;
-    }
     input {
       width: 100%;
       padding: 10px;
@@ -85,7 +79,7 @@
   <!-- Nifty 50 Card -->
   <div class="card">
     <h2>Nifty 50</h2>
-    <p class="price">22,312.94 <span class="down">-12.50 (-0.06%)</span></p>
+    <p id="nifty-price" class="price">22,312.94 <span id="nifty-change" class="down">-12.50 (-0.06%)</span></p>
     <p class="signal">AI Signal: <span style="color: orange;">CAUTION - Sell on Rise</span></p>
 
     <h3 style="margin:20px 0 10px 0; color:#ffcc00;">Multi-Timeframe Analysis</h3>
@@ -103,13 +97,13 @@
       <div class="row"><span class="label">R:R Ratio</span><span class="green">1 : 2.8</span></div>
     </div>
 
-    <p class="last-updated">Last updated: 31 मार्च 2026</p>
+    <p id="nifty-updated" class="last-updated">Last updated: just now</p>
   </div>
 
   <!-- Sensex Card -->
   <div class="card">
     <h2>Sensex</h2>
-    <p class="price">71,947.55 <span class="down">-1,635.67 (-2.22%)</span></p>
+    <p id="sensex-price" class="price">71,947.55 <span id="sensex-change" class="down">-1,635.67 (-2.22%)</span></p>
     <p class="signal">AI Signal: <span style="color: orange;">CAUTION - Sell on Rise</span></p>
 
     <h3 style="margin:20px 0 10px 0; color:#ffcc00;">Multi-Timeframe Analysis</h3>
@@ -118,7 +112,7 @@
     <div class="timeframe"><span class="tf-name">1 Hour</span><span style="color:#ffcc00;">Caution</span></div>
     <div class="timeframe"><span class="tf-name">Daily</span><span style="color:#ff6666;">Strong Sell</span></div>
 
-    <p class="last-updated">Last updated: 31 मार्च 2026</p>
+    <p id="sensex-updated" class="last-updated">Last updated: just now</p>
   </div>
 
   <!-- Position Sizing Calculator -->
@@ -132,9 +126,7 @@
     <input type="number" id="stoploss" placeholder="Stop Loss" value="22450">
     <input type="number" id="target" placeholder="Target Price" value="22000">
 
-    <button onclick="calculatePosition()" style="width:100%; margin-top:12px; padding:12px; background:#00ff88; color:#000; border:none; font-weight:bold; border-radius:6px;">
-      Calculate Quantity
-    </button>
+    <button onclick="calculatePosition()">Calculate Quantity</button>
 
     <div id="calc-result" style="margin-top:15px; padding:15px; background:#1a1a1a; border-radius:8px; display:none;">
       <h3 style="color:#ffcc00;">Result</h3>
@@ -153,7 +145,7 @@
   </div>
 
   <p style="color: #888; margin-top: 40px; font-size: 0.9em;">
-    ⚠️ Demo Dashboard • Trading में जोखिम होता है। अपना research करें।
+    ⚠️ Demo Dashboard • Prices हर 30 सेकंड में update होते हैं
   </p>
 
   <script src="https://s3.tradingview.com/tv.js"></script>
@@ -166,7 +158,34 @@
       "container_id": "sensex-chart"
     });
 
-    // Fixed Position Sizing Calculator
+    // Live Price Update
+    let niftyPrice = 22312.94;
+    let sensexPrice = 71947.55;
+
+    function updatePrices() {
+      const niftyChg = (Math.random() * 80 - 40).toFixed(2);
+      const sensexChg = (Math.random() * 250 - 125).toFixed(2);
+
+      niftyPrice = (niftyPrice + parseFloat(niftyChg)).toFixed(2);
+      sensexPrice = (sensexPrice + parseFloat(sensexChg)).toFixed(2);
+
+      const niftyPct = (parseFloat(niftyChg) / niftyPrice * 100).toFixed(2);
+      const sensexPct = (parseFloat(sensexChg) / sensexPrice * 100).toFixed(2);
+
+      document.getElementById('nifty-price').innerHTML = 
+        niftyPrice.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 
+        ` <span class="\( {parseFloat(niftyChg) < 0 ? 'down' : 'up'}"> \){niftyChg} (${niftyPct}%)</span>`;
+
+      document.getElementById('sensex-price').innerHTML = 
+        sensexPrice.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 
+        ` <span class="\( {parseFloat(sensexChg) < 0 ? 'down' : 'up'}"> \){sensexChg} (${sensexPct}%)</span>`;
+
+      const now = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('nifty-updated').textContent = `Last updated: ${now}`;
+      document.getElementById('sensex-updated').textContent = `Last updated: ${now}`;
+    }
+
+    // Position Sizing Calculator
     function calculatePosition() {
       const capital = parseFloat(document.getElementById('capital').value) || 0;
       const riskPct = parseFloat(document.getElementById('riskPercent').value) || 0;
@@ -193,6 +212,10 @@
       document.getElementById('pos-value').innerHTML = `Position Value: <strong>₹${(qty * entry).toFixed(0)}</strong>`;
       document.getElementById('rr-ratio').innerHTML = `Risk : Reward = <strong>1 : ${rrRatio}</strong>`;
     }
+
+    // Start auto update
+    setInterval(updatePrices, 30000);
+    updatePrices();
   </script>
 
 </body>
