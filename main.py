@@ -1,33 +1,30 @@
 import yfinance as yf
 import pandas_ta as ta
-import pandas as pd
 
-def get_market_signal(ticker_symbol):
-    # 5 मिनट के इंटरवल पर डेटा लेना (Intraday के लिए)
-    df = yf.download(ticker_symbol, period="5d", interval="5m")
+def fetch_live_signals():
+    # सेंसेक्स (^BSESN) और निफ्टी (^NSEI) का डेटा
+    indices = {"SENSEX": "^BSESN", "NIFTY": "^NSEI"}
     
-    # इंडिकेटर्स कैलकुलेट करना
-    df['RSI'] = ta.rsi(df['Close'], length=14)
-    df['EMA_20'] = ta.ema(df['Close'], length=20)
-    
-    last_row = df.iloc[-1]
-    price = last_row['Close']
-    rsi = last_row['RSI']
-    ema = last_row['EMA_20']
-    
-    # सिग्नल लॉजिक
-    signal = "NEUTRAL ⚪"
-    if rsi > 60 and price > ema:
-        signal = "STRONG BUY 🚀"
-    elif rsi < 40 and price < ema:
-        signal = "STRONG SELL 📉"
-    elif rsi > 50:
-        signal = "BULLISH BIAS 🔼"
-    elif rsi < 50:
-        signal = "BEARISH BIAS 🔽"
-    
-    return f"{ticker_symbol}: {price:.2f} | RSI: {rsi:.2f} | Signal: {signal}"
+    for name, ticker in indices.items():
+        data = yf.download(ticker, period="2d", interval="5m")
+        if data.empty: continue
+        
+        # इंडिकेटर्स कैलकुलेशन
+        data['RSI'] = ta.rsi(data['Close'], length=14)
+        data['EMA_20'] = ta.ema(data['Close'], length=20)
+        
+        last_price = data['Close'].iloc[-1]
+        last_rsi = data['RSI'].iloc[-1]
+        last_ema = data['EMA_20'].iloc[-1]
+        change = ((last_price - data['Close'].iloc[-2]) / data['Close'].iloc[-2]) * 100
 
-# Sensex और Nifty दोनों के लिए चेक करें
-print(get_market_signal("^BSESN")) # Sensex
-print(get_market_signal("^NSEI"))  # Nifty 50
+        print(f"--- {name} Update ---")
+        print(f"Price: {last_price:.2f} ({change:+.2f}%)")
+        print(f"RSI: {last_rsi:.2f} | EMA 20: {last_ema:.2f}")
+        
+        # यहाँ आप Firebase या Telegram Bot का कोड जोड़ सकते हैं 
+        # ताकि index.html में वैल्यू बदल सके।
+
+if __name__ == "__main__":
+    fetch_live_signals()
+
