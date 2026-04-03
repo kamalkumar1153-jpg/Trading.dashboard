@@ -1,24 +1,26 @@
-name: Market Signal Bot
+name: Indian Market Live Update
 
 on:
   schedule:
-    - cron: '*/15 * * * *' # हर 15 मिनट में चलेगा
-  workflow_dispatch: # मैन्युअल चलाने के लिए
+    # सोमवार से शुक्रवार, हर 15 मिनट में (सुबह 3:45 UTC से दोपहर 10:00 UTC तक)
+    # यह IST सुबह 9:15 से दोपहर 3:30 तक कवर करेगा
+    - cron: '*/15 3-10 * * 1-5'
+  workflow_dispatch: # बटन दबाकर खुद भी चला सकते हैं
 
 jobs:
-  build:
+  update-market:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v2
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.9'
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - name: Install Libs
+        run: pip install yfinance pandas_ta
 
-      - name: Run Signal Script
+      - name: Run Market Engine
         run: python main.py
