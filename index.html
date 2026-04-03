@@ -88,14 +88,29 @@
     </div>
 
     <script>
-        // Live Clock Function
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('live-clock').innerText = now.toLocaleTimeString('en-IN');
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
-    </script>
-</body>
-</html>
+        <script>
+    // Live Clock Function
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('live-clock').innerText = now.toLocaleTimeString('en-IN');
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Firebase Fetch Function (यहाँ अपना पूरा फंक्शन डालें)
+    const FIREBASE_URL = "https://ai-pro-terminal-default-rtdb.firebaseio.com/market_data.json";
+    async function fetchMarketData() {
+        try {
+            const response = await fetch(FIREBASE_URL);
+            const data = await response.json();
+            if (data) {
+                document.getElementById('sensex-price').innerText = data.sensex_price.toLocaleString('en-IN');
+                // बाकी के ID भी यहाँ अपडेट करें
+            }
+        } catch (e) { console.log(e); }
+    }
+    setInterval(fetchMarketData, 5000);
+    fetchMarketData();
+</script>
+
 
