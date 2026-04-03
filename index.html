@@ -3,120 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Pro Terminal V2 - Kamal Trader</title>
+    <title>AI Pro Terminal V2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #0d1117; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .glass-card { background: rgba(23, 27, 33, 0.8); border: 1px solid #30363d; border-radius: 12px; }
-        .neon-text-green { color: #39ff14; text-shadow: 0 0 5px #39ff14; }
-        .neon-text-red { color: #ff3131; text-shadow: 0 0 5px #ff3131; }
+        body { background-color: #0f172a; color: white; font-family: sans-serif; }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; }
+        
+        /* 🔥 Arrow Animation & Neon Effect */
+        @keyframes neonGlowGreen { 0% { text-shadow: 0 0 10px #39ff14; } 50% { text-shadow: 0 0 20px #39ff14, 0 0 30px #39ff14; } 100% { text-shadow: 0 0 10px #39ff14; } }
+        @keyframes neonGlowRed { 0% { text-shadow: 0 0 10px #ff3131; } 50% { text-shadow: 0 0 20px #ff3131, 0 0 30px #ff3131; } 100% { text-shadow: 0 0 10px #ff3131; } }
+        @keyframes bounceArrow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+        .neon-green { color: #39ff14; animation: neonGlowGreen 1.5s infinite; }
+        .neon-red { color: #ff3131; animation: neonGlowRed 1.5s infinite; }
+        .neon-yellow { color: #fbbf24; }
+        .arrow-up { display: inline-block; transform: rotate(-45deg); animation: bounceArrow 1s infinite; }
+        .arrow-down { display: inline-block; transform: rotate(135deg); animation: bounceArrow 1s infinite; }
+        .arrow-side { display: inline-block; transform: rotate(90deg); }
     </style>
 </head>
 <body class="p-4">
 
     <div class="flex justify-between items-center mb-6">
         <div>
-            <h1 class="text-2xl font-bold tracking-tight">AI PRO <span class="text-blue-500">TERMINAL V2</span></h1>
+            <h1 class="text-2xl font-bold text-blue-400">AI PRO <span class="text-white">TERMINAL V2</span></h1>
             <p class="text-xs text-gray-400">Kamal-Trader Dashboard</p>
         </div>
-        <div class="text-right">
-            <span id="live-clock" class="text-sm font-mono bg-gray-800 px-3 py-1 rounded">00:00:00</span>
-        </div>
+        <div id="live-clock" class="bg-gray-800 px-4 py-2 rounded-lg font-mono text-xl border border-blue-500/50">00:00:00</div>
     </div>
 
     <div class="grid grid-cols-2 gap-4 mb-6">
         <div class="glass-card p-4">
             <p class="text-gray-400 text-xs uppercase">SENSEX</p>
-            <h2 id="sensex-price" class="text-xl font-bold">73319.55</15m>
-            <p class="text-red-500 text-sm">-2.22% ↓</p>
+            <h2 id="sensex-price" class="text-xl font-bold">--</h2>
+            <p id="sensex-change" class="text-sm font-bold">--</p>
         </div>
         <div class="glass-card p-4">
             <p class="text-gray-400 text-xs uppercase">NIFTY 50</p>
-            <h2 id="nifty-price" class="text-xl font-bold">22713.10</15m>
-            <p class="text-red-500 text-sm">-1.85% ↓</p>
+            <h2 id="nifty-price" class="text-xl font-bold">--</h2>
+            <p id="nifty-change" class="text-sm font-bold">--</p>
         </div>
     </div>
 
-    <div class="glass-card overflow-hidden mb-6" style="height: 400px;">
-        <div class="tradingview-widget-container" style="height:100%;width:100%">
-            <div id="tradingview_chart" style="height:calc(100% - 32px);width:100%"></div>
-            <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-            <script type="text/javascript">
-            new TradingView.widget({
-                "autosize": true,
-                "symbol": "BSE:SENSEX",
-                "interval": "D",
-                "timezone": "Asia/Kolkata",
-                "theme": "dark",
-                "style": "1",
-                "locale": "in",
-                "toolbar_bg": "#f1f3f6",
-                "enable_publishing": false,
-                "hide_top_toolbar": true,
-                "save_image": false,
-                "container_id": "tradingview_chart"
-            });
-            </script>
-        </div>
-        </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="glass-card p-4">
-            <h3 class="text-sm font-semibold mb-3 border-b border-gray-700 pb-2">Technical Indicators</h3>
-            <div class="flex justify-between mb-2">
+    <div class="glass-card p-4 mb-6">
+        <h3 class="text-sm font-bold mb-4 border-b border-gray-700 pb-2">AI TECHNICAL STATUS</h3>
+        <div class="space-y-4">
+            <div class="flex justify-between">
                 <span class="text-gray-400">RSI (14):</span>
-                <span id="rsi-val" class="font-mono font-bold text-yellow-500">42.50</span>
+                <span id="rsi-val" class="font-bold text-blue-400">--</span>
             </div>
-            <div class="flex justify-between mb-2">
+            <div class="flex justify-between">
                 <span class="text-gray-400">EMA (20):</span>
-                <span id="ema-val" class="font-mono">72,150.20</span>
+                <span id="ema-val" class="font-bold">--</span>
             </div>
-            <div class="mt-4 p-2 bg-gray-900 rounded text-center">
-                <p class="text-xs text-gray-500">Market Sentiment</p>
-                <p id="sentiment" class="font-bold text-red-400">BEARISH</p>
-            </div>
-        </div>
-
-        <div class="glass-card p-4">
-            <h3 class="text-sm font-semibold mb-3 border-b border-gray-700 pb-2">AI Alert Log</h3>
-            <div id="logs" class="text-xs font-mono space-y-2 h-24 overflow-y-auto">
-                <p class="text-blue-400">[10:30] Bot Started...</p>
-                <p class="text-gray-400">[10:31] Checking RSI/EMA signals...</p>
-                <p class="text-red-400">[10:31] Sensex dropped below 20 EMA</p>
+            
+            <div class="mt-4 p-3 bg-blue-900/30 border border-blue-500/50 rounded-lg text-center">
+                <p class="text-[10px] text-blue-300 uppercase tracking-widest">Next 15m Forecast</p>
+                <div class="flex items-center justify-center gap-2 mt-1">
+                    <span id="trend-arrow" class="text-3xl">→</span>
+                    <h4 id="prediction-text" class="text-lg font-black text-white">ANALYZING...</h4>
+                </div>
             </div>
         </div>
     </div>
-      <script>
-    // 1. लाइव घड़ी (Clock)
-    function updateClock() {
-        const clock = document.getElementById('live-clock');
-        if (clock) clock.innerText = new Date().toLocaleTimeString('en-IN');
-    }
-    setInterval(updateClock, 1000);
 
-    // 2. Firebase लाइव डेटा (RSI/EMA/Price)
-    const FIREBASE_URL = "https://ai-pro-terminal-default-rtdb.firebaseio.com/market_data.json";
-    
-    async function fetchMarketData() {
-        try {
-            const res = await fetch(FIREBASE_URL);
-            const data = await res.json();
-            if (data) {
-                // सेंसेक्स और निफ्टी अपडेट
-                document.getElementById('sensex-price').innerText = data.sensex_price.toLocaleString('en-IN');
-                document.getElementById('nifty-price').innerText = data.nifty_price.toLocaleString('en-IN');
-                
-                // RSI और EMA अपडेट (Technical Indicators सेक्शन के लिए)
-                if(document.getElementById('rsi-val')) {
+    <div class="glass-card overflow-hidden h-[300px]">
+        <div id="tradingview_widget"></div>
+    </div>
+
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script>
+        // 1. TradingView Widget Configuration
+        new TradingView.widget({
+            "autosize": true, "symbol": "BSE:SENSEX", "interval": "15",
+            "timezone": "Asia/Kolkata", "theme": "dark", "style": "1",
+            "locale": "in", "toolbar_bg": "#f1f3f6", "enable_publishing": false,
+            "hide_top_toolbar": true, "container_id": "tradingview_widget"
+        });
+
+        // 2. Live Clock
+        function updateClock() {
+            document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('en-IN');
+        }
+        setInterval(updateClock, 1000);
+
+        // 3. Firebase Integration & Prediction Logic
+        const FIREBASE_URL = "https://ai-pro-terminal-default-rtdb.firebaseio.com/market_data.json";
+
+        async function fetchMarketData() {
+            try {
+                const response = await fetch(FIREBASE_URL);
+                const data = await response.json();
+                if (data) {
+                    // Prices
+                    document.getElementById('sensex-price').innerText = data.sensex_price.toLocaleString('en-IN');
+                    document.getElementById('nifty-price').innerText = data.nifty_price.toLocaleString('en-IN');
+                    
+                    // Changes
+                    const sChange = document.getElementById('sensex-change');
+                    sChange.innerText = (data.sensex_change >= 0 ? "+" : "") + data.sensex_change + "%";
+                    sChange.className = data.sensex_change >= 0 ? "text-green-500" : "text-red-500";
+
+                    // Technicals
                     document.getElementById('rsi-val').innerText = data.rsi_val;
-                    document.getElementById('ema-val').innerText = data.ema_20;
+                    document.getElementById('ema-val').innerText = data.ema_20.toLocaleString('en-IN');
+
+                    // 🔥 Updated 15m Prediction Logic with Arrows
+                    const predBox = document.getElementById('prediction-text');
+                    const trendArrow = document.getElementById('trend-arrow');
+
+                    if (data.rsi_val > 65) {
+                        predBox.innerText = "SLIGHT BEARISH";
+                        predBox.className = "text-lg font-black neon-red";
+                        trendArrow.innerText = "↓";
+                        trendArrow.className = "text-3xl neon-red arrow-down";
+                    } else if (data.rsi_val < 35) {
+                        predBox.innerText = "BULLISH REVERSAL";
+                        predBox.className = "text-lg font-black neon-green";
+                        trendArrow.innerText = "↑";
+                        trendArrow.className = "text-3xl neon-green arrow-up";
+                    } else {
+                        predBox.innerText = "SIDEWAYS MOVE";
+                        predBox.className = "text-lg font-black neon-yellow";
+                        trendArrow.innerText = "→";
+                        trendArrow.className = "text-3xl neon-yellow arrow-side";
+                    }
                 }
-            }
-        } catch (e) { console.log("Error fetching data"); }
-    }
-    setInterval(fetchMarketData, 5000);
-    fetchMarketData();
-</script>
+            } catch (e) { console.log("Error:", e); }
+        }
+
+        setInterval(fetchMarketData, 5000);
+        fetchMarketData();
+    </script>
+</body>
+</html>
+
 
 
 
