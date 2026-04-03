@@ -86,24 +86,38 @@
             </div>
         </div>
     </div>
-        <script>
+      <script>
+    // 1. लाइव घड़ी (Clock)
     function updateClock() {
-        const now = new Date();
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
-        
-        // यह सुनिश्चित करें कि आपके HTML में id="live-clock" मौजूद है
-        const clockElement = document.getElementById('live-clock');
-        if (clockElement) {
-            clockElement.innerText = hours + ":" + minutes + ":" + seconds;
-        }
+        const clock = document.getElementById('live-clock');
+        if (clock) clock.innerText = new Date().toLocaleTimeString('en-IN');
     }
-
-    // हर 1 सेकंड में घड़ी अपडेट होगी
     setInterval(updateClock, 1000);
-    updateClock(); // पहली बार तुरंत चलाने के लिए
+
+    // 2. Firebase लाइव डेटा (RSI/EMA/Price)
+    const FIREBASE_URL = "https://ai-pro-terminal-default-rtdb.firebaseio.com/market_data.json";
+    
+    async function fetchMarketData() {
+        try {
+            const res = await fetch(FIREBASE_URL);
+            const data = await res.json();
+            if (data) {
+                // सेंसेक्स और निफ्टी अपडेट
+                document.getElementById('sensex-price').innerText = data.sensex_price.toLocaleString('en-IN');
+                document.getElementById('nifty-price').innerText = data.nifty_price.toLocaleString('en-IN');
+                
+                // RSI और EMA अपडेट (Technical Indicators सेक्शन के लिए)
+                if(document.getElementById('rsi-val')) {
+                    document.getElementById('rsi-val').innerText = data.rsi_val;
+                    document.getElementById('ema-val').innerText = data.ema_20;
+                }
+            }
+        } catch (e) { console.log("Error fetching data"); }
+    }
+    setInterval(fetchMarketData, 5000);
+    fetchMarketData();
 </script>
+
 
 
 
