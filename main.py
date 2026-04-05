@@ -5,7 +5,7 @@ import json
 import time
 
 # --- कॉन्फ़िगरेशन (अपनी डिटेल्स यहाँ भरें) ---
-PUSHBULLET_TOKEN = "YOUR_PUSHBULLET_ACCESS_TOKEN" # अपना टोकन यहाँ पेस्ट करें
+PUSHBULLET_TOKEN = "o.uG2ufY2g2A0m2GqXcMO0LwZtRX10lZMV" # अपना टोकन यहाँ पेस्ट करें
 FIREBASE_URL = "https://ai-pro-terminal-default-rtdb.firebaseio.com/market_data.json"
 
 def send_push(title, body):
