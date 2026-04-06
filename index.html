@@ -6,10 +6,10 @@
     <title>AI Pro Terminal V2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #0f172a; color: white; font-family: sans-serif; }
+        body { background-color: #0f172a; color: white; font-family: sans-serif; overflow-x: hidden; }
         .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; }
         
-        /* 🔥 Arrow Animation & Neon Effect */
+        /* 🔥 Neon Glow Animations */
         @keyframes neonGlowGreen { 0% { text-shadow: 0 0 10px #39ff14; } 50% { text-shadow: 0 0 20px #39ff14, 0 0 30px #39ff14; } 100% { text-shadow: 0 0 10px #39ff14; } }
         @keyframes neonGlowRed { 0% { text-shadow: 0 0 10px #ff3131; } 50% { text-shadow: 0 0 20px #ff3131, 0 0 30px #ff3131; } 100% { text-shadow: 0 0 10px #ff3131; } }
         @keyframes bounceArrow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
@@ -17,9 +17,8 @@
         .neon-green { color: #39ff14; animation: neonGlowGreen 1.5s infinite; }
         .neon-red { color: #ff3131; animation: neonGlowRed 1.5s infinite; }
         .neon-yellow { color: #fbbf24; }
-        .arrow-up { display: inline-block; transform: rotate(-45deg); animation: bounceArrow 1s infinite; }
-        .arrow-down { display: inline-block; transform: rotate(135deg); animation: bounceArrow 1s infinite; }
-        .arrow-side { display: inline-block; transform: rotate(90deg); }
+        .arrow-up { display: inline-block; animation: bounceArrow 1s infinite; }
+        .arrow-down { display: inline-block; animation: bounceArrow 1s infinite; }
     </style>
 </head>
 <body class="p-4">
@@ -27,116 +26,143 @@
     <div class="flex justify-between items-center mb-6">
         <div>
             <h1 class="text-2xl font-bold text-blue-400">AI PRO <span class="text-white">TERMINAL V2</span></h1>
-            <p class="text-xs text-gray-400">Kamal-Trader Dashboard</p>
+            <p class="text-[10px] text-gray-500 tracking-widest uppercase">Kamal-Trader Dashboard</p>
         </div>
-        <div id="live-clock" class="bg-gray-800 px-4 py-2 rounded-lg font-mono text-xl border border-blue-500/50">00:00:00</div>
+        <div id="live-clock" class="bg-gray-800 px-3 py-1 rounded-lg font-mono text-lg border border-blue-500/30 text-blue-300">00:00:00</div>
     </div>
 
     <div class="grid grid-cols-2 gap-4 mb-6">
-        <div class="glass-card p-4">
-            <p class="text-gray-400 text-xs uppercase">SENSEX</p>
-            <h2 id="sensex-price" class="text-xl font-bold">--</h2>
-            <p id="sensex-change" class="text-sm font-bold">--</p>
+        <div class="glass-card p-4 border-l-4 border-blue-500">
+            <p class="text-gray-400 text-[10px] uppercase font-bold">SENSEX</p>
+            <h2 id="sensex-price" class="text-xl font-black">--</h2>
+            <p id="sensex-change" class="text-xs font-bold mt-1">--</p>
         </div>
-        <div class="glass-card p-4">
-            <p class="text-gray-400 text-xs uppercase">NIFTY 50</p>
-            <h2 id="nifty-price" class="text-xl font-bold">--</h2>
-            <p id="nifty-change" class="text-sm font-bold">--</p>
+        <div class="glass-card p-4 border-l-4 border-blue-400">
+            <p class="text-gray-400 text-[10px] uppercase font-bold">NIFTY 50</p>
+            <h2 id="nifty-price" class="text-xl font-black">--</h2>
+            <p id="nifty-change" class="text-xs font-bold mt-1">--</p>
         </div>
     </div>
 
     <div class="glass-card p-4 mb-6">
-        <h3 class="text-sm font-bold mb-4 border-b border-gray-700 pb-2">AI TECHNICAL STATUS</h3>
+        <h3 class="text-xs font-bold mb-4 border-b border-gray-700 pb-2 text-gray-300 uppercase">AI Technical Status</h3>
         <div class="space-y-4">
-            <div class="flex justify-between">
-                <span class="text-gray-400">RSI (14):</span>
-                <span id="rsi-val" class="font-bold text-blue-400">--</span>
+            <div class="flex justify-between items-center">
+                <span class="text-gray-400 text-sm">RSI (14):</span>
+                <span id="rsi-val" class="font-bold text-blue-400 text-lg">--</span>
             </div>
-            <div class="flex justify-between">
-                <span class="text-gray-400">EMA (20):</span>
-                <span id="ema-val" class="font-bold">--</span>
+            <div class="flex justify-between items-center">
+                <div class="flex flex-col">
+                    <span class="text-gray-400 text-sm">EMA (20):</span>
+                    <span id="ema-val" class="text-[10px] text-gray-500">--</span>
+                </div>
+                <span id="ema-status" class="px-2 py-1 rounded bg-gray-800 text-[9px] font-bold text-gray-400 uppercase">Checking...</span>
             </div>
             
-            <div class="mt-4 p-3 bg-blue-900/30 border border-blue-500/50 rounded-lg text-center">
-                <p class="text-[10px] text-blue-300 uppercase tracking-widest">Next 15m Forecast</p>
-                <div class="flex items-center justify-center gap-2 mt-1">
+            <div class="mt-4 p-4 bg-blue-900/20 border border-blue-500/30 rounded-xl text-center">
+                <p class="text-[9px] text-blue-400 uppercase font-bold tracking-[0.2em]">Next 15m Forecast</p>
+                <div class="flex items-center justify-center gap-2 mt-2">
                     <span id="trend-arrow" class="text-3xl">→</span>
-                    <h4 id="prediction-text" class="text-lg font-black text-white">ANALYZING...</h4>
+                    <h4 id="prediction-text" class="text-lg font-black">ANALYZING...</h4>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="glass-card overflow-hidden h-[300px]">
-        <div id="tradingview_widget"></div>
+    <div class="glass-card overflow-hidden h-[320px] mb-4 border border-white/5">
+        <div id="tradingview_widget" class="h-full"></div>
     </div>
 
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script>
-        // 1. TradingView Widget Configuration
+        // 1. Fixed TradingView Widget (NIFTY works better for 15m)
         new TradingView.widget({
-            "autosize": true, "symbol": "BSE:SENSEX", "interval": "15",
-            "timezone": "Asia/Kolkata", "theme": "dark", "style": "1",
-            "locale": "in", "toolbar_bg": "#f1f3f6", "enable_publishing": false,
-            "hide_top_toolbar": true, "container_id": "tradingview_widget"
+            "autosize": true,
+            "symbol": "NSE:NIFTY", 
+            "interval": "15",
+            "timezone": "Asia/Kolkata",
+            "theme": "dark",
+            "style": "1",
+            "locale": "in",
+            "hide_top_toolbar": true,
+            "container_id": "tradingview_widget"
         });
 
         // 2. Live Clock
         function updateClock() {
-            document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('en-IN');
+            const now = new Date();
+            document.getElementById('live-clock').innerText = now.toLocaleTimeString('en-IN', { hour12: true });
         }
         setInterval(updateClock, 1000);
+        updateClock();
 
-        // 3. Firebase Integration & Prediction Logic
+        // 3. Firebase Data Sync
         const FIREBASE_URL = "https://ai-pro-terminal-default-rtdb.firebaseio.com/market_data.json";
 
         async function fetchMarketData() {
             try {
                 const response = await fetch(FIREBASE_URL);
                 const data = await response.json();
+                
                 if (data) {
-                    // Prices
-                    document.getElementById('sensex-price').innerText = data.sensex_price.toLocaleString('en-IN');
-                    document.getElementById('nifty-price').innerText = data.nifty_price.toLocaleString('en-IN');
+                    // Update Prices & Percents
+                    document.getElementById('sensex-price').innerText = (data.sensex_price || "--").toLocaleString('en-IN');
+                    document.getElementById('nifty-price').innerText = (data.nifty_price || "--").toLocaleString('en-IN');
                     
-                    // Changes
-                    const sChange = document.getElementById('sensex-change');
-                    sChange.innerText = (data.sensex_change >= 0 ? "+" : "") + data.sensex_change + "%";
-                    sChange.className = data.sensex_change >= 0 ? "text-green-500" : "text-red-500";
+                    const nChange = document.getElementById('nifty-change');
+                    const valChange = data.nifty_change || 0;
+                    nChange.innerText = (valChange >= 0 ? "▲ +" : "▼ ") + valChange + "%";
+                    nChange.className = valChange >= 0 ? "text-green-400 text-xs font-bold" : "text-red-400 text-xs font-bold";
 
-                    // Technicals
-                    document.getElementById('rsi-val').innerText = data.rsi_val;
-                    document.getElementById('ema-val').innerText = data.ema_20.toLocaleString('en-IN');
+                    // Update Technicals
+                    const rsi = data.nifty_rsi || 0;
+                    const ema = data.nifty_ema_20 || 0;
+                    const price = data.nifty_price || 0;
 
-                    // 🔥 Updated 15m Prediction Logic with Arrows
+                    document.getElementById('rsi-val').innerText = rsi;
+                    document.getElementById('ema-val').innerText = "Level: " + ema.toLocaleString('en-IN');
+
+                    // EMA Status Badge
+                    const statusBadge = document.getElementById('ema-status');
+                    if (price > ema) {
+                        statusBadge.innerText = "Bullish Trend";
+                        statusBadge.className = "px-2 py-1 rounded bg-green-900/40 text-[9px] font-bold text-green-400 uppercase border border-green-500/30";
+                    } else {
+                        statusBadge.innerText = "Bearish Trend";
+                        statusBadge.className = "px-2 py-1 rounded bg-red-900/40 text-[9px] font-bold text-red-400 uppercase border border-red-500/30";
+                    }
+
+                    // 🎯 Prediction Logic
                     const predBox = document.getElementById('prediction-text');
                     const trendArrow = document.getElementById('trend-arrow');
 
-                    if (data.rsi_val > 65) {
-                        predBox.innerText = "SLIGHT BEARISH";
+                    if (rsi > 65) {
+                        predBox.innerText = "SELL ON RISE";
                         predBox.className = "text-lg font-black neon-red";
                         trendArrow.innerText = "↓";
                         trendArrow.className = "text-3xl neon-red arrow-down";
-                    } else if (data.rsi_val < 35) {
-                        predBox.innerText = "BULLISH REVERSAL";
+                    } else if (rsi < 35) {
+                        predBox.innerText = "BUY THE DIP";
                         predBox.className = "text-lg font-black neon-green";
                         trendArrow.innerText = "↑";
                         trendArrow.className = "text-3xl neon-green arrow-up";
                     } else {
-                        predBox.innerText = "SIDEWAYS MOVE";
+                        predBox.innerText = "WAIT / SIDEWAYS";
                         predBox.className = "text-lg font-black neon-yellow";
                         trendArrow.innerText = "→";
-                        trendArrow.className = "text-3xl neon-yellow arrow-side";
+                        trendArrow.className = "text-3xl neon-yellow";
                     }
                 }
-            } catch (e) { console.log("Error:", e); }
+            } catch (e) { console.log("Firebase Error:", e); }
         }
 
-        setInterval(fetchMarketData, 5000);
+        // Fetch every 10 seconds to save data/battery
+        setInterval(fetchMarketData, 10000);
         fetchMarketData();
     </script>
 </body>
 </html>
+
 
 
 
