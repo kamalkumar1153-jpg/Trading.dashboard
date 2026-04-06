@@ -65,12 +65,12 @@
     <div class="market-grid">
         <div class="index-card">
             <small>SENSEX</small>
-            <div class="price" id="sensex-val">74,248.22</div>
+            <div class="price" id="sensex-val">74,106.85</div>
         </div>
 
         <div class="index-card">
             <small>NIFTY 50</small>
-            <div class="price" id="nifty-val">22,514.65</div>
+            <div class="price" id="nifty-val">22,968.25</div>
         </div>
     </div>
 
@@ -108,8 +108,8 @@
         function updateMarketData() {
             // Yahan aap apna fetch(API_URL) code dal sakte hain
             // Filhal movement dikhane ke liye random values use ho rahi hain
-            let sensexBase = 74248;
-            let niftyBase = 22514;
+            let sensexBase = 74,106.85;
+            let niftyBase = 22,968.25;
             
             setInterval(() => {
                 let sChange = (Math.random() * 10 - 5).toFixed(2);
