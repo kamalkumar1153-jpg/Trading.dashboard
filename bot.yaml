@@ -20,16 +20,12 @@ jobs:
 
       - name: Install Dependencies
         run: |
-            - name: Install Libs
-        run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-
+          pip install yfinance pandas pandas_ta requests
 
       - name: Run Market Engine
         env:
-          # अगर आपने GitHub Secrets में टोकन डाला है तो इसे इस्तेमाल करें
           PUSHBULLET_TOKEN: ${{ secrets.PUSHBULLET_TOKEN }}
         run: python main.py
+
 
