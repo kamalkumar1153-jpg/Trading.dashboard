@@ -1,25 +1,24 @@
-# AI Pro Terminal
+# 🚀 AI Pro Terminal
 
-A beautiful dark-themed live trading dashboard for **Nifty 50** and **Sensex** with RSI (14) indicator and AI-style signals.
+A beautiful **dark-themed live trading dashboard** for Indian Stock Market.
 
 ### Features
-- Real-time Nifty 50 & Sensex prices
-- Percentage change with color coding
-- RSI (14) calculation with Buy/Sell signals
-- Mobile friendly dark UI
-- Auto refresh every 20 seconds
+- Real-time **Nifty 50** & **Sensex** prices with % change
+- **RSI (14)** indicator with Buy/Sell signals
+- Two versions available:
+  - Pure HTML + JavaScript (GitHub Pages)
+  - Python + Streamlit (more stable & powerful)
 
-### Live Demo
-https://kamalkumar1153-jpg.github.io (या आपका GitHub Pages URL)
+### Live Demo (HTML Version)
+https://kamalkumar1153-jpg.github.io
 
-### How to Run Locally
-1. Download `index.html`
-2. Open in any browser
-3. (Optional) Host on GitHub Pages
+### How to Run
 
-### Tech Stack
-- HTML + CSS + JavaScript
-- NSE India unofficial API
-- Yahoo Finance for historical data (RSI)
+#### HTML Version
+1. Open `index.html` in any browser
+2. Or host on GitHub Pages
 
-Made with ❤️ for Indian traders
+#### Python Streamlit Version
+```bash
+pip install streamlit pandas yfinance
+streamlit run main.py
