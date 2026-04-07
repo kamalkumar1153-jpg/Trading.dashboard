@@ -1,68 +1,70 @@
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Pro Terminal V2.5</title>
+    <style>
+        :root { --bg: #051125; --card: #112240; --accent: #64ffda; --bearish: #ff4d4d; --border: #1d2d50; }
+        body { background-color: var(--bg); color: #ffffff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; }
+        .header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px; }
+        .title h1 { color: #4facfe; margin: 0; font-size: 22px; font-weight: bold; }
+        .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .index-card { background: var(--card); padding: 18px 12px; border-radius: 15px; border: 1px solid var(--border); }
+        .status-box { background: var(--card); padding: 18px; border-radius: 18px; border: 1px solid var(--border); }
+        .indicator { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .val { color: var(--accent); font-weight: bold; }
+        .forecast-btn { background: #3b82f6; margin-top: 20px; padding: 15px; border-radius: 12px; text-align: center; font-weight: bold; }
+    </style>
+</head>
+<body>
 
-<script>
-    // 1. Firebase Configuration
-    const firebaseConfig = {
-        databaseURL: "https://market--treminal-default-rtdb.firebaseio.com"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+    <div class="header">
+        <div class="title">
+            <h1>AI PRO TERMINAL</h1>
+            <div id="mkt-session" style="font-size: 10px; color: var(--accent);">● LIVE FEED</div>
+        </div>
+    </div>
 
-    // 2. Clock & Session Logic (Jo aapne likha tha)
-    function updateClock() {
-        const now = new Date();
-        let h = now.getHours(), m = String(now.getMinutes()).padStart(2, '0'), s = String(now.getSeconds()).padStart(2, '0');
-        let ampm = h >= 12 ? 'PM' : 'AM';
+    <div class="market-grid">
+        <div class="index-card"><small>NIFTY 50</small><div class="val" id="nifty-val">Loading...</div></div>
+        <div class="index-card"><small>RSI (14)</small><div class="val" id="rsi-val">--</div></div>
+    </div>
+
+    <div class="status-box">
+        <div class="indicator"><span>SIGNAL:</span> <span id="signal-text">CONNECTING...</span></div>
+        <div class="forecast-btn" id="main-btn">WAITING FOR DATA</div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            databaseURL: "https://market--treminal-default-rtdb.firebaseio.com"
+        };
         
-        const day = now.getDay();
-        const timeVal = h * 100 + parseInt(m);
-        const isOpen = (day !== 0 && day !== 6) && timeVal >= 915 && timeVal <= 1530;
-        
-        const sessionEl = document.getElementById('mkt-session');
-        sessionEl.innerText = isOpen ? "● MARKET OPEN" : "● MARKET CLOSED";
-        sessionEl.style.color = isOpen ? "#64ffda" : "#ff4d4d";
-        sessionEl.style.borderColor = isOpen ? "#64ffda" : "#ff4d4d";
+        try {
+            firebase.initializeApp(firebaseConfig);
+            const database = firebase.database();
 
-        h = h % 12 || 12;
-        document.getElementById('time').innerText = `${String(h).padStart(2, '0')}:${m}:${s}`;
-        document.getElementById('ampm').innerText = ampm;
-    }
-    setInterval(updateClock, 1000);
-
-    // 3. Real-Time Firebase Listener
-    // Ab random movement ki jagah Firebase se data aayega
-    database.ref('market_signal').on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            // Price Update
-            document.getElementById('nifty-val').innerText = parseFloat(data.price).toLocaleString('en-IN');
-            
-            // RSI & Pulse Bar Update
-            const rsi = data.rsi;
-            document.getElementById('rsi-val').innerText = rsi;
-            document.getElementById('pulse-fill').style.width = rsi + "%";
-
-            // Signal Box Update
-            const fBox = document.getElementById('forecast-box');
-            const sText = document.getElementById('signal-text');
-
-            if (data.signal === "UP") {
-                fBox.className = "forecast-btn glow-buy";
-                sText.innerText = "➔ STRONG BUY SIGNAL";
-                fBox.style.background = "linear-gradient(135deg, #065f46, #059669)"; // Greenish
-            } else if (data.signal === "DOWN") {
-                fBox.className = "forecast-btn";
-                sText.innerText = "➔ STRONG SELL SIGNAL";
-                fBox.style.background = "linear-gradient(135deg, #991b1b, #dc2626)"; // Reddish
-            } else {
-                fBox.className = "forecast-btn";
-                sText.innerText = "➔ NEUTRAL / WAIT";
-                fBox.style.background = "linear-gradient(135deg, #1e40af, #3b82f6)"; // Default Blue
-            }
+            database.ref('market_signal').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    document.getElementById('nifty-val').innerText = data.price || "0.0";
+                    document.getElementById('rsi-val').innerText = data.rsi || "0.0";
+                    document.getElementById('signal-text').innerText = data.signal || "NEUTRAL";
+                    document.getElementById('main-btn').innerText = "➔ NEXT: " + (data.signal || "WAIT");
+                }
+            });
+        } catch (e) {
+            console.log("Firebase Error: ", e);
+            document.body.innerHTML = "<h2 style='color:red; text-align:center;'>Code Error! Check Console.</h2>";
         }
-    });
-</script>
+    </script>
+</body>
+</html>
+
 
 
 
