@@ -1,4 +1,3 @@
-yfinance
+streamlit
 pandas
-pandas_ta
-python-telegram-bot
+yfinance
