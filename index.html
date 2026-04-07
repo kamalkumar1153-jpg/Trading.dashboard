@@ -1,21 +1,20 @@
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Pro Terminal V4.1</title>
+    <title>AI Pro Terminal V4.1 Fixed</title>
     <style>
         :root { --bg: #0b1120; --card: #1e293b; --accent: #00f2ff; --up: #10b981; --down: #ef4444; }
         body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-        .terminal { width: 95%; max-width: 420px; background: var(--card); padding: 20px; border-radius: 24px; border: 1px solid #334155; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
-        h2 { color: var(--accent); font-size: 1.1rem; margin-bottom: 15px; text-align: center; letter-spacing: 2px; }
-        .market-box { background: #0f172a; padding: 15px; border-radius: 15px; margin-bottom: 15px; border-left: 5px solid #334155; transition: 0.5s; }
-        .data-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .label { color: #94a3b8; font-size: 0.85rem; font-weight: bold; }
-        .price { font-family: 'monospace'; font-size: 1.3rem; font-weight: bold; color: var(--accent); }
-        .signal { font-size: 1.1rem; font-weight: 800; text-align: center; margin-top: 5px; }
-        .btn { width: 100%; background: var(--accent); color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: bold; margin-top: 10px; cursor: pointer; }
+        .terminal { width: 95%; max-width: 400px; background: var(--card); padding: 25px; border-radius: 24px; border: 1px solid #334155; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+        h2 { color: var(--accent); font-size: 1.1rem; margin-bottom: 20px; text-align: center; letter-spacing: 2px; }
+        .market-box { background: #0f172a; padding: 20px; border-radius: 15px; margin-bottom: 15px; border-left: 6px solid #334155; }
+        .data-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .label { color: #94a3b8; font-size: 0.9rem; font-weight: bold; }
+        .price { font-family: 'monospace'; font-size: 1.4rem; font-weight: bold; }
+        .signal { font-size: 1.2rem; font-weight: 800; text-align: center; margin-top: 10px; }
+        .btn { width: 100%; background: var(--accent); color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -23,81 +22,73 @@
     <div class="terminal">
         <h2>AI PRO TERMINAL V4.1</h2>
         
-        <div class="market-box" id="nifty-card">
-            <div class="data-header">
-                <span class="label">NIFTY 50</span>
-                <span class="price" id="nifty">---</span>
-            </div>
-            <div class="signal" id="nifty-sig">ANALYZING...</div>
+        <div class="market-box" id="n-card">
+            <div class="data-header"><span class="label">NIFTY 50</span><span class="price" id="n-price">---</span></div>
+            <div class="signal" id="n-sig">ANALYZING...</div>
         </div>
 
-        <div class="market-box" id="sensex-card">
-            <div class="data-header">
-                <span class="label">SENSEX</span>
-                <span class="price" id="sensex">---</span>
-            </div>
-            <div class="signal" id="sensex-sig">ANALYZING...</div>
+        <div class="market-box" id="s-card">
+            <div class="data-header"><span class="label">SENSEX</span><span class="price" id="s-price">---</span></div>
+            <div class="signal" id="s-sig">ANALYZING...</div>
         </div>
 
-        <button class="btn" onclick="getAllData()">REFRESH LIVE SIGNALS</button>
-        <p style="text-align: center; font-size: 9px; color: #64748b; margin-top: 10px;">NEXT 15M FORECAST | AUTO-REFRESH: 30S</p>
+        <button class="btn" onclick="updateAll()">REFRESH LIVE SIGNALS</button>
+        <p style="text-align: center; font-size: 10px; color: #64748b; margin-top: 15px;">NEXT 15M FORECAST | AUTO-REFRESH: 30S</p>
     </div>
 
     <script>
-        async function fetchSymbol(symbol) {
-            const res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=15m&range=1d`));
-            return JSON.parse((await res.json()).contents);
+        async function getPrice(symbol) {
+            // Hum AllOrigins proxy use kar rahe hain taaki "Error" na aaye
+            const url = `https://api.allorigins.win/get?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/' + symbol + '?interval=15m&range=1d')}`;
+            const res = await fetch(url);
+            const data = JSON.parse((await res.json()).contents);
+            return data.chart.result[0];
         }
 
-        async function getAllData() {
-            const elements = {
-                nifty: document.getElementById('nifty'),
-                niftySig: document.getElementById('nifty-sig'),
-                niftyCard: document.getElementById('nifty-card'),
-                sensex: document.getElementById('sensex'),
-                sensexSig: document.getElementById('sensex-sig'),
-                sensexCard: document.getElementById('sensex-card')
-            };
+        async function updateAll() {
+            const nPrice = document.getElementById('n-price');
+            const sPrice = document.getElementById('s-price');
+            const nSig = document.getElementById('n-sig');
+            const sSig = document.getElementById('s-sig');
+            const nCard = document.getElementById('n-card');
+            const sCard = document.getElementById('s-card');
 
             try {
-                // Fetch Nifty (^NSEI) and Sensex (^BSESN)
-                const [nData, sData] = await Promise.all([fetchSymbol('^NSEI'), fetchSymbol('^BSESN')]);
+                const [nData, sData] = await Promise.all([getPrice('^NSEI'), getPrice('^BSESN')]);
 
-                const process = (data, priceEl, sigEl, cardEl) => {
-                    const prices = data.chart.result[0].indicators.quote[0].close;
-                    const current = data.chart.result[0].meta.regularMarketPrice;
-                    const prev = prices[prices.length - 2];
+                const process = (data, pEl, sEl, cEl) => {
+                    const current = data.meta.regularMarketPrice;
+                    const history = data.indicators.quote[0].close;
+                    const prev = history[history.length - 2];
                     
-                    priceEl.innerText = current.toFixed(2);
+                    pEl.innerText = current.toLocaleString('en-IN');
                     
                     if (current > prev) {
-                        sigEl.innerText = "↑ 15M UP (BUY)";
-                        sigEl.style.color = "#10b981";
-                        cardEl.style.borderLeftColor = "#10b981";
-                    } else if (current < prev) {
-                        sigEl.innerText = "↓ 15M DOWN (SELL)";
-                        sigEl.style.color = "#ef4444";
-                        cardEl.style.borderLeftColor = "#ef4444";
+                        sEl.innerText = "↑ 15M BUY (UP)";
+                        sEl.style.color = "#10b981";
+                        cEl.style.borderLeftColor = "#10b981";
                     } else {
-                        sigEl.innerText = "SIDEWAYS";
-                        sigEl.style.color = "gold";
-                        cardEl.style.borderLeftColor = "gold";
+                        sEl.innerText = "↓ 15M SELL (DOWN)";
+                        sEl.style.color = "#ef4444";
+                        cEl.style.borderLeftColor = "#ef4444";
                     }
                 };
 
-                process(nData, elements.nifty, elements.niftySig, elements.niftyCard);
-                process(sData, elements.sensex, elements.sensexSig, elements.sensexCard);
+                process(nData, nPrice, nSig, nCard);
+                process(sData, sPrice, sSig, sCard);
 
             } catch (e) {
-                console.log("Error:", e);
+                console.log("Error fetching data", e);
+                nSig.innerText = "RETRYING...";
             }
         }
 
-        window.onload = getAllData;
-        setInterval(getAllData, 30000);
+        window.onload = updateAll;
+        setInterval(updateAll, 30000);
     </script>
 </body>
 </html>
+
 
 
 
