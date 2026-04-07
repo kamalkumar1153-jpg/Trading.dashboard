@@ -1,135 +1,96 @@
-<!DOCTYPE html>
-<html lang="hi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Pro Terminal</title>
-  <style>
-    body { background: #0a0a0a; color: #00ffcc; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 15px; }
-    .header { text-align: center; font-size: 26px; color: #00ccff; margin-bottom: 20px; font-weight: bold; }
-    .live { color: #00ff00; animation: pulse 2s infinite; }
-    @keyframes pulse { 0%,100% {opacity:1;} 50% {opacity:0.6;} }
-    .card { background: #1a1a2e; border-radius: 12px; padding: 18px; margin: 12px 0; box-shadow: 0 0 15px rgba(0,255,204,0.2); }
-    .title { font-size: 15px; opacity: 0.9; }
-    .price { font-size: 24px; font-weight: bold; margin: 8px 0; }
-    .change { font-size: 15px; }
-    .positive { color: #00ff88; }
-    .negative { color: #ff4466; }
-    button { background: #0077ff; color: white; border: none; padding: 18px; width: 100%; border-radius: 12px; font-size: 18px; margin-top: 20px; cursor: pointer; }
-    .signal { text-align: center; font-size: 18px; margin: 20px 0; font-weight: bold; }
-    .rsi-high { color: #ff4466; }
-    .rsi-low { color: #00ff88; }
-  </style>
-</head>
-<body>
-  <div class="header">AI PRO TERMINAL <span class="live">● LIVE FEED</span></div>
+### 2. index.html (HTML/JS वर्जन — GitHub Pages के लिए)
 
-  <div class="card">
-    <div class="title">NIFTY 50</div>
-    <div id="nifty-price" class="price">Loading...</div>
-    <div id="nifty-change" class="change">--</div>
-  </div>
+(पिछले मैसेज में दिया गया पूरा कोड ही यूज करें। अगर proxy issue है तो `const proxy = 'https://api.allorigins.win/raw?url=';` यूज करें।)
 
-  <div class="card">
-    <div class="title">SENSEX</div>
-    <div id="sensex-price" class="price">Loading...</div>
-    <div id="sensex-change" class="change">--</div>
-  </div>
+### 3. main.py (Python Streamlit वर्जन — सबसे अच्छा)
 
-  <div class="card">
-    <div class="title">RSI (14) - NIFTY 50</div>
-    <div id="rsi-value" style="font-size:26px; margin:10px 0; font-weight:bold;">--</div>
-    <div id="rsi-signal" style="font-size:14px;"></div>
-  </div>
+```python
+import streamlit as st
+import yfinance as yf
+from datetime import datetime
+import time
 
-  <div class="signal">SIGNAL: <span id="signal">CONNECTING...</span></div>
+st.set_page_config(page_title="AI Pro Terminal", layout="centered", page_icon="📈")
+st.title("🚀 AI Pro Terminal")
+st.markdown("**Live Nifty 50 & Sensex Dashboard with RSI (14)**")
+st.caption(f"Last Updated: {datetime.now().strftime('%d %b %Y, %H:%M:%S')} IST")
 
-  <button id="data-btn">WAITING FOR DATA</button>
+# Refresh logic
+if "last_refresh" not in st.session_state:
+    st.session_state.last_refresh = time.time()
 
-  <script>
-    // Proxy (अगर एक काम न करे तो दूसरा ट्राई करें)
-    const proxy = 'https://corsproxy.io/?';   // या 'https://api.allorigins.win/raw?url='
+def get_market_data():
+    try:
+        # Nifty 50
+        nifty = yf.Ticker("^NSEI")
+        nifty_hist = nifty.history(period="5d")
+        nifty_price = round(nifty_hist['Close'].iloc[-1], 2)
+        nifty_prev = round(nifty_hist['Close'].iloc[-2], 2)
+        nifty_change = round(((nifty_price - nifty_prev) / nifty_prev) * 100, 2)
 
-    // RSI (14) कैलकुलेट करने का फंक्शन
-    function calculateRSI(closes) {
-      if (closes.length < 15) return "--";
-      let gains = 0, losses = 0;
-      for (let i = 1; i < 15; i++) {
-        const diff = closes[i] - closes[i-1];
-        if (diff > 0) gains += diff;
-        else losses -= diff;
-      }
-      const avgGain = gains / 14;
-      const avgLoss = losses / 14 || 0.0001; // division by zero से बचने के लिए
-      const rs = avgGain / avgLoss;
-      return (100 - (100 / (1 + rs))).toFixed(2);
-    }
+        # Sensex
+        sensex = yf.Ticker("^BSESN")
+        sensex_hist = sensex.history(period="5d")
+        sensex_price = round(sensex_hist['Close'].iloc[-1], 2)
+        sensex_prev = round(sensex_hist['Close'].iloc[-2], 2)
+        sensex_change = round(((sensex_price - sensex_prev) / sensex_prev) * 100, 2)
 
-    async function fetchMarketData() {
-      const signalEl = document.getElementById('signal');
-      const btn = document.getElementById('data-btn');
-      signalEl.textContent = "CONNECTING...";
-      btn.textContent = "WAITING FOR DATA";
+        # RSI (14) for Nifty
+        hist = yf.download("^NSEI", period="1mo", interval="1d", progress=False)
+        delta = hist['Close'].diff()
+        gain = delta.where(delta > 0, 0).rolling(window=14).mean()
+        loss = -delta.where(delta < 0, 0).rolling(window=14).mean()
+        rs = gain / loss
+        rsi = 100 - (100 / (1 + rs))
+        current_rsi = round(rsi.iloc[-1], 2)
 
-      try {
-        // NIFTY 50
-        let url = proxy + encodeURIComponent('https://www.nseindia.com/api/equity-stockIndices?index=NIFTY%2050');
-        let res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } });
-        let data = await res.json();
-        let nifty = data.data[0];
-        document.getElementById('nifty-price').textContent = parseFloat(nifty.lastPrice).toFixed(2);
-        let niftyChg = parseFloat(nifty.pChange);
-        let niftyEl = document.getElementById('nifty-change');
-        niftyEl.innerHTML = (niftyChg >= 0 ? '+' : '') + niftyChg.toFixed(2) + '%';
-        niftyEl.className = niftyChg >= 0 ? 'change positive' : 'change negative';
-
-        // SENSEX
-        url = proxy + encodeURIComponent('https://www.nseindia.com/api/equity-stockIndices?index=BSE%20SENSEX');
-        res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } });
-        data = await res.json();
-        let sensex = data.data[0];
-        document.getElementById('sensex-price').textContent = parseFloat(sensex.lastPrice).toFixed(2);
-        let sensexChg = parseFloat(sensex.pChange);
-        let sensexEl = document.getElementById('sensex-change');
-        sensexEl.innerHTML = (sensexChg >= 0 ? '+' : '') + sensexChg.toFixed(2) + '%';
-        sensexEl.className = sensexChg >= 0 ? 'change positive' : 'change negative';
-
-        // RSI (14) - Yahoo Finance से historical data
-        const yahooRes = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/^NSEI?interval=1d&range=1mo');
-        const yahooData = await yahooRes.json();
-        const closes = yahooData.chart.result[0].indicators.quote[0].close;
-        const rsi = calculateRSI(closes);
-        document.getElementById('rsi-value').textContent = rsi;
-
-        // RSI Signal
-        const rsiNum = parseFloat(rsi);
-        const rsiSignalEl = document.getElementById('rsi-signal');
-        if (rsiNum > 70) {
-          rsiSignalEl.textContent = "Overbought → Sell Signal";
-          rsiSignalEl.className = "rsi-high";
-        } else if (rsiNum < 30) {
-          rsiSignalEl.textContent = "Oversold → Strong Buy Signal";
-          rsiSignalEl.className = "rsi-low";
-        } else {
-          rsiSignalEl.textContent = "Neutral Zone";
+        return {
+            "nifty_price": nifty_price,
+            "nifty_change": nifty_change,
+            "sensex_price": sensex_price,
+            "sensex_change": sensex_change,
+            "rsi": current_rsi
         }
+    except Exception as e:
+        st.error(f"Data fetch error: {e}. Market may be closed.")
+        return None
 
-        signalEl.textContent = "CONNECTED ✅";
-        btn.textContent = "DATA LIVE ✅";
-        btn.style.background = "#00cc66";
+data = get_market_data()
 
-      } catch (err) {
-        console.error("Error:", err);
-        signalEl.textContent = "ERROR - Retry (Proxy/Market Closed)";
-      }
-    }
+if data:
+    col1, col2 = st.columns(2)
 
-    // हर 20 सेकंड में अपडेट
-    setInterval(fetchMarketData, 20000);
-    fetchMarketData(); // पहली बार
-  </script>
-</body>
-</html>
+    with col1:
+        st.subheader("NIFTY 50")
+        st.metric("Price", f"₹ {data['nifty_price']}", f"{data['nifty_change']}%")
+
+    with col2:
+        st.subheader("SENSEX")
+        st.metric("Price", f"₹ {data['sensex_price']}", f"{data['sensex_change']}%")
+
+    # RSI Section
+    st.subheader("RSI (14) - NIFTY 50")
+    rsi_color = "🔴 Overbought (Sell Signal)" if data['rsi'] > 70 else \
+                "🟢 Oversold (Strong Buy Signal)" if data['rsi'] < 30 else \
+                "⚪ Neutral"
+    st.metric("RSI Value", data['rsi'], rsi_color)
+
+    # AI Signal
+    st.subheader("🤖 AI SIGNAL")
+    if data['rsi'] > 70:
+        st.error("🔴 **Strong Sell** - Market is Overbought")
+    elif data['rsi'] < 30:
+        st.success("🟢 **Strong Buy** - Market is Oversold")
+    else:
+        st.info("⚪ **Hold** - Neutral Zone, Wait for clearer signal")
+
+else:
+    st.warning("Could not fetch live data. Please try again later.")
+
+if st.button("🔄 Refresh Data"):
+    st.rerun()
+
+st.caption("Data Source: Yahoo Finance | Auto-refresh recommended every 30-60 seconds")
 
 
 
