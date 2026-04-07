@@ -1,155 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Pro Terminal V2.5</title>
+    <title>Kamal AI Terminal</title>
     <style>
-        :root {
-            --bg: #051125;
-            --card: #112240;
-            --accent: #64ffda;
-            --bearish: #ff4d4d;
-            --border: #1d2d50;
-        }
-
-        body { background-color: var(--bg); color: #ffffff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; }
-        
-        .header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px; }
-        .title h1 { color: #4facfe; margin: 0; font-size: 22px; font-weight: bold; line-height: 1.2; }
-        .title p { color: #8892b0; margin: 5px 0; font-size: 11px; }
-
-        .market-status {
-            font-size: 10px;
-            padding: 2px 8px;
-            border-radius: 20px;
-            display: inline-block;
-            background: #1d2d50;
-            border: 1px solid var(--accent);
-            color: var(--accent);
-            margin-top: 5px;
-        }
-
-        .clock-card { background: var(--card); padding: 12px 15px; border-radius: 12px; text-align: center; border: 1px solid var(--border); min-width: 90px; }
-        #time { font-size: 20px; font-weight: bold; letter-spacing: 1px; }
-
-        .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .index-card { background: var(--card); padding: 18px 12px; border-radius: 15px; border: 1px solid var(--border); }
-        .index-card small { color: #8892b0; font-size: 10px; font-weight: bold; display: block; margin-bottom: 5px; }
-        .price { font-size: 19px; font-weight: bold; color: var(--accent); }
-
-        .status-box { background: var(--card); padding: 18px; border-radius: 18px; border: 1px solid var(--border); }
-        .status-box h3 { border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-top: 0; font-size: 15px; color: #ccd6f6; }
-        
-        .indicator { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
-        .val { color: var(--accent); font-weight: bold; }
-
-        .forecast-btn {
-            background: linear-gradient(135deg, #1e40af, #3b82f6);
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 12px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 14px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-
-        .glow-buy { box-shadow: 0 0 15px rgba(100, 255, 218, 0.4); border: 1px solid var(--accent); background: linear-gradient(135deg, #065f46, #059669) !important; }
-        .glow-sell { box-shadow: 0 0 15px rgba(255, 77, 77, 0.4); border: 1px solid var(--bearish); background: linear-gradient(135deg, #991b1b, #dc2626) !important; }
+        body { background: #051125; color: white; font-family: sans-serif; text-align: center; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 20px; }
+        .card { background: #112240; padding: 15px; border-radius: 12px; border: 1px solid #1d2d50; }
+        .price { font-size: 24px; color: #64ffda; font-weight: bold; }
+        .signal-btn { background: #1e40af; padding: 15px; margin: 20px; border-radius: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
-
-    <div class="header">
-        <div class="title">
-            <h1>AI PRO<br>TERMINAL V2.5</h1>
-            <p>Kamal-Trader Dashboard</p>
-            <div id="mkt-session" class="market-status">● LIVE FEED</div>
-        </div>
-        <div class="clock-card">
-            <div id="time">00:00:00</div>
-            <div id="ampm" style="font-size: 11px; color: #8892b0;">AM</div>
-        </div>
+    <h2>AI PRO TERMINAL V2.5</h2>
+    <div class="grid">
+        <div class="card"><small>NIFTY 50</small><div class="price" id="n-val">...</div></div>
+        <div class="card"><small>SENSEX</small><div class="price" id="s-val">...</div></div>
     </div>
-
-    <div class="market-grid">
-        <div class="index-card">
-            <small>SENSEX</small>
-            <div class="price" id="sensex-val">74,106.85</div>
-        </div>
-        <div class="index-card">
-            <small>NIFTY 50</small>
-            <div class="price" id="nifty-val">Loading...</div>
-        </div>
-    </div>
-
-    <div class="status-box">
-        <h3>AI TECHNICAL STATUS</h3>
-        <div class="indicator">
-            <span>RSI (14):</span> <span class="val" id="rsi-val">--</span>
-        </div>
-        <div class="indicator">
-            <span>SIGNAL:</span> <span class="val" id="signal-text">CONNECTING...</span>
-        </div>
-
-        <div class="forecast-btn" id="forecast-box">
-            <div style="font-size: 10px; opacity: 0.8; margin-bottom: 4px; letter-spacing: 1px;">NEXT 15M FORECAST</div>
-            <div id="btn-text">WAITING FOR DATA</div>
-        </div>
-    </div>
+    <div class="signal-btn" id="sig">CONNECTING...</div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
     <script>
-        // 1. Clock Logic
-        function updateClock() {
-            const now = new Date();
-            let h = now.getHours(), m = String(now.getMinutes()).padStart(2, '0'), s = String(now.getSeconds()).padStart(2, '0');
-            let ampm = h >= 12 ? 'PM' : 'AM';
-            h = h % 12 || 12;
-            document.getElementById('time').innerText = `${String(h).padStart(2, '0')}:${m}:${s}`;
-            document.getElementById('ampm').innerText = ampm;
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
-
-        // 2. Firebase Configuration
-        const firebaseConfig = {
-            databaseURL: "https://market--treminal-default-rtdb.firebaseio.com"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
-        // 3. Real-Time Listener
-        database.ref('market_signal').on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                // Update Price
-                document.getElementById('nifty-val').innerText = data.price.toLocaleString('en-IN');
-                document.getElementById('rsi-val').innerText = data.rsi;
-                document.getElementById('signal-text').innerText = data.signal;
-
-                // Update UI based on Signal
-                const fBox = document.getElementById('forecast-box');
-                const bText = document.getElementById('btn-text');
-
-                if (data.signal === "STRONG BUY") {
-                    fBox.className = "forecast-btn glow-buy";
-                    bText.innerText = "➔ " + data.signal;
-                } else if (data.signal === "STRONG SELL") {
-                    fBox.className = "forecast-btn glow-sell";
-                    bText.innerText = "➔ " + data.signal;
-                } else {
-                    fBox.className = "forecast-btn";
-                    bText.innerText = "➔ NEUTRAL / WAIT";
-                }
+        const config = { databaseURL: "https://market--treminal-default-rtdb.firebaseio.com" };
+        firebase.initializeApp(config);
+        firebase.database().ref('market_data').on('value', (snap) => {
+            const val = snap.val();
+            if(val) {
+                document.getElementById('n-val').innerText = val.nifty;
+                document.getElementById('s-val').innerText = val.sensex;
+                document.getElementById('sig').innerText = "SIGNAL: " + val.signal;
             }
         });
     </script>
 </body>
 </html>
+
 
 
 
