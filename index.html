@@ -5,50 +5,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Pro Terminal</title>
   <style>
-    body { background: #0a0a0a; color: #00ffcc; font-family: Arial, sans-serif; margin: 0; padding: 10px; }
-    .header { text-align: center; font-size: 26px; color: #00ccff; margin: 15px 0; }
+    body { background: #0a0a0a; color: #00ffcc; font-family: Arial, sans-serif; margin: 0; padding: 15px; }
+    .header { text-align: center; font-size: 26px; color: #00ccff; margin-bottom: 20px; }
     .live { color: #00ff00; animation: pulse 2s infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-    .cards { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
-    .card { background: #1a1a2e; border-radius: 12px; padding: 18px; width: 45%; min-width: 160px; box-shadow: 0 0 15px rgba(0, 255, 204, 0.15); }
+    @keyframes pulse { 0%,100% {opacity:1;} 50% {opacity:0.5;} }
+    .card { background: #1a1a2e; border-radius: 12px; padding: 18px; margin: 12px 0; box-shadow: 0 0 15px rgba(0,255,204,0.2); }
     .title { font-size: 15px; opacity: 0.9; }
-    .price { font-size: 22px; font-weight: bold; margin: 8px 0; }
-    .change { font-size: 14px; }
+    .price { font-size: 24px; font-weight: bold; margin: 8px 0; }
+    .change { font-size: 15px; }
     .positive { color: #00ff88; }
     .negative { color: #ff4466; }
-    button { background: #0077ff; color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-size: 18px; margin-top: 25px; cursor: pointer; }
-    .signal { text-align: center; font-size: 18px; margin: 15px 0; }
+    button { background: #0077ff; color: white; border: none; padding: 18px; width: 100%; border-radius: 12px; font-size: 18px; margin-top: 20px; }
+    .signal { text-align: center; font-size: 18px; margin: 20px 0; font-weight: bold; }
   </style>
 </head>
 <body>
   <div class="header">AI PRO TERMINAL <span class="live">● LIVE FEED</span></div>
 
-  <div class="cards">
-    <div class="card">
-      <div class="title">NIFTY 50</div>
-      <div id="nifty-price" class="price">Loading...</div>
-      <div id="nifty-change" class="change">--</div>
-    </div>
-    <div class="card">
-      <div class="title">SENSEX</div>
-      <div id="sensex-price" class="price">Loading...</div>
-      <div id="sensex-change" class="change">--</div>
-    </div>
+  <div class="card">
+    <div class="title">NIFTY 50</div>
+    <div id="nifty-price" class="price">Loading...</div>
+    <div id="nifty-change" class="change">--</div>
   </div>
 
-  <div class="card" style="width: 92%; margin: 15px auto;">
-    <div>RSI (14)</div>
-    <div id="rsi-value" style="font-size:22px; margin:10px 0;">--</div>
+  <div class="card">
+    <div class="title">SENSEX</div>
+    <div id="sensex-price" class="price">Loading...</div>
+    <div id="sensex-change" class="change">--</div>
   </div>
 
-  <div class="signal">
-    SIGNAL: <span id="signal">CONNECTING...</span>
+  <div class="card">
+    <div class="title">RSI (14)</div>
+    <div id="rsi-value" style="font-size:24px; margin:10px 0;">--</div>
   </div>
+
+  <div class="signal">SIGNAL: <span id="signal">CONNECTING...</span></div>
 
   <button id="data-btn">WAITING FOR DATA</button>
 
   <script>
-    async function fetchMarketData() {
+    const proxy = 'https://corsproxy.io/?';   // या 'https://api.allorigins.win/raw?url='
+
+    async function fetchNSEData() {
       const niftyPriceEl = document.getElementById('nifty-price');
       const niftyChangeEl = document.getElementById('nifty-change');
       const sensexPriceEl = document.getElementById('sensex-price');
@@ -58,42 +56,44 @@
 
       try {
         // Nifty 50
-        const niftyRes = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/^NSEI?interval=1m&range=1d');
-        const niftyData = await niftyRes.json();
-        const niftyResult = niftyData.chart.result[0];
-        const niftyPrice = niftyResult.meta.regularMarketPrice || niftyResult.meta.previousClose;
-        const niftyPrev = niftyResult.meta.previousClose;
-        const niftyChange = ((niftyPrice - niftyPrev) / niftyPrev * 100).toFixed(2);
+        let url = proxy + encodeURIComponent('https://www.nseindia.com/api/equity-stockIndices?index=NIFTY%2050');
+        let res = await fetch(url, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+        });
+        let data = await res.json();
+        let nifty = data.data[0];
 
-        niftyPriceEl.textContent = niftyPrice.toFixed(2);
-        niftyChangeEl.innerHTML = `\( {niftyChange > 0 ? '+' : ''} \){niftyChange}%`;
-        niftyChangeEl.className = niftyChange >= 0 ? 'change positive' : 'change negative';
+        niftyPriceEl.textContent = parseFloat(nifty.lastPrice).toFixed(2);
+        let niftyChg = parseFloat(nifty.pChange);
+        niftyChangeEl.innerHTML = (niftyChg >= 0 ? '+' : '') + niftyChg.toFixed(2) + '%';
+        niftyChangeEl.className = niftyChg >= 0 ? 'change positive' : 'change negative';
 
         // Sensex
-        const sensexRes = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/^BSESN?interval=1m&range=1d');
-        const sensexData = await sensexRes.json();
-        const sensexResult = sensexData.chart.result[0];
-        const sensexPrice = sensexResult.meta.regularMarketPrice || sensexResult.meta.previousClose;
-        const sensexPrev = sensexResult.meta.previousClose;
-        const sensexChange = ((sensexPrice - sensexPrev) / sensexPrev * 100).toFixed(2);
+        url = proxy + encodeURIComponent('https://www.nseindia.com/api/equity-stockIndices?index=BSE%20SENSEX');
+        res = await fetch(url, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+        });
+        data = await res.json();
+        let sensex = data.data[0];
 
-        sensexPriceEl.textContent = sensexPrice.toFixed(2);
-        sensexChangeEl.innerHTML = `\( {sensexChange > 0 ? '+' : ''} \){sensexChange}%`;
-        sensexChangeEl.className = sensexChange >= 0 ? 'change positive' : 'change negative';
+        sensexPriceEl.textContent = parseFloat(sensex.lastPrice).toFixed(2);
+        let sensexChg = parseFloat(sensex.pChange);
+        sensexChangeEl.innerHTML = (sensexChg >= 0 ? '+' : '') + sensexChg.toFixed(2) + '%';
+        sensexChangeEl.className = sensexChg >= 0 ? 'change positive' : 'change negative';
 
         signalEl.textContent = "CONNECTED ✅";
         btn.textContent = "DATA LIVE ✅";
         btn.style.background = "#00cc66";
 
       } catch (err) {
-        console.error(err);
+        console.error("Error:", err);
         signalEl.textContent = "ERROR - Retry";
       }
     }
 
     // हर 15 सेकंड में अपडेट
-    setInterval(fetchMarketData, 15000);
-    fetchMarketData(); // पहली बार
+    setInterval(fetchNSEData, 15000);
+    fetchNSEData(); // पहली बार लोड
   </script>
 </body>
 </html>
