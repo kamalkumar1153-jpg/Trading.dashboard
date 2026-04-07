@@ -1,67 +1,100 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Pro Terminal V2.5</title>
-    <style>
-        :root { --bg: #051125; --card: #112240; --accent: #64ffda; --bearish: #ff4d4d; --border: #1d2d50; }
-        body { background-color: var(--bg); color: #ffffff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; }
-        .header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px; }
-        .title h1 { color: #4facfe; margin: 0; font-size: 22px; font-weight: bold; }
-        .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .index-card { background: var(--card); padding: 18px 12px; border-radius: 15px; border: 1px solid var(--border); }
-        .status-box { background: var(--card); padding: 18px; border-radius: 18px; border: 1px solid var(--border); }
-        .indicator { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
-        .val { color: var(--accent); font-weight: bold; }
-        .forecast-btn { background: #3b82f6; margin-top: 20px; padding: 15px; border-radius: 12px; text-align: center; font-weight: bold; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Pro Terminal</title>
+  <style>
+    body { background: #0a0a0a; color: #00ffcc; font-family: Arial, sans-serif; margin: 0; padding: 10px; }
+    .header { text-align: center; font-size: 26px; color: #00ccff; margin: 15px 0; }
+    .live { color: #00ff00; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+    .cards { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+    .card { background: #1a1a2e; border-radius: 12px; padding: 18px; width: 45%; min-width: 160px; box-shadow: 0 0 15px rgba(0, 255, 204, 0.15); }
+    .title { font-size: 15px; opacity: 0.9; }
+    .price { font-size: 22px; font-weight: bold; margin: 8px 0; }
+    .change { font-size: 14px; }
+    .positive { color: #00ff88; }
+    .negative { color: #ff4466; }
+    button { background: #0077ff; color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-size: 18px; margin-top: 25px; cursor: pointer; }
+    .signal { text-align: center; font-size: 18px; margin: 15px 0; }
+  </style>
 </head>
 <body>
+  <div class="header">AI PRO TERMINAL <span class="live">● LIVE FEED</span></div>
 
-    <div class="header">
-        <div class="title">
-            <h1>AI PRO TERMINAL</h1>
-            <div id="mkt-session" style="font-size: 10px; color: var(--accent);">● LIVE FEED</div>
-        </div>
+  <div class="cards">
+    <div class="card">
+      <div class="title">NIFTY 50</div>
+      <div id="nifty-price" class="price">Loading...</div>
+      <div id="nifty-change" class="change">--</div>
     </div>
-
-    <div class="market-grid">
-        <div class="index-card"><small>NIFTY 50</small><div class="val" id="nifty-val">Loading...</div></div>
-        <div class="index-card"><small>RSI (14)</small><div class="val" id="rsi-val">--</div></div>
+    <div class="card">
+      <div class="title">SENSEX</div>
+      <div id="sensex-price" class="price">Loading...</div>
+      <div id="sensex-change" class="change">--</div>
     </div>
+  </div>
 
-    <div class="status-box">
-        <div class="indicator"><span>SIGNAL:</span> <span id="signal-text">CONNECTING...</span></div>
-        <div class="forecast-btn" id="main-btn">WAITING FOR DATA</div>
-    </div>
+  <div class="card" style="width: 92%; margin: 15px auto;">
+    <div>RSI (14)</div>
+    <div id="rsi-value" style="font-size:22px; margin:10px 0;">--</div>
+  </div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <div class="signal">
+    SIGNAL: <span id="signal">CONNECTING...</span>
+  </div>
 
-    <script>
-        const firebaseConfig = {
-            databaseURL: "https://market--treminal-default-rtdb.firebaseio.com"
-        };
-        
-        try {
-            firebase.initializeApp(firebaseConfig);
-            const database = firebase.database();
+  <button id="data-btn">WAITING FOR DATA</button>
 
-            database.ref('market_signal').on('value', (snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    document.getElementById('nifty-val').innerText = data.price || "0.0";
-                    document.getElementById('rsi-val').innerText = data.rsi || "0.0";
-                    document.getElementById('signal-text').innerText = data.signal || "NEUTRAL";
-                    document.getElementById('main-btn').innerText = "➔ NEXT: " + (data.signal || "WAIT");
-                }
-            });
-        } catch (e) {
-            console.log("Firebase Error: ", e);
-            document.body.innerHTML = "<h2 style='color:red; text-align:center;'>Code Error! Check Console.</h2>";
-        }
-    </script>
+  <script>
+    async function fetchMarketData() {
+      const niftyPriceEl = document.getElementById('nifty-price');
+      const niftyChangeEl = document.getElementById('nifty-change');
+      const sensexPriceEl = document.getElementById('sensex-price');
+      const sensexChangeEl = document.getElementById('sensex-change');
+      const signalEl = document.getElementById('signal');
+      const btn = document.getElementById('data-btn');
+
+      try {
+        // Nifty 50
+        const niftyRes = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/^NSEI?interval=1m&range=1d');
+        const niftyData = await niftyRes.json();
+        const niftyResult = niftyData.chart.result[0];
+        const niftyPrice = niftyResult.meta.regularMarketPrice || niftyResult.meta.previousClose;
+        const niftyPrev = niftyResult.meta.previousClose;
+        const niftyChange = ((niftyPrice - niftyPrev) / niftyPrev * 100).toFixed(2);
+
+        niftyPriceEl.textContent = niftyPrice.toFixed(2);
+        niftyChangeEl.innerHTML = `\( {niftyChange > 0 ? '+' : ''} \){niftyChange}%`;
+        niftyChangeEl.className = niftyChange >= 0 ? 'change positive' : 'change negative';
+
+        // Sensex
+        const sensexRes = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/^BSESN?interval=1m&range=1d');
+        const sensexData = await sensexRes.json();
+        const sensexResult = sensexData.chart.result[0];
+        const sensexPrice = sensexResult.meta.regularMarketPrice || sensexResult.meta.previousClose;
+        const sensexPrev = sensexResult.meta.previousClose;
+        const sensexChange = ((sensexPrice - sensexPrev) / sensexPrev * 100).toFixed(2);
+
+        sensexPriceEl.textContent = sensexPrice.toFixed(2);
+        sensexChangeEl.innerHTML = `\( {sensexChange > 0 ? '+' : ''} \){sensexChange}%`;
+        sensexChangeEl.className = sensexChange >= 0 ? 'change positive' : 'change negative';
+
+        signalEl.textContent = "CONNECTED ✅";
+        btn.textContent = "DATA LIVE ✅";
+        btn.style.background = "#00cc66";
+
+      } catch (err) {
+        console.error(err);
+        signalEl.textContent = "ERROR - Retry";
+      }
+    }
+
+    // हर 15 सेकंड में अपडेट
+    setInterval(fetchMarketData, 15000);
+    fetchMarketData(); // पहली बार
+  </script>
 </body>
 </html>
 
