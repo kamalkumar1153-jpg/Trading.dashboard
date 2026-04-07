@@ -1,225 +1,156 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Pro Terminal V2</title>
-  <style>
-    body {
-      background: #0a0a0a;
-      color: #00ff88;
-      font-family: 'Courier New', monospace;
-      margin: 0;
-      padding: 15px;
-      text-align: center;
-    }
-    h1 { color: #00ff00; margin: 15px 0 5px; }
-    .card {
-      background: #111;
-      border: 1px solid #00ff88;
-      border-radius: 12px;
-      padding: 20px;
-      margin: 20px auto;
-      max-width: 650px;
-      text-align: left;
-    }
-    .price { font-size: 1.9em; font-weight: bold; }
-    .down { color: #ff4444; }
-    .up { color: #00ff88; }
-    .signal { font-size: 1.35em; margin: 12px 0; font-weight: bold; }
-    .timeframe {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px solid #222;
-    }
-    .tf-name { color: #aaa; }
-    .rr-box, .calc-box {
-      background: #1a1a1a;
-      padding: 16px;
-      border-radius: 10px;
-      margin: 18px 0;
-      border: 1px solid #00ff88;
-    }
-    .row {
-      display: flex;
-      justify-content: space-between;
-      padding: 7px 0;
-    }
-    .label { color: #ccc; }
-    .green { color: #00ff88; }
-    .red { color: #ff6666; }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin: 6px 0;
-      background: #222;
-      color: #fff;
-      border: 1px solid #00ff88;
-      border-radius: 6px;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      background: #00ff88;
-      color: #000;
-      border: none;
-      font-weight: bold;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Pro Terminal V2.5</title>
+    <style>
+        :root {
+            --bg: #051125;
+            --card: #112240;
+            --accent: #64ffda;
+            --bearish: #ff4d4d;
+            --border: #1d2d50;
+        }
+
+        body { background-color: var(--bg); color: #ffffff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; }
+        
+        .header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px; }
+        .title h1 { color: #4facfe; margin: 0; font-size: 22px; font-weight: bold; line-height: 1.2; }
+        .title p { color: #8892b0; margin: 5px 0; font-size: 11px; }
+
+        .market-status {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            display: inline-block;
+            background: #1d2d50;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            margin-top: 5px;
+        }
+
+        .clock-card { background: var(--card); padding: 12px 15px; border-radius: 12px; text-align: center; border: 1px solid var(--border); min-width: 90px; }
+        #time { font-size: 20px; font-weight: bold; letter-spacing: 1px; }
+
+        .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .index-card { background: var(--card); padding: 18px 12px; border-radius: 15px; border: 1px solid var(--border); }
+        .index-card small { color: #8892b0; font-size: 10px; font-weight: bold; display: block; margin-bottom: 5px; }
+        .price { font-size: 19px; font-weight: bold; color: var(--accent); }
+
+        .status-box { background: var(--card); padding: 18px; border-radius: 18px; border: 1px solid var(--border); }
+        .status-box h3 { border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-top: 0; font-size: 15px; color: #ccd6f6; }
+        
+        .indicator { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+        .val { color: var(--accent); font-weight: bold; }
+
+        .forecast-btn {
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .glow-buy { box-shadow: 0 0 15px rgba(100, 255, 218, 0.4); border: 1px solid var(--accent); background: linear-gradient(135deg, #065f46, #059669) !important; }
+        .glow-sell { box-shadow: 0 0 15px rgba(255, 77, 77, 0.4); border: 1px solid var(--bearish); background: linear-gradient(135deg, #991b1b, #dc2626) !important; }
+    </style>
 </head>
 <body>
 
-  <h1>🚀 AI PRO TERMINAL V2 - LIVE</h1>
-  <p><strong>Nifty 50 & Sensex AI Signals</strong> | 31 मार्च 2026</p>
-
-  <!-- Nifty 50 Card -->
-  <div class="card">
-    <h2>Nifty 50</h2>
-    <p id="nifty-price" class="price">22,312.94 <span id="nifty-change" class="down">-12.50 (-0.06%)</span></p>
-    <p class="signal">AI Signal: <span style="color: orange;">CAUTION - Sell on Rise</span></p>
-
-    <h3 style="margin:20px 0 10px 0; color:#ffcc00;">Multi-Timeframe Analysis</h3>
-    <div class="timeframe"><span class="tf-name">5 Min</span><span style="color:#ff6666;">Strong Sell</span></div>
-    <div class="timeframe"><span class="tf-name">15 Min</span><span style="color:#ff6666;">Sell</span></div>
-    <div class="timeframe"><span class="tf-name">1 Hour</span><span style="color:#ffcc00;">Caution</span></div>
-    <div class="timeframe"><span class="tf-name">Daily</span><span style="color:#ff6666;">Strong Sell</span></div>
-
-    <div class="rr-box">
-      <h3 style="margin:0 0 12px 0; color:#ffcc00;">Risk-Reward Setup</h3>
-      <div class="row"><span class="label">Entry (Sell)</span><span>22,320 – 22,350</span></div>
-      <div class="row"><span class="label">Stop Loss</span><span class="red">22,450</span></div>
-      <div class="row"><span class="label">Target 1</span><span class="green">22,000</span></div>
-      <div class="row"><span class="label">Target 2</span><span class="green">21,700</span></div>
-      <div class="row"><span class="label">R:R Ratio</span><span class="green">1 : 2.8</span></div>
+    <div class="header">
+        <div class="title">
+            <h1>AI PRO<br>TERMINAL V2.5</h1>
+            <p>Kamal-Trader Dashboard</p>
+            <div id="mkt-session" class="market-status">● LIVE FEED</div>
+        </div>
+        <div class="clock-card">
+            <div id="time">00:00:00</div>
+            <div id="ampm" style="font-size: 11px; color: #8892b0;">AM</div>
+        </div>
     </div>
 
-    <p id="nifty-updated" class="last-updated">Last updated: just now</p>
-  </div>
-
-  <!-- Sensex Card -->
-  <div class="card">
-    <h2>Sensex</h2>
-    <p id="sensex-price" class="price">71,947.55 <span id="sensex-change" class="down">-1,635.67 (-2.22%)</span></p>
-    <p class="signal">AI Signal: <span style="color: orange;">CAUTION - Sell on Rise</span></p>
-
-    <h3 style="margin:20px 0 10px 0; color:#ffcc00;">Multi-Timeframe Analysis</h3>
-    <div class="timeframe"><span class="tf-name">5 Min</span><span style="color:#ff6666;">Sell</span></div>
-    <div class="timeframe"><span class="tf-name">15 Min</span><span style="color:#ff6666;">Strong Sell</span></div>
-    <div class="timeframe"><span class="tf-name">1 Hour</span><span style="color:#ffcc00;">Caution</span></div>
-    <div class="timeframe"><span class="tf-name">Daily</span><span style="color:#ff6666;">Strong Sell</span></div>
-
-    <p id="sensex-updated" class="last-updated">Last updated: just now</p>
-  </div>
-
-  <!-- Position Sizing Calculator -->
-  <div class="card">
-    <h2>Position Sizing Calculator (Nifty 50)</h2>
-    <p style="color:#ffcc00; margin-bottom:15px;">एक ट्रेड में कितनी Quantity लेनी चाहिए?</p>
-
-    <input type="number" id="capital" placeholder="Account Capital (₹)" value="100000">
-    <input type="number" id="riskPercent" placeholder="Risk per Trade (%)" value="1" step="0.1">
-    <input type="number" id="entry" placeholder="Entry Price (Sell)" value="22320">
-    <input type="number" id="stoploss" placeholder="Stop Loss" value="22450">
-    <input type="number" id="target" placeholder="Target Price" value="22000">
-
-    <button onclick="calculatePosition()">Calculate Quantity</button>
-
-    <div id="calc-result" style="margin-top:15px; padding:15px; background:#1a1a1a; border-radius:8px; display:none;">
-      <h3 style="color:#ffcc00;">Result</h3>
-      <p id="risk-amt"></p>
-      <p id="quantity"></p>
-      <p id="pos-value"></p>
-      <p id="rr-ratio"></p>
-      <small style="color:#888;">* Nifty Lot Size = 65 units</small>
+    <div class="market-grid">
+        <div class="index-card">
+            <small>SENSEX</small>
+            <div class="price" id="sensex-val">74,106.85</div>
+        </div>
+        <div class="index-card">
+            <small>NIFTY 50</small>
+            <div class="price" id="nifty-val">Loading...</div>
+        </div>
     </div>
-  </div>
 
-  <!-- Sensex Live Chart -->
-  <div class="chart-container">
-    <h3>Sensex Live Chart</h3>
-    <div id="sensex-chart" style="height: 520px; width: 100%;"></div>
-  </div>
+    <div class="status-box">
+        <h3>AI TECHNICAL STATUS</h3>
+        <div class="indicator">
+            <span>RSI (14):</span> <span class="val" id="rsi-val">--</span>
+        </div>
+        <div class="indicator">
+            <span>SIGNAL:</span> <span class="val" id="signal-text">CONNECTING...</span>
+        </div>
 
-  <p style="color: #888; margin-top: 40px; font-size: 0.9em;">
-    ⚠️ Demo Dashboard • Prices हर 30 सेकंड में update होते हैं
-  </p>
+        <div class="forecast-btn" id="forecast-box">
+            <div style="font-size: 10px; opacity: 0.8; margin-bottom: 4px; letter-spacing: 1px;">NEXT 15M FORECAST</div>
+            <div id="btn-text">WAITING FOR DATA</div>
+        </div>
+    </div>
 
-  <script src="https://s3.tradingview.com/tv.js"></script>
-  <script>
-    // Sensex Chart
-    new TradingView.widget({
-      "width": "100%", "height": 520, "symbol": "BSE:SENSEX", "interval": "D",
-      "timezone": "Asia/Kolkata", "theme": "dark", "style": "1", "locale": "in",
-      "toolbar_bg": "#111111", "enable_publishing": false, "allow_symbol_change": true,
-      "container_id": "sensex-chart"
-    });
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-    // Live Price Update
-    let niftyPrice = 22312.94;
-    let sensexPrice = 71947.55;
+    <script>
+        // 1. Clock Logic
+        function updateClock() {
+            const now = new Date();
+            let h = now.getHours(), m = String(now.getMinutes()).padStart(2, '0'), s = String(now.getSeconds()).padStart(2, '0');
+            let ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            document.getElementById('time').innerText = `${String(h).padStart(2, '0')}:${m}:${s}`;
+            document.getElementById('ampm').innerText = ampm;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
 
-    function updatePrices() {
-      const niftyChg = (Math.random() * 80 - 40).toFixed(2);
-      const sensexChg = (Math.random() * 250 - 125).toFixed(2);
+        // 2. Firebase Configuration
+        const firebaseConfig = {
+            databaseURL: "https://market--treminal-default-rtdb.firebaseio.com"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
-      niftyPrice = (niftyPrice + parseFloat(niftyChg)).toFixed(2);
-      sensexPrice = (sensexPrice + parseFloat(sensexChg)).toFixed(2);
+        // 3. Real-Time Listener
+        database.ref('market_signal').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                // Update Price
+                document.getElementById('nifty-val').innerText = data.price.toLocaleString('en-IN');
+                document.getElementById('rsi-val').innerText = data.rsi;
+                document.getElementById('signal-text').innerText = data.signal;
 
-      const niftyPct = (parseFloat(niftyChg) / niftyPrice * 100).toFixed(2);
-      const sensexPct = (parseFloat(sensexChg) / sensexPrice * 100).toFixed(2);
+                // Update UI based on Signal
+                const fBox = document.getElementById('forecast-box');
+                const bText = document.getElementById('btn-text');
 
-      document.getElementById('nifty-price').innerHTML = 
-        niftyPrice.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 
-        ` <span class="\( {parseFloat(niftyChg) < 0 ? 'down' : 'up'}"> \){niftyChg} (${niftyPct}%)</span>`;
-
-      document.getElementById('sensex-price').innerHTML = 
-        sensexPrice.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 
-        ` <span class="\( {parseFloat(sensexChg) < 0 ? 'down' : 'up'}"> \){sensexChg} (${sensexPct}%)</span>`;
-
-      const now = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-      document.getElementById('nifty-updated').textContent = `Last updated: ${now}`;
-      document.getElementById('sensex-updated').textContent = `Last updated: ${now}`;
-    }
-
-    // Position Sizing Calculator
-    function calculatePosition() {
-      const capital = parseFloat(document.getElementById('capital').value) || 0;
-      const riskPct = parseFloat(document.getElementById('riskPercent').value) || 0;
-      const entry = parseFloat(document.getElementById('entry').value) || 0;
-      const sl = parseFloat(document.getElementById('stoploss').value) || 0;
-      const target = parseFloat(document.getElementById('target').value) || 0;
-
-      if (capital <= 0 || riskPct <= 0 || entry <= 0 || sl <= 0 || sl >= entry) {
-        alert("सही वैल्यू डालें। Stop Loss Entry से कम होना चाहिए।");
-        return;
-      }
-
-      const riskAmount = (capital * riskPct / 100);
-      const riskPerUnit = entry - sl;
-      let qty = Math.floor(riskAmount / riskPerUnit);
-      const lots = Math.floor(qty / 65);
-
-      const rewardPerUnit = target > entry ? target - entry : 0;
-      const rrRatio = rewardPerUnit > 0 ? (rewardPerUnit / riskPerUnit).toFixed(1) : "N/A";
-
-      document.getElementById('calc-result').style.display = 'block';
-      document.getElementById('risk-amt').innerHTML = `Maximum Risk: <strong>₹${riskAmount.toFixed(0)}</strong>`;
-      document.getElementById('quantity').innerHTML = `Quantity: <strong>\( {qty} shares</strong> ( \){lots} lots)`;
-      document.getElementById('pos-value').innerHTML = `Position Value: <strong>₹${(qty * entry).toFixed(0)}</strong>`;
-      document.getElementById('rr-ratio').innerHTML = `Risk : Reward = <strong>1 : ${rrRatio}</strong>`;
-    }
-
-    // Start auto update
-    setInterval(updatePrices, 30000);
-    updatePrices();
-  </script>
-
+                if (data.signal === "STRONG BUY") {
+                    fBox.className = "forecast-btn glow-buy";
+                    bText.innerText = "➔ " + data.signal;
+                } else if (data.signal === "STRONG SELL") {
+                    fBox.className = "forecast-btn glow-sell";
+                    bText.innerText = "➔ " + data.signal;
+                } else {
+                    fBox.className = "forecast-btn";
+                    bText.innerText = "➔ NEUTRAL / WAIT";
+                }
+            }
+        });
+    </script>
 </body>
 </html>
+
 
 
 
