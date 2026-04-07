@@ -3,56 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kamal Smart Terminal</title>
+    <title>AI Pro Terminal V3</title>
     <style>
-        :root {
-            --bg: #050c1a;
-            --card: #0f172a;
-            --accent: #00f2ff;
-            --green: #00ff88;
-        }
-        body { 
-            background: var(--bg); 
-            color: white; 
-            font-family: 'Segoe UI', sans-serif; 
-            margin: 0; 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-        }
-        .terminal {
-            width: 90%;
-            max-width: 400px;
-            background: var(--card);
-            padding: 20px;
-            border-radius: 20px;
-            border: 1px solid #1e293b;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        h2 { color: var(--accent); font-size: 1.2rem; margin-bottom: 20px; letter-spacing: 1px; }
-        .row {
-            display: flex;
-            justify-content: space-between;
-            margin: 15px 0;
-            padding: 10px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 10px;
-        }
-        .label { color: #94a3b8; font-size: 0.9rem; }
-        .value { font-weight: bold; color: var(--green); font-size: 1.1rem; }
-        .btn-update {
-            margin-top: 20px;
-            background: var(--accent);
-            color: black;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-        }
+        :root { --bg: #0b1120; --card: #1e293b; --accent: #00f2ff; --green: #10b981; --error: #ef4444; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .terminal { width: 90%; max-width: 380px; background: var(--card); padding: 25px; border-radius: 24px; border: 1px solid #334155; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+        h2 { color: var(--accent); font-size: 1.1rem; margin-bottom: 20px; text-align: center; letter-spacing: 2px; }
+        .data-row { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 15px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #334155; }
+        .label { color: #94a3b8; font-size: 0.85rem; font-weight: 600; }
+        .price { font-family: 'Courier New', monospace; font-size: 1.2rem; font-weight: bold; color: var(--green); }
+        .btn { width: 100%; background: var(--accent); color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: bold; margin-top: 15px; cursor: pointer; transition: 0.3s; }
+        .btn:active { transform: scale(0.98); }
+        #signal-box { color: #fbbf24; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -60,67 +22,64 @@
     <div class="terminal">
         <h2>AI PRO TERMINAL V3</h2>
         
-        <div class="row">
+        <div class="data-row">
             <span class="label">NIFTY 50</span>
-            <span class="value" id="nifty">Loading...</span>
+            <span class="price" id="nifty">---</span>
         </div>
 
-        <div class="row">
+        <div class="data-row">
             <span class="label">SENSEX</span>
-            <span class="value" id="sensex">Loading...</span>
+            <span class="price" id="sensex">---</span>
         </div>
 
-        <div class="row">
+        <div class="data-row">
             <span class="label">SIGNAL</span>
-            <span class="value" id="signal" style="color: gold;">SCANNING...</span>
+            <span id="signal-box">ANALYZING...</span>
         </div>
 
-        <button class="btn-update" onclick="fetchMarketData()">REFRESH LIVE DATA</button>
-        <p style="font-size: 10px; color: #475569; margin-top: 15px;">Powered by Real-time API (No Workflow)</p>
+        <button class="btn" onclick="getMarketData()">REFRESH LIVE DATA</button>
+        <p style="text-align: center; font-size: 9px; color: #64748b; margin-top: 15px;">AUTO-REFRESH ACTIVE (EVERY 30S)</p>
     </div>
 
     <script>
-        async function fetchMarketData() {
-            const niftyEl = document.getElementById('nifty');
-            const sensexEl = document.getElementById('sensex');
-            const signalEl = document.getElementById('signal');
+        async function getMarketData() {
+            const niftyTxt = document.getElementById('nifty');
+            const sensexTxt = document.getElementById('sensex');
+            const signalTxt = document.getElementById('signal-box');
 
-            niftyEl.innerText = "Updating...";
-            sensexEl.innerText = "Updating...";
+            niftyTxt.innerText = "UPDATING...";
+            sensexTxt.innerText = "UPDATING...";
 
             try {
-                // Hum ek free financial API use kar rahe hain jo browser se chalti hai
-                const response = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/^NSEI');
-                const data = await response.json();
-                const price = data.chart.result[0].meta.regularMarketPrice;
+                // Hum proxy use kar rahe hain taaki "Error" na aaye
+                const res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/^NSEI'));
+                const data = JSON.parse((await res.json()).contents);
+                const nPrice = data.chart.result[0].meta.regularMarketPrice;
 
-                const response2 = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/^BSESN');
-                const data2 = await response2.json();
-                const price2 = data2.chart.result[0].meta.regularMarketPrice;
+                const res2 = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/^BSESN'));
+                const data2 = JSON.parse((await res2.json()).contents);
+                const sPrice = data2.chart.result[0].meta.regularMarketPrice;
 
-                niftyEl.innerText = price.toLocaleString('en-IN');
-                sensexEl.innerText = price2.toLocaleString('en-IN');
-                
-                // Simple AI Signal
-                if (price > 22500) {
-                    signalEl.innerText = "STRONG BULLISH";
-                    signalEl.style.color = "#00ff88";
+                niftyTxt.innerText = nPrice.toFixed(2);
+                sensexTxt.innerText = sPrice.toFixed(2);
+
+                // Simple Trading Signal logic
+                if (nPrice > 22450) {
+                    signalTxt.innerText = "BULLISH VIEW";
+                    signalTxt.style.color = "#10b981";
                 } else {
-                    signalEl.innerText = "NEUTRAL / WAIT";
-                    signalEl.style.color = "gold";
+                    signalTxt.innerText = "SIDEWAYS / WAIT";
+                    signalTxt.style.color = "#fbbf24";
                 }
-
-            } catch (error) {
-                niftyEl.innerText = "Error";
-                sensexEl.innerText = "Error";
-                console.log("Data fetch failed", error);
+            } catch (e) {
+                niftyTxt.innerText = "RETRYING...";
+                console.log(e);
             }
         }
 
-        // Page khulte hi data load ho jaye
-        window.onload = fetchMarketData;
-        // Har 1 minute mein apne aap refresh ho
-        setInterval(fetchMarketData, 60000);
+        // On load and interval
+        window.onload = getMarketData;
+        setInterval(getMarketData, 30000); // Har 30 second mein refresh
     </script>
 </body>
 </html>
