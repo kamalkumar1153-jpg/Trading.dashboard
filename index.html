@@ -5,52 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Pro Terminal</title>
   <style>
-    body { 
-      background: #0a0a0a; 
-      color: #00ffcc; 
-      font-family: Arial, sans-serif; 
-      margin: 0; 
-      padding: 15px; 
-    }
-    .header { 
-      text-align: center; 
-      font-size: 26px; 
-      color: #00ccff; 
-      margin-bottom: 20px; 
-    }
-    .live { 
-      color: #00ff00; 
-      animation: pulse 2s infinite; 
-    }
-    @keyframes pulse { 0%,100% {opacity:1;} 50% {opacity:0.5;} }
-    .card { 
-      background: #1a1a2e; 
-      border-radius: 12px; 
-      padding: 18px; 
-      margin: 12px 0; 
-      box-shadow: 0 0 15px rgba(0,255,204,0.2); 
-    }
+    body { background: #0a0a0a; color: #00ffcc; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 15px; }
+    .header { text-align: center; font-size: 26px; color: #00ccff; margin-bottom: 20px; font-weight: bold; }
+    .live { color: #00ff00; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% {opacity:1;} 50% {opacity:0.6;} }
+    .card { background: #1a1a2e; border-radius: 12px; padding: 18px; margin: 12px 0; box-shadow: 0 0 15px rgba(0,255,204,0.2); }
     .title { font-size: 15px; opacity: 0.9; }
     .price { font-size: 24px; font-weight: bold; margin: 8px 0; }
     .change { font-size: 15px; }
     .positive { color: #00ff88; }
     .negative { color: #ff4466; }
-    button { 
-      background: #0077ff; 
-      color: white; 
-      border: none; 
-      padding: 18px; 
-      width: 100%; 
-      border-radius: 12px; 
-      font-size: 18px; 
-      margin-top: 20px; 
-    }
-    .signal { 
-      text-align: center; 
-      font-size: 18px; 
-      margin: 20px 0; 
-      font-weight: bold; 
-    }
+    button { background: #0077ff; color: white; border: none; padding: 18px; width: 100%; border-radius: 12px; font-size: 18px; margin-top: 20px; cursor: pointer; }
+    .signal { text-align: center; font-size: 18px; margin: 20px 0; font-weight: bold; }
+    .rsi-high { color: #ff4466; }
+    .rsi-low { color: #00ff88; }
   </style>
 </head>
 <body>
@@ -69,8 +37,9 @@
   </div>
 
   <div class="card">
-    <div class="title">RSI (14)</div>
-    <div id="rsi-value" style="font-size:24px; margin:10px 0;">--</div>
+    <div class="title">RSI (14) - NIFTY 50</div>
+    <div id="rsi-value" style="font-size:26px; margin:10px 0; font-weight:bold;">--</div>
+    <div id="rsi-signal" style="font-size:14px;"></div>
   </div>
 
   <div class="signal">SIGNAL: <span id="signal">CONNECTING...</span></div>
@@ -78,64 +47,89 @@
   <button id="data-btn">WAITING FOR DATA</button>
 
   <script>
-    const proxy =  https://api.allorigins.win/raw?url= // अगर काम न करे तो 'https://api.allorigins.win/raw?url=' ट्राई करें
+    // Proxy (अगर एक काम न करे तो दूसरा ट्राई करें)
+    const proxy = 'https://corsproxy.io/?';   // या 'https://api.allorigins.win/raw?url='
+
+    // RSI (14) कैलकुलेट करने का फंक्शन
+    function calculateRSI(closes) {
+      if (closes.length < 15) return "--";
+      let gains = 0, losses = 0;
+      for (let i = 1; i < 15; i++) {
+        const diff = closes[i] - closes[i-1];
+        if (diff > 0) gains += diff;
+        else losses -= diff;
+      }
+      const avgGain = gains / 14;
+      const avgLoss = losses / 14 || 0.0001; // division by zero से बचने के लिए
+      const rs = avgGain / avgLoss;
+      return (100 - (100 / (1 + rs))).toFixed(2);
+    }
 
     async function fetchMarketData() {
       const signalEl = document.getElementById('signal');
       const btn = document.getElementById('data-btn');
-
       signalEl.textContent = "CONNECTING...";
       btn.textContent = "WAITING FOR DATA";
 
       try {
-        // === NIFTY 50 ===
+        // NIFTY 50
         let url = proxy + encodeURIComponent('https://www.nseindia.com/api/equity-stockIndices?index=NIFTY%2050');
-        let res = await fetch(url, {
-          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
-        });
+        let res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } });
         let data = await res.json();
         let nifty = data.data[0];
-
         document.getElementById('nifty-price').textContent = parseFloat(nifty.lastPrice).toFixed(2);
         let niftyChg = parseFloat(nifty.pChange);
         let niftyEl = document.getElementById('nifty-change');
         niftyEl.innerHTML = (niftyChg >= 0 ? '+' : '') + niftyChg.toFixed(2) + '%';
         niftyEl.className = niftyChg >= 0 ? 'change positive' : 'change negative';
 
-        // === SENSEX ===
+        // SENSEX
         url = proxy + encodeURIComponent('https://www.nseindia.com/api/equity-stockIndices?index=BSE%20SENSEX');
-        res = await fetch(url, {
-          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
-        });
+        res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } });
         data = await res.json();
         let sensex = data.data[0];
-
         document.getElementById('sensex-price').textContent = parseFloat(sensex.lastPrice).toFixed(2);
         let sensexChg = parseFloat(sensex.pChange);
         let sensexEl = document.getElementById('sensex-change');
         sensexEl.innerHTML = (sensexChg >= 0 ? '+' : '') + sensexChg.toFixed(2) + '%';
         sensexEl.className = sensexChg >= 0 ? 'change positive' : 'change negative';
 
-        // सफल होने पर
+        // RSI (14) - Yahoo Finance से historical data
+        const yahooRes = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/^NSEI?interval=1d&range=1mo');
+        const yahooData = await yahooRes.json();
+        const closes = yahooData.chart.result[0].indicators.quote[0].close;
+        const rsi = calculateRSI(closes);
+        document.getElementById('rsi-value').textContent = rsi;
+
+        // RSI Signal
+        const rsiNum = parseFloat(rsi);
+        const rsiSignalEl = document.getElementById('rsi-signal');
+        if (rsiNum > 70) {
+          rsiSignalEl.textContent = "Overbought → Sell Signal";
+          rsiSignalEl.className = "rsi-high";
+        } else if (rsiNum < 30) {
+          rsiSignalEl.textContent = "Oversold → Strong Buy Signal";
+          rsiSignalEl.className = "rsi-low";
+        } else {
+          rsiSignalEl.textContent = "Neutral Zone";
+        }
+
         signalEl.textContent = "CONNECTED ✅";
         btn.textContent = "DATA LIVE ✅";
         btn.style.background = "#00cc66";
 
       } catch (err) {
-        console.error("API Error:", err);
-        signalEl.textContent = "ERROR - Retry";
-        btn.textContent = "RETRY";
+        console.error("Error:", err);
+        signalEl.textContent = "ERROR - Retry (Proxy/Market Closed)";
       }
     }
 
-    // हर 15 सेकंड में अपडेट
-    setInterval(fetchMarketData, 15000);
-    fetchMarketData(); // पहली बार लोड
+    // हर 20 सेकंड में अपडेट
+    setInterval(fetchMarketData, 20000);
+    fetchMarketData(); // पहली बार
   </script>
 </body>
 </html>
-
-
 
 
 
