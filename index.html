@@ -3,86 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Pro Terminal V3</title>
+    <title>AI Pro Terminal V4</title>
     <style>
-        :root { --bg: #0b1120; --card: #1e293b; --accent: #00f2ff; --green: #10b981; --error: #ef4444; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .terminal { width: 90%; max-width: 380px; background: var(--card); padding: 25px; border-radius: 24px; border: 1px solid #334155; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+        :root { --bg: #0b1120; --card: #1e293b; --accent: #00f2ff; --up: #10b981; --down: #ef4444; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .terminal { width: 90%; max-width: 400px; background: var(--card); padding: 25px; border-radius: 24px; border: 1px solid #334155; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
         h2 { color: var(--accent); font-size: 1.1rem; margin-bottom: 20px; text-align: center; letter-spacing: 2px; }
         .data-row { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 15px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #334155; }
         .label { color: #94a3b8; font-size: 0.85rem; font-weight: 600; }
-        .price { font-family: 'Courier New', monospace; font-size: 1.2rem; font-weight: bold; color: var(--green); }
-        .btn { width: 100%; background: var(--accent); color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: bold; margin-top: 15px; cursor: pointer; transition: 0.3s; }
-        .btn:active { transform: scale(0.98); }
-        #signal-box { color: #fbbf24; font-weight: bold; }
+        .price { font-family: 'monospace'; font-size: 1.2rem; font-weight: bold; }
+        .forecast-box { background: linear-gradient(145deg, #1e293b, #0f172a); padding: 20px; border-radius: 15px; border: 2px solid #334155; margin-top: 20px; text-align: center; }
+        .prediction { font-size: 1.4rem; font-weight: 800; margin: 10px 0; text-transform: uppercase; }
+        .btn { width: 100%; background: var(--accent); color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: bold; margin-top: 15px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="terminal">
-        <h2>AI PRO TERMINAL V3</h2>
+        <h2>AI PRO TERMINAL V4</h2>
         
         <div class="data-row">
             <span class="label">NIFTY 50</span>
-            <span class="price" id="nifty">---</span>
+            <span class="price" id="nifty" style="color: var(--up);">---</span>
         </div>
 
-        <div class="data-row">
-            <span class="label">SENSEX</span>
-            <span class="price" id="sensex">---</span>
+        <div class="forecast-box" id="forecast-card">
+            <div style="font-size: 0.75rem; color: #94a3b8; letter-spacing: 1px;">NEXT 15-MIN FORECAST</div>
+            <div class="prediction" id="predict-text">ANALYZING...</div>
+            <div id="confidence" style="font-size: 0.8rem; color: #64748b;">Waiting for market trend...</div>
         </div>
 
-        <div class="data-row">
-            <span class="label">SIGNAL</span>
-            <span id="signal-box">ANALYZING...</span>
-        </div>
-
-        <button class="btn" onclick="getMarketData()">REFRESH LIVE DATA</button>
-        <p style="text-align: center; font-size: 9px; color: #64748b; margin-top: 15px;">AUTO-REFRESH ACTIVE (EVERY 30S)</p>
+        <button class="btn" onclick="getMarketData()">REFRESH LIVE SIGNAL</button>
+        <p style="text-align: center; font-size: 9px; color: #64748b; margin-top: 15px;">AUTO-REFRESH: 30S | NO WORKFLOW</p>
     </div>
 
     <script>
+        let lastPrice = 0;
+
         async function getMarketData() {
             const niftyTxt = document.getElementById('nifty');
-            const sensexTxt = document.getElementById('sensex');
-            const signalTxt = document.getElementById('signal-box');
-
-            niftyTxt.innerText = "UPDATING...";
-            sensexTxt.innerText = "UPDATING...";
+            const predictTxt = document.getElementById('predict-text');
+            const confTxt = document.getElementById('confidence');
+            const fCard = document.getElementById('forecast-card');
 
             try {
-                // Hum proxy use kar rahe hain taaki "Error" na aaye
-                const res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/^NSEI'));
+                const res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/^NSEI?interval=15m&range=1d'));
                 const data = JSON.parse((await res.json()).contents);
-                const nPrice = data.chart.result[0].meta.regularMarketPrice;
+                
+                const prices = data.chart.result[0].indicators.quote[0].close;
+                const currentPrice = data.chart.result[0].meta.regularMarketPrice;
+                niftyTxt.innerText = currentPrice.toFixed(2);
 
-                const res2 = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/^BSESN'));
-                const data2 = JSON.parse((await res2.json()).contents);
-                const sPrice = data2.chart.result[0].meta.regularMarketPrice;
-
-                niftyTxt.innerText = nPrice.toFixed(2);
-                sensexTxt.innerText = sPrice.toFixed(2);
-
-                // Simple Trading Signal logic
-                if (nPrice > 22450) {
-                    signalTxt.innerText = "BULLISH VIEW";
-                    signalTxt.style.color = "#10b981";
+                // --- 15 Min Prediction Logic ---
+                // Agar current price pichle 15-min candle se upar hai toh Buy
+                const prevPrice = prices[prices.length - 2];
+                
+                if (currentPrice > prevPrice) {
+                    predictTxt.innerText = "↑ UP (BUY)";
+                    predictTxt.style.color = "#10b981";
+                    fCard.style.borderColor = "#10b981";
+                    confTxt.innerText = "Trend: Bullish Momentum";
+                } else if (currentPrice < prevPrice) {
+                    predictTxt.innerText = "↓ DOWN (SELL)";
+                    predictTxt.style.color = "#ef4444";
+                    fCard.style.borderColor = "#ef4444";
+                    confTxt.innerText = "Trend: Bearish Pressure";
                 } else {
-                    signalTxt.innerText = "SIDEWAYS / WAIT";
-                    signalTxt.style.color = "#fbbf24";
+                    predictTxt.innerText = "SIDEWAYS";
+                    predictTxt.style.color = "gold";
+                    confTxt.innerText = "Wait for clear breakout";
                 }
+
             } catch (e) {
-                niftyTxt.innerText = "RETRYING...";
+                predictTxt.innerText = "RETRYING...";
                 console.log(e);
             }
         }
 
-        // On load and interval
         window.onload = getMarketData;
-        setInterval(getMarketData, 30000); // Har 30 second mein refresh
+        setInterval(getMarketData, 30000);
     </script>
 </body>
 </html>
+
 
 
 
