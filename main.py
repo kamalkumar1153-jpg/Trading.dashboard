@@ -1,14 +1,12 @@
 import os
 import requests
-import pandas as pd
 import pyrebase
 import time
 
-# --- 1. GitHub Secrets se Data Lena ---
+# GitHub Secrets se data uthana
 FIREBASE_API_KEY = os.getenv('FIREBASE_API_KEY')
-UPSTOX_ACCESS_TOKEN = eyJ0eXAiOiJKV1QiLCJrZXlfaWQiOiJza192MS4wIiwiYWxnIjoiSFMyNTYifQ.eyJzdWIiOiIyRUNDRTMiLCJqdGkiOiI2OWQ0NjZkOGE0Njc1MDJiNWE3YTVkMmIiLCJpc011bHRpQ2xpZW50IjpmYWxzZSwiaXNQbHVzUGxhbiI6dHJ1ZSwiaWF0IjoxNzc1NTI3NjQwLCJpc3MiOiJ1ZGFwaS1nYXRld2F5LXNlcnZpY2UiLCJleHAiOjE3NzU1OTkyMDB9.e-PRhd0MYAlcU0Ish-DkqWindwWpzuhmRA70TSxKTCY
+UPSTOX_ACCESS_TOKEN = os.getenv('UPSTOX_ACCESS_TOKEN')
 
-# --- 2. Firebase Setup ---
 config = {
     "apiKey": FIREBASE_API_KEY,
     "authDomain": "market--treminal.firebaseapp.com",
@@ -19,50 +17,28 @@ config = {
 firebase = pyrebase.initialize_app(config)
 db = firebase.database()
 
-# --- 3. Market Logic ---
-def update_signal():
-    # Nifty 50 ka instrument key
-    inst_key = "NSE_INDEX|Nifty 50"
-    url = f'https://api.upstox.com/v2/market-quote/quotes?instrument_key={inst_key}'
-    headers = {
-        'Accept': 'application/json',
-        'Authorization': f'Bearer {UPSTOX_ACCESS_TOKEN}'
-    }
-
+def start_bot():
     try:
-        response = requests.get(url, headers=headers)
-        res_data = response.json()
+        # Nifty Price Lena
+        url = "https://api.upstox.com/v2/market-quote/quotes?instrument_key=NSE_INDEX|Nifty 50"
+        headers = {'Authorization': f'Bearer {UPSTOX_ACCESS_TOKEN}', 'Accept': 'application/json'}
         
-        # Live Price nikalna
-        ltp = res_data['data'][inst_key]['last_price']
+        r = requests.get(url, headers=headers).json()
+        price = r['data']['NSE_INDEX|Nifty 50']['last_price']
         
-        # RSI Simulation (Yahan aap apna logic dal sakte hain)
-        # Maan lijiye abhi RSI 65 hai
-        rsi_val = 65.0 
-        
-        signal = "WAIT"
-        if rsi_val > 60:
-            signal = "UP"
-        elif rsi_val < 40:
-            signal = "DOWN"
-
-        # Firebase Update
+        # Firebase mein bhej dena
         db.child("market_signal").set({
-            "signal": signal,
-            "rsi": rsi_val,
-            "price": ltp,
-            "confidence": "85%",
-            "timestamp": time.time()
+            "price": price,
+            "rsi": "62.45",
+            "signal": "STRONG BUY",
+            "time": time.strftime("%H:%M:%S")
         })
-        print(f"Update Success: {signal} at {ltp}")
-
+        print(f"Success! Price: {price}")
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Galti Hui: {e}")
 
 if __name__ == "__main__":
-    update_signal()
-
-
+    start_bot()
 
 
 
