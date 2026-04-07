@@ -1,40 +1,130 @@
 <!DOCTYPE html>
-<html>
+<html lang="hi">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kamal AI Terminal</title>
+    <title>Kamal Smart Terminal</title>
     <style>
-        body { background: #051125; color: white; font-family: sans-serif; text-align: center; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 20px; }
-        .card { background: #112240; padding: 15px; border-radius: 12px; border: 1px solid #1d2d50; }
-        .price { font-size: 24px; color: #64ffda; font-weight: bold; }
-        .signal-btn { background: #1e40af; padding: 15px; margin: 20px; border-radius: 10px; font-weight: bold; }
+        :root {
+            --bg: #050c1a;
+            --card: #0f172a;
+            --accent: #00f2ff;
+            --green: #00ff88;
+        }
+        body { 
+            background: var(--bg); 
+            color: white; 
+            font-family: 'Segoe UI', sans-serif; 
+            margin: 0; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .terminal {
+            width: 90%;
+            max-width: 400px;
+            background: var(--card);
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px solid #1e293b;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        h2 { color: var(--accent); font-size: 1.2rem; margin-bottom: 20px; letter-spacing: 1px; }
+        .row {
+            display: flex;
+            justify-content: space-between;
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+        .label { color: #94a3b8; font-size: 0.9rem; }
+        .value { font-weight: bold; color: var(--green); font-size: 1.1rem; }
+        .btn-update {
+            margin-top: 20px;
+            background: var(--accent);
+            color: black;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
-    <h2>AI PRO TERMINAL V2.5</h2>
-    <div class="grid">
-        <div class="card"><small>NIFTY 50</small><div class="price" id="n-val">...</div></div>
-        <div class="card"><small>SENSEX</small><div class="price" id="s-val">...</div></div>
-    </div>
-    <div class="signal-btn" id="sig">CONNECTING...</div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <div class="terminal">
+        <h2>AI PRO TERMINAL V3</h2>
+        
+        <div class="row">
+            <span class="label">NIFTY 50</span>
+            <span class="value" id="nifty">Loading...</span>
+        </div>
+
+        <div class="row">
+            <span class="label">SENSEX</span>
+            <span class="value" id="sensex">Loading...</span>
+        </div>
+
+        <div class="row">
+            <span class="label">SIGNAL</span>
+            <span class="value" id="signal" style="color: gold;">SCANNING...</span>
+        </div>
+
+        <button class="btn-update" onclick="fetchMarketData()">REFRESH LIVE DATA</button>
+        <p style="font-size: 10px; color: #475569; margin-top: 15px;">Powered by Real-time API (No Workflow)</p>
+    </div>
+
     <script>
-        const config = { databaseURL: "https://market--treminal-default-rtdb.firebaseio.com" };
-        firebase.initializeApp(config);
-        firebase.database().ref('market_data').on('value', (snap) => {
-            const val = snap.val();
-            if(val) {
-                document.getElementById('n-val').innerText = val.nifty;
-                document.getElementById('s-val').innerText = val.sensex;
-                document.getElementById('sig').innerText = "SIGNAL: " + val.signal;
+        async function fetchMarketData() {
+            const niftyEl = document.getElementById('nifty');
+            const sensexEl = document.getElementById('sensex');
+            const signalEl = document.getElementById('signal');
+
+            niftyEl.innerText = "Updating...";
+            sensexEl.innerText = "Updating...";
+
+            try {
+                // Hum ek free financial API use kar rahe hain jo browser se chalti hai
+                const response = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/^NSEI');
+                const data = await response.json();
+                const price = data.chart.result[0].meta.regularMarketPrice;
+
+                const response2 = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/^BSESN');
+                const data2 = await response2.json();
+                const price2 = data2.chart.result[0].meta.regularMarketPrice;
+
+                niftyEl.innerText = price.toLocaleString('en-IN');
+                sensexEl.innerText = price2.toLocaleString('en-IN');
+                
+                // Simple AI Signal
+                if (price > 22500) {
+                    signalEl.innerText = "STRONG BULLISH";
+                    signalEl.style.color = "#00ff88";
+                } else {
+                    signalEl.innerText = "NEUTRAL / WAIT";
+                    signalEl.style.color = "gold";
+                }
+
+            } catch (error) {
+                niftyEl.innerText = "Error";
+                sensexEl.innerText = "Error";
+                console.log("Data fetch failed", error);
             }
-        });
+        }
+
+        // Page khulte hi data load ho jaye
+        window.onload = fetchMarketData;
+        // Har 1 minute mein apne aap refresh ho
+        setInterval(fetchMarketData, 60000);
     </script>
 </body>
 </html>
+
 
 
 
