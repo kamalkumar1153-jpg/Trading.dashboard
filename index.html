@@ -1,175 +1,69 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Pro Terminal V2.5</title>
-    <style>
-        :root {
-            --bg: #051125;
-            --card: #112240;
-            --accent: #64ffda;
-            --bearish: #ff4d4d;
-            --border: #1d2d50;
-        }
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-        body { background-color: var(--bg); color: #ffffff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; }
+<script>
+    // 1. Firebase Configuration
+    const firebaseConfig = {
+        databaseURL: "https://market--treminal-default-rtdb.firebaseio.com"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // 2. Clock & Session Logic (Jo aapne likha tha)
+    function updateClock() {
+        const now = new Date();
+        let h = now.getHours(), m = String(now.getMinutes()).padStart(2, '0'), s = String(now.getSeconds()).padStart(2, '0');
+        let ampm = h >= 12 ? 'PM' : 'AM';
         
-        .header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px; }
-        .title h1 { color: #4facfe; margin: 0; font-size: 22px; font-weight: bold; line-height: 1.2; }
-        .title p { color: #8892b0; margin: 5px 0; font-size: 11px; }
-
-        .market-status {
-            font-size: 10px;
-            padding: 2px 8px;
-            border-radius: 20px;
-            display: inline-block;
-            background: #1d2d50;
-            border: 1px solid var(--accent);
-            color: var(--accent);
-            margin-top: 5px;
-        }
-
-        .clock-card { background: var(--card); padding: 12px 15px; border-radius: 12px; text-align: center; border: 1px solid var(--border); min-width: 90px; }
-        #time { font-size: 20px; font-weight: bold; letter-spacing: 1px; }
-
-        .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .index-card { background: var(--card); padding: 18px 12px; border-radius: 15px; border: 1px solid var(--border); transition: 0.3s; }
-        .index-card small { color: #8892b0; font-size: 10px; font-weight: bold; display: block; margin-bottom: 5px; }
-        .price { font-size: 19px; font-weight: bold; transition: color 0.3s; }
-
-        .status-box { background: var(--card); padding: 18px; border-radius: 18px; border: 1px solid var(--border); }
-        .status-box h3 { border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-top: 0; font-size: 15px; color: #ccd6f6; }
+        const day = now.getDay();
+        const timeVal = h * 100 + parseInt(m);
+        const isOpen = (day !== 0 && day !== 6) && timeVal >= 915 && timeVal <= 1530;
         
-        .indicator { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
-        .val { color: var(--accent); font-weight: bold; }
+        const sessionEl = document.getElementById('mkt-session');
+        sessionEl.innerText = isOpen ? "● MARKET OPEN" : "● MARKET CLOSED";
+        sessionEl.style.color = isOpen ? "#64ffda" : "#ff4d4d";
+        sessionEl.style.borderColor = isOpen ? "#64ffda" : "#ff4d4d";
 
-        /* Pulse Bar Styling */
-        .pulse-container { margin-top: 15px; }
-        .pulse-label { display: flex; justify-content: space-between; font-size: 10px; color: #8892b0; margin-bottom: 5px; font-weight: bold; }
-        .bar-bg { width: 100%; height: 6px; background: #0a192f; border-radius: 10px; overflow: hidden; border: 0.5px solid var(--border); }
-        #pulse-fill { width: 60%; height: 100%; background: linear-gradient(to right, var(--bearish), var(--accent)); transition: 1s ease-in-out; }
+        h = h % 12 || 12;
+        document.getElementById('time').innerText = `${String(h).padStart(2, '0')}:${m}:${s}`;
+        document.getElementById('ampm').innerText = ampm;
+    }
+    setInterval(updateClock, 1000);
 
-        .forecast-btn {
-            background: linear-gradient(135deg, #1e40af, #3b82f6);
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 12px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 14px;
-            transition: 0.5s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-
-        .glow-buy { box-shadow: 0 0 15px rgba(100, 255, 218, 0.4); border: 1px solid var(--accent); }
-    </style>
-</head>
-<body>
-
-    <div class="header">
-        <div class="title">
-            <h1>AI PRO<br>TERMINAL V2.5</h1>
-            <p>Kamal-Trader Dashboard</p>
-            <div id="mkt-session" class="market-status">● MARKET OPEN</div>
-        </div>
-        <div class="clock-card">
-            <div id="time">00:00:00</div>
-            <div id="ampm" style="font-size: 11px; color: #8892b0;">AM</div>
-        </div>
-    </div>
-
-    <div class="market-grid">
-        <div class="index-card">
-            <small>SENSEX</small>
-            <div class="price" id="sensex-val">74,106.85</div>
-        </div>
-        <div class="index-card">
-            <small>NIFTY 50</small>
-            <div class="price" id="nifty-val">22,968.25</div>
-        </div>
-    </div>
-
-    <div class="status-box">
-        <h3>AI TECHNICAL STATUS</h3>
-        <div class="indicator">
-            <span>RSI (14):</span> <span class="val" id="rsi-val">62.45</span>
-        </div>
-        <div class="indicator">
-            <span>EMA (20):</span> <span class="val" id="ema-val">22,480.10</span>
-        </div>
-
-        <div class="pulse-container">
-            <div class="pulse-label"><span>BEARISH</span><span>BULLISH</span></div>
-            <div class="bar-bg">
-                <div id="pulse-fill"></div>
-            </div>
-        </div>
-
-        <div class="forecast-btn" id="forecast-box">
-            <div style="font-size: 10px; opacity: 0.8; margin-bottom: 4px; letter-spacing: 1px;">NEXT 15M FORECAST</div>
-            <div id="signal-text">➔ NEUTRAL / BULLISH</div>
-        </div>
-    </div>
-
-    <script>
-        // 1. Clock & Session Logic
-        function updateClock() {
-            const now = new Date();
-            let h = now.getHours(), m = String(now.getMinutes()).padStart(2, '0'), s = String(now.getSeconds()).padStart(2, '0');
-            let ampm = h >= 12 ? 'PM' : 'AM';
+    // 3. Real-Time Firebase Listener
+    // Ab random movement ki jagah Firebase se data aayega
+    database.ref('market_signal').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            // Price Update
+            document.getElementById('nifty-val').innerText = parseFloat(data.price).toLocaleString('en-IN');
             
-            // Session Status (Mon-Fri, 9:15 to 15:30)
-            const day = now.getDay();
-            const timeVal = h * 100 + parseInt(m);
-            const isWeekend = (day === 0 || day === 6);
-            const isOpen = !isWeekend && timeVal >= 915 && timeVal <= 1530;
-            
-            const sessionEl = document.getElementById('mkt-session');
-            sessionEl.innerText = isOpen ? "● MARKET OPEN" : "● MARKET CLOSED";
-            sessionEl.style.color = isOpen ? "#64ffda" : "#ff4d4d";
-            sessionEl.style.borderColor = isOpen ? "#64ffda" : "#ff4d4d";
-
-            h = h % 12 || 12;
-            document.getElementById('time').innerText = `${String(h).padStart(2, '0')}:${m}:${s}`;
-            document.getElementById('ampm').innerText = ampm;
-        }
-        setInterval(updateClock, 1000);
-
-        // 2. Dynamic Price & Pulse Animation
-        let lastNifty = 22968.25;
-
-        function simulateMovement() {
-            // Price Change Logic
-            let change = (Math.random() * 4 - 2).toFixed(2);
-            let newNifty = (lastNifty + parseFloat(change)).toFixed(2);
-            
-            const niftyEl = document.getElementById('nifty-val');
-            niftyEl.innerText = parseFloat(newNifty).toLocaleString('en-IN');
-            niftyEl.style.color = newNifty > lastNifty ? "#64ffda" : "#ff4d4d";
-            lastNifty = parseFloat(newNifty);
-
-            // RSI & Pulse Bar Logic
-            let rsi = (Math.random() * (70 - 40) + 40).toFixed(2);
+            // RSI & Pulse Bar Update
+            const rsi = data.rsi;
             document.getElementById('rsi-val').innerText = rsi;
             document.getElementById('pulse-fill').style.width = rsi + "%";
 
-            // Signal Glow logic
+            // Signal Box Update
             const fBox = document.getElementById('forecast-box');
-            if(rsi > 60) {
+            const sText = document.getElementById('signal-text');
+
+            if (data.signal === "UP") {
                 fBox.className = "forecast-btn glow-buy";
-                document.getElementById('signal-text').innerText = "➔ STRONG BUY SIGNAL";
+                sText.innerText = "➔ STRONG BUY SIGNAL";
+                fBox.style.background = "linear-gradient(135deg, #065f46, #059669)"; // Greenish
+            } else if (data.signal === "DOWN") {
+                fBox.className = "forecast-btn";
+                sText.innerText = "➔ STRONG SELL SIGNAL";
+                fBox.style.background = "linear-gradient(135deg, #991b1b, #dc2626)"; // Reddish
             } else {
                 fBox.className = "forecast-btn";
-                document.getElementById('signal-text').innerText = "➔ NEUTRAL / WAIT";
+                sText.innerText = "➔ NEUTRAL / WAIT";
+                fBox.style.background = "linear-gradient(135deg, #1e40af, #3b82f6)"; // Default Blue
             }
         }
+    });
+</script>
 
-        setInterval(simulateMovement, 3000);
-        updateClock();
-    </script>
-</body>
-</html>
 
 
 
