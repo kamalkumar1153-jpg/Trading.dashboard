@@ -3,98 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Pro Terminal V5</title>
+    <title>AI Pro Terminal V6</title>
     <style>
-        :root { --bg: #0b1120; --card: #1e293b; --accent: #00f2ff; --up: #10b981; --down: #ef4444; }
+        :root { --bg: #0b1120; --card: #1e293b; --accent: #00f2ff; --up: #10b981; --down: #ef4444; --neutral: #fbbf24; }
         body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-        .terminal { width: 95%; max-width: 420px; background: var(--card); padding: 20px; border-radius: 24px; border: 1px solid #334155; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
-        h2 { color: var(--accent); font-size: 1.1rem; margin-bottom: 15px; text-align: center; letter-spacing: 2px; }
-        .market-box { background: #0f172a; padding: 18px; border-radius: 15px; margin-bottom: 15px; border-left: 6px solid #334155; }
-        .data-header { display: flex; justify-content: space-between; align-items: center; }
-        .label { color: #94a3b8; font-size: 0.9rem; font-weight: bold; }
-        .price { font-family: 'monospace'; font-size: 1.3rem; font-weight: bold; color: white; }
-        .prediction-area { text-align: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid #1e293b; }
-        .signal { font-size: 1.1rem; font-weight: 800; }
-        .target { font-size: 0.9rem; color: #94a3b8; margin-top: 5px; font-weight: bold; }
-        .btn { width: 100%; background: var(--accent); color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        .terminal { width: 95%; max-width: 420px; background: var(--card); padding: 25px; border-radius: 24px; border: 1px solid #334155; }
+        .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .mini-card { background: #0f172a; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #334155; }
+        .label { color: #94a3b8; font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 5px; }
+        .price { font-family: monospace; font-size: 1.1rem; font-weight: bold; }
+        .main-signal { background: #0f172a; padding: 25px; border-radius: 18px; border: 2px solid #334155; text-align: center; transition: 0.5s; }
+        #sig-text { font-size: 1.5rem; font-weight: 900; margin-bottom: 5px; }
+        #sig-desc { font-size: 0.85rem; color: #94a3b8; }
+        .btn { width: 100%; background: var(--accent); color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: bold; margin-top: 20px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="terminal">
-        <h2>AI PRO TERMINAL V5 (POINT TARGET)</h2>
+        <h2 style="text-align: center; color: var(--accent); font-size: 1.2rem; margin-bottom: 20px;">MASTER TRADING TERMINAL</h2>
         
-        <div class="market-box" id="n-card">
-            <div class="data-header"><span class="label">NIFTY 50</span><span class="price" id="n-price">---</span></div>
-            <div class="prediction-area">
-                <div class="signal" id="n-sig">ANALYZING...</div>
-                <div class="target" id="n-target">Target: -- pts</div>
+        <div class="market-grid">
+            <div class="mini-card">
+                <span class="label">NIFTY 50</span>
+                <span class="price" id="n-price">---</span>
+            </div>
+            <div class="mini-card">
+                <span class="label">SENSEX</span>
+                <span class="price" id="s-price">---</span>
             </div>
         </div>
 
-        <div class="market-box" id="s-card">
-            <div class="data-header"><span class="label">SENSEX</span><span class="price" id="s-price">---</span></div>
-            <div class="prediction-area">
-                <div class="signal" id="s-sig">ANALYZING...</div>
-                <div class="target" id="s-target">Target: -- pts</div>
-            </div>
+        <div class="main-signal" id="sig-card">
+            <div id="sig-text">ANALYZING...</div>
+            <div id="sig-desc">Checking Market Divergence</div>
         </div>
 
-        <button class="btn" onclick="updateTerminal()">REFRESH DATA</button>
+        <button class="btn" onclick="updateLogic()">REFRESH CONFIRMATION</button>
     </div>
 
     <script>
-        async function getMarketData(sym) {
+        async function getData(sym) {
             const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/' + sym + '?interval=15m&range=1d')}`);
-            const data = JSON.parse((await res.json()).contents);
-            return data.chart.result[0];
+            return JSON.parse((await res.json()).contents).chart.result[0];
         }
 
-        async function updateTerminal() {
+        async function updateLogic() {
+            const sigText = document.getElementById('sig-text');
+            const sigDesc = document.getElementById('sig-desc');
+            const sigCard = document.getElementById('sig-card');
+
             try {
-                const [nData, sData] = await Promise.all([getMarketData('^NSEI'), getMarketData('^BSESN')]);
+                const [nData, sData] = await Promise.all([getData('^NSEI'), getData('^BSESN')]);
+                
+                const nCurr = nData.meta.regularMarketPrice;
+                const sCurr = sData.meta.regularMarketPrice;
+                const nPrev = nData.indicators.quote[0].close.slice(-2)[0];
+                const sPrev = sData.indicators.quote[0].close.slice(-2)[0];
 
-                const process = (data, pEl, sEl, tEl, cEl) => {
-                    const current = data.meta.regularMarketPrice;
-                    const history = data.indicators.quote[0].close;
-                    const highs = data.indicators.quote[0].high;
-                    const lows = data.indicators.quote[0].low;
-                    
-                    const prevClose = history[history.length - 2];
-                    
-                    // Volatility Based Point Calculation (Simple ATR)
-                    let rangeSum = 0;
-                    for(let i=1; i<=5; i++) {
-                        rangeSum += (highs[highs.length-i] - lows[lows.length-i]);
-                    }
-                    const expectedMove = (rangeSum / 5).toFixed(1);
+                document.getElementById('n-price').innerText = nCurr.toFixed(2);
+                document.getElementById('s-price').innerText = sCurr.toFixed(2);
 
-                    pEl.innerText = current.toLocaleString('en-IN');
-                    
-                    if (current > prevClose) {
-                        sEl.innerText = "↑ BUY (UP)";
-                        sEl.style.color = "#10b981";
-                        tEl.innerText = `Expected: +${expectedMove} Points`;
-                        cEl.style.borderLeftColor = "#10b981";
-                    } else {
-                        sEl.innerText = "↓ SELL (DOWN)";
-                        sEl.style.color = "#ef4444";
-                        tEl.innerText = `Expected: -${expectedMove} Points`;
-                        cEl.style.borderLeftColor = "#ef4444";
-                    }
-                };
+                const nUp = nCurr > nPrev;
+                const sUp = sCurr > sPrev;
 
-                process(nData, document.getElementById('n-price'), document.getElementById('n-sig'), document.getElementById('n-target'), document.getElementById('n-card'));
-                process(sData, document.getElementById('s-price'), document.getElementById('s-sig'), document.getElementById('s-target'), document.getElementById('s-card'));
+                if (nUp && sUp) {
+                    sigText.innerText = "↑ STRONG BUY";
+                    sigText.style.color = "var(--up)";
+                    sigCard.style.borderColor = "var(--up)";
+                    sigDesc.innerText = "Nifty & Sensex both Trending Up";
+                } else if (!nUp && !sUp) {
+                    sigText.innerText = "↓ STRONG SELL";
+                    sigText.style.color = "var(--down)";
+                    sigCard.style.borderColor = "var(--down)";
+                    sigDesc.innerText = "Nifty & Sensex both Trending Down";
+                } else {
+                    sigText.innerText = "⚠ WAIT / NO TRADE";
+                    sigText.style.color = "var(--neutral)";
+                    sigCard.style.borderColor = "var(--neutral)";
+                    sigDesc.innerText = "Divergence: Indices moving in opposite directions";
+                }
 
             } catch (e) { console.log(e); }
         }
 
-        window.onload = updateTerminal;
-        setInterval(updateTerminal, 30000);
+        window.onload = updateLogic;
+        setInterval(updateLogic, 30000);
     </script>
 </body>
 </html>
+
 
 
 
