@@ -1,3 +1,114 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master AI Terminal V6</title>
+    <style>
+        :root { --bg: #0b1120; --card: #1e293b; --accent: #00f2ff; --up: #10b981; --down: #ef4444; --neutral: #fbbf24; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .terminal { width: 95%; max-width: 420px; background: var(--card); padding: 25px; border-radius: 24px; border: 1px solid #334155; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+        .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .mini-card { background: #0f172a; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #334155; }
+        .label { color: #94a3b8; font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 5px; }
+        .price { font-family: monospace; font-size: 1.1rem; font-weight: bold; }
+        .main-signal { background: #0f172a; padding: 25px; border-radius: 18px; border: 2px solid #334155; text-align: center; transition: 0.5s; }
+        #sig-text { font-size: 1.5rem; font-weight: 900; margin-bottom: 5px; }
+        #sig-desc { font-size: 0.85rem; color: #94a3b8; margin-bottom: 10px; }
+        .points { font-size: 1.1rem; font-weight: bold; color: var(--accent); }
+        .btn { width: 100%; background: var(--accent); color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: bold; margin-top: 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="terminal">
+        <h2 style="text-align: center; color: var(--accent); font-size: 1.2rem; margin-bottom: 20px; letter-spacing: 2px;">MASTER TRADING TERMINAL</h2>
+        
+        <div class="market-grid">
+            <div class="mini-card">
+                <span class="label">NIFTY 50</span>
+                <span class="price" id="n-price">---</span>
+            </div>
+            <div class="mini-card">
+                <span class="label">SENSEX</span>
+                <span class="price" id="s-price">---</span>
+            </div>
+        </div>
+
+        <div class="main-signal" id="sig-card">
+            <div id="sig-text">SCANNING...</div>
+            <div id="sig-desc">Checking Market Divergence</div>
+            <div class="points" id="target-pts">Waiting for Trade Setup</div>
+        </div>
+
+        <button class="btn" onclick="updateLogic()">REFRESH CONFIRMATION</button>
+        <p style="text-align: center; font-size: 9px; color: #475569; margin-top: 15px;">AUTO-REFRESH: 30S | NO WORKFLOW</p>
+    </div>
+
+    <script>
+        async function getData(sym) {
+            const url = `https://api.allorigins.win/get?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/' + sym + '?interval=15m&range=1d')}`;
+            const res = await fetch(url);
+            return JSON.parse((await res.json()).contents).chart.result[0];
+        }
+
+        async function updateLogic() {
+            const sigText = document.getElementById('sig-text');
+            const sigDesc = document.getElementById('sig-desc');
+            const sigCard = document.getElementById('sig-card');
+            const targetPts = document.getElementById('target-pts');
+
+            try {
+                const [nData, sData] = await Promise.all([getData('^NSEI'), getData('^BSESN')]);
+                
+                const nCurr = nData.meta.regularMarketPrice;
+                const sCurr = sData.meta.regularMarketPrice;
+                const nHistory = nData.indicators.quote[0].close;
+                const sHistory = sData.indicators.quote[0].close;
+                
+                const nPrev = nHistory[nHistory.length - 2];
+                const sPrev = sHistory[sHistory.length - 2];
+
+                document.getElementById('n-price').innerText = nCurr.toLocaleString('en-IN');
+                document.getElementById('s-price').innerText = sCurr.toLocaleString('en-IN');
+
+                const nUp = nCurr > nPrev;
+                const sUp = sCurr > sPrev;
+                
+                // Point Move Logic (ATR Approximation)
+                const nMove = (Math.abs(nCurr - nPrev) * 1.5).toFixed(1);
+
+                if (nUp && sUp) {
+                    sigText.innerText = "↑ STRONG BUY";
+                    sigText.style.color = "var(--up)";
+                    sigCard.style.borderColor = "var(--up)";
+                    sigDesc.innerText = "Nifty & Sensex confirmed Upward trend";
+                    targetPts.innerText = `Target: +${nMove} Points Move`;
+                } else if (!nUp && !sUp) {
+                    sigText.innerText = "↓ STRONG SELL";
+                    sigText.style.color = "var(--down)";
+                    sigCard.style.borderColor = "var(--down)";
+                    sigDesc.innerText = "Nifty & Sensex confirmed Downward trend";
+                    targetPts.innerText = `Target: -${nMove} Points Move`;
+                } else {
+                    sigText.innerText = "⚠ WAIT / NO TRADE";
+                    sigText.style.color = "var(--neutral)";
+                    sigCard.style.borderColor = "var(--neutral)";
+                    sigDesc.innerText = "Divergence: Indices in opposite directions";
+                    targetPts.innerText = "Wait for Common Direction";
+                }
+
+            } catch (e) { 
+                sigText.innerText = "RETRYING...";
+                console.log(e); 
+            }
+        }
+
+        window.onload = updateLogic;
+        setInterval(updateLogic, 30000);
+    </script>
+</body>
+</html>
 <script>
     async function updateLogic() {
         const sigText = document.getElementById('sig-text');
@@ -45,6 +156,7 @@
     window.onload = updateLogic;
     setInterval(updateLogic, 30000);
 </script>
+
 
 
 
