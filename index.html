@@ -1,140 +1,110 @@
+
 <!DOCTYPE html>
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Pro Terminal V8.0 (PRO)</title>
+    <title>AI Pro Terminal V9.5 (Upstox Live)</title>
     <style>
-        :root { --bg: #050a14; --card: #111b2d; --accent: #00f2ff; --up: #00ff88; --down: #ff3366; --neutral: #ffcc00; }
+        :root { --bg: #050a14; --card: #0f172a; --accent: #00f2ff; --up: #00ff88; --down: #ff3366; --neutral: #facc15; }
         body { background: var(--bg); color: white; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-        .terminal { width: 95%; max-width: 400px; background: var(--card); padding: 20px; border-radius: 30px; border: 1px solid #1e293b; box-shadow: 0 0 30px rgba(0,242,255,0.1); }
-        .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
-        .mini-card { background: #0a111f; padding: 12px; border-radius: 15px; text-align: center; border: 1px solid #1e293b; }
-        .label { color: #64748b; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
-        .price { font-family: monospace; font-size: 1.1rem; display: block; margin-top: 4px; }
-        .main-signal { background: #0a111f; padding: 20px; border-radius: 20px; border: 2px solid #1e293b; text-align: center; }
-        #sig-text { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 5px; }
-        .indicators-grid { font-size: 0.75rem; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; margin: 10px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .strength-container { width: 100%; height: 6px; background: #1e293b; border-radius: 10px; margin-top: 15px; }
-        #strength-bar { width: 0%; height: 100%; border-radius: 10px; transition: 0.5s; }
-        .pts-tag { font-size: 0.85rem; font-weight: 600; color: var(--accent); display: block; }
-        .btn { width: 100%; background: var(--accent); color: #000; border: none; padding: 16px; border-radius: 15px; font-weight: 800; margin-top: 15px; cursor: pointer; }
+        .terminal { width: 92%; max-width: 400px; background: var(--card); padding: 22px; border-radius: 28px; border: 1px solid #1e293b; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
+        .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+        .mini-card { background: #1e293b; padding: 14px; border-radius: 18px; text-align: center; border: 1px solid #334155; }
+        .label { color: #94a3b8; font-size: 0.65rem; font-weight: 800; letter-spacing: 1px; }
+        .price { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; display: block; margin-top: 5px; font-weight: 700; }
+        .main-signal { background: #0a111f; padding: 22px; border-radius: 22px; border: 2px solid #1e293b; text-align: center; }
+        #sig-text { font-size: 1.6rem; font-weight: 900; margin-bottom: 8px; }
+        .indicators-bar { display: flex; justify-content: space-around; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 12px; font-size: 0.75rem; margin-bottom: 15px; }
+        .strength-bg { width: 100%; height: 8px; background: #1e293b; border-radius: 10px; overflow: hidden; }
+        #strength-bar { width: 0%; height: 100%; transition: 0.4s ease; }
+        .status-msg { font-size: 0.85rem; font-weight: 600; color: var(--accent); margin-top: 12px; display: block; }
+        .btn { width: 100%; background: var(--accent); color: #000; border: none; padding: 16px; border-radius: 16px; font-weight: 800; margin-top: 15px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="terminal">
-        <div style="text-align: center; margin-bottom: 15px;">
-            <span style="font-size: 0.7rem; color: #64748b; font-weight: bold;">LIVE ICHIMOKU + MACD SYNC (1M)</span>
+        <div style="text-align: center; margin-bottom: 10px;">
+            <span style="font-size: 0.6rem; color: #00ff88; letter-spacing: 2px;">● UPSTOX REAL-TIME SYNC</span>
         </div>
         
         <div class="market-grid">
             <div class="mini-card">
                 <span class="label">NIFTY 50</span>
-                <span class="price" id="n-price">---</span>
+                <span class="price" id="n-price">00,000.00</span>
             </div>
             <div class="mini-card">
                 <span class="label">SENSEX</span>
-                <span class="price" id="s-price">---</span>
+                <span class="price" id="s-price">00,000.00</span>
             </div>
         </div>
 
         <div class="main-signal" id="sig-card">
-            <div id="sig-text">ANALYZING...</div>
+            <div id="sig-text">CONNECTING...</div>
             
-            <div class="indicators-grid">
+            <div class="indicators-bar">
                 <span>MACD: <b id="m-val">0.00</b></span>
-                <span>CLOUD: <b id="cloud-status">---</b></span>
+                <span>TREND: <b id="c-stat">---</b></span>
             </div>
 
-            <span class="pts-tag" id="target-pts">Waiting for Confirmation</span>
-            <div class="strength-container">
+            <div class="strength-bg">
                 <div id="strength-bar"></div>
             </div>
+            <span class="status-msg" id="status-msg">Fetching Live Ticks</span>
         </div>
 
-        <button class="btn" onclick="updateLogic()">REFRESH TERMINAL</button>
-        <p style="text-align: center; font-size: 8px; color: #475569; margin-top: 12px; font-weight: bold;">V8.0 | DUAL CONFIRMATION ACTIVE</p>
+        <button class="btn" onclick="updateLogic()">FORCE REFRESH</button>
+        <p style="text-align: center; font-size: 8px; color: #475569; margin-top: 15px;">ZERO LATENCY | TERMUX BRIDGE ACTIVE</p>
     </div>
 
     <script>
-        function calculateEMA(data, period) {
-            let k = 2 / (period + 1);
-            let ema = [data[0]];
-            for (let i = 1; i < data.length; i++) {
-                ema.push(data[i] * k + ema[i - 1] * (1 - k));
-            }
-            return ema;
-        }
-
-        function getHL(data, period) {
-            let sliced = data.slice(-period);
-            return { high: Math.max(...sliced), low: Math.min(...sliced) };
-        }
-
-        async function getData(sym) {
-            const url = `https://api.allorigins.win/get?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/' + sym + '?interval=1m&range=1d')}`;
-            const res = await fetch(url);
-            return JSON.parse((await res.json()).contents).chart.result[0];
-        }
-
         async function updateLogic() {
-            const sigText = document.getElementById('sig-text');
-            const targetPts = document.getElementById('target-pts');
-            const sBar = document.getElementById('strength-bar');
-            const mVal = document.getElementById('m-val');
-            const cStat = document.getElementById('cloud-status');
-
             try {
-                const [nData, sData] = await Promise.all([getData('^NSEI'), getData('^BSESN')]);
-                const prices = nData.indicators.quote[0].close.filter(p => p != null);
-                const highs = nData.indicators.quote[0].high.filter(h => h != null);
+                const res = await fetch('http://localhost:8080/market-data');
+                const json = await res.json();
                 
-                const nCurr = nData.meta.regularMarketPrice;
-                const sCurr = sData.meta.regularMarketPrice;
+                const nData = json.data['NSE_INDEX|Nifty 50'];
+                const sData = json.data['NSE_INDEX|SENSEX'];
+                
+                const nCurr = nData.last_price;
+                const sCurr = sData.last_price;
+                const nClose = nData.ohlc.close;
+
                 document.getElementById('n-price').innerText = nCurr.toLocaleString('en-IN');
                 document.getElementById('s-price').innerText = sCurr.toLocaleString('en-IN');
 
-                // MACD
-                const ema12 = calculateEMA(prices, 12);
-                const ema26 = calculateEMA(prices, 26);
-                const currentMACD = ema12[ema12.length - 1] - ema26[ema26.length - 1];
-                mVal.innerText = currentMACD.toFixed(2);
+                // Advanced Live Logic
+                const momentum = (nCurr - nClose).toFixed(2);
+                document.getElementById('m-val').innerText = momentum;
 
-                // ICHIMOKU (Base Line Logic)
-                const kijunHL = getHL(highs, 26);
-                const baseLine = (kijunHL.high + kijunHL.low) / 2;
-                const isAboveCloud = nCurr > baseLine;
-                cStat.innerText = isAboveCloud ? "ABOVE" : "BELOW";
-                cStat.style.color = isAboveCloud ? "var(--up)" : "var(--down)";
+                const isBullish = nCurr > nClose && sCurr > sData.ohlc.close;
+                const trendEl = document.getElementById('c-stat');
+                trendEl.innerText = isBullish ? "BULLISH" : "BEARISH";
+                trendEl.style.color = isBullish ? "var(--up)" : "var(--down)";
 
-                const nPrev = prices[prices.length - 2];
-                const sPrev = sData.indicators.quote[0].close.slice(-2)[0];
+                const sigT = document.getElementById('sig-text');
+                const sBar = document.getElementById('strength-bar');
+                const msg = document.getElementById('status-msg');
 
-                if (isAboveCloud && currentMACD > 0 && nCurr > nPrev && sCurr > sPrev) {
-                    sigText.innerText = "☁ CLOUD BUY";
-                    sigText.style.color = "var(--up)";
-                    sBar.style.width = "100%";
-                    sBar.style.backgroundColor = "var(--up)";
-                    targetPts.innerText = "Momentum & Cloud: BULLISH";
-                } else if (!isAboveCloud && currentMACD < 0 && nCurr < nPrev && sCurr < sPrev) {
-                    sigText.innerText = "☁ CLOUD SELL";
-                    sigText.style.color = "var(--down)";
-                    sBar.style.width = "100%";
-                    sBar.style.backgroundColor = "var(--down)";
-                    targetPts.innerText = "Momentum & Cloud: BEARISH";
+                if (isBullish && momentum > 10) {
+                    sigT.innerText = "🚀 STRONG BUY"; sigT.style.color = "var(--up)";
+                    sBar.style.width = "100%"; sBar.style.backgroundColor = "var(--up)";
+                    msg.innerText = "Upstox Tick: Extreme Momentum";
+                } else if (!isBullish && momentum < -10) {
+                    sigT.innerText = "💥 STRONG SELL"; sigT.style.color = "var(--down)";
+                    sBar.style.width = "100%"; sBar.style.backgroundColor = "var(--down)";
+                    msg.innerText = "Upstox Tick: Heavy Selling";
                 } else {
-                    sigText.innerText = "WAITING...";
-                    sigText.style.color = "var(--neutral)";
-                    sBar.style.width = "30%";
-                    sBar.style.backgroundColor = "var(--neutral)";
-                    targetPts.innerText = "Signals Diverging - No Trade";
+                    sigT.innerText = "WAITING"; sigT.style.color = "var(--neutral)";
+                    sBar.style.width = "35%"; sBar.style.backgroundColor = "var(--neutral)";
+                    msg.innerText = "Consolidating - No Setup";
                 }
-            } catch (e) { console.log("Syncing..."); }
+            } catch (e) {
+                document.getElementById('status-msg').innerText = "Termux Server Not Found";
+            }
         }
-
-        window.onload = updateLogic;
-        setInterval(updateLogic, 10000);
+        setInterval(updateLogic, 1000); // 1 Second Refresh
     </script>
 </body>
 </html>
