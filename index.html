@@ -61,12 +61,13 @@
     <script>
         async function updateLogic() {
             try {
-                const res = await fetch('http://https://e089cc8fb52ec8a3-223-185-14-196.serveousercontent.com;
+                const res = await fetch('https://f758fa37cdcdc77c-223-185-14-196.serveousercontent.com
+
                 const json = await res.json();
                 
                 const nData = json.data['NSE_INDEX|Nifty 50'];
                 const sData = json.data['NSE_INDEX|SENSEX'];
-                
+        
                 const nCurr = nData.last_price;
                 const sCurr = sData.last_price;
                 const nClose = nData.ohlc.close;
