@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -44,7 +43,7 @@
             <div id="sig-text">CONNECTING...</div>
             
             <div class="indicators-bar">
-                <span>MACD: <b id="m-val">0.00</b></span>
+                <span>MOMENTUM: <b id="m-val">0.00</b></span>
                 <span>TREND: <b id="c-stat">---</b></span>
             </div>
 
@@ -61,13 +60,15 @@
     <script>
         async function updateLogic() {
             try {
-                const res = await fetch('https://f758fa37cdcdc77c-223-185-14-196.serveousercontent.com
-
+                // Kamal Bhai, aapka live tunnel link yahan hai:
+                const res = await fetch('https://f758fa37cdcdc77c-223-185-14-196.serveousercontent.com/market-data');
                 const json = await res.json();
                 
                 const nData = json.data['NSE_INDEX|Nifty 50'];
                 const sData = json.data['NSE_INDEX|SENSEX'];
-        
+                
+                if(!nData) { throw new Error("No Data"); }
+
                 const nCurr = nData.last_price;
                 const sCurr = sData.last_price;
                 const nClose = nData.ohlc.close;
@@ -75,11 +76,10 @@
                 document.getElementById('n-price').innerText = nCurr.toLocaleString('en-IN');
                 document.getElementById('s-price').innerText = sCurr.toLocaleString('en-IN');
 
-                // Advanced Live Logic
                 const momentum = (nCurr - nClose).toFixed(2);
                 document.getElementById('m-val').innerText = momentum;
 
-                const isBullish = nCurr > nClose && sCurr > sData.ohlc.close;
+                const isBullish = nCurr > nClose;
                 const trendEl = document.getElementById('c-stat');
                 trendEl.innerText = isBullish ? "BULLISH" : "BEARISH";
                 trendEl.style.color = isBullish ? "var(--up)" : "var(--down)";
@@ -91,24 +91,26 @@
                 if (isBullish && momentum > 10) {
                     sigT.innerText = "🚀 STRONG BUY"; sigT.style.color = "var(--up)";
                     sBar.style.width = "100%"; sBar.style.backgroundColor = "var(--up)";
-                    msg.innerText = "Upstox Tick: Extreme Momentum";
+                    msg.innerText = "Upstox: High Momentum Bullish";
                 } else if (!isBullish && momentum < -10) {
                     sigT.innerText = "💥 STRONG SELL"; sigT.style.color = "var(--down)";
                     sBar.style.width = "100%"; sBar.style.backgroundColor = "var(--down)";
-                    msg.innerText = "Upstox Tick: Heavy Selling";
+                    msg.innerText = "Upstox: Heavy Selling Pressure";
                 } else {
                     sigT.innerText = "WAITING"; sigT.style.color = "var(--neutral)";
                     sBar.style.width = "35%"; sBar.style.backgroundColor = "var(--neutral)";
                     msg.innerText = "Consolidating - No Setup";
                 }
             } catch (e) {
-                document.getElementById('status-msg').innerText = "Termux Server Not Found";
+                document.getElementById('status-msg').innerText = "Live Bridge: Connecting...";
+                document.getElementById('sig-text').innerText = "CONNECTING...";
             }
         }
         setInterval(updateLogic, 1000); // 1 Second Refresh
     </script>
 </body>
 </html>
+
 
 
 
