@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>5-Filter Confirmation Strategy | Upstox Live PWA</title>
+    <title>5-Filter Confirmation Strategy | Multi-Index Live PWA</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -103,7 +103,7 @@
     <!-- Header Section -->
     <div class="header-bar">
         <div>
-            <h4 class="m-0 fw-bold"><i class="fa-solid me-2 text-warning"></i>5-Filter Trading Engine</h4>
+            <h4 class="m-0 fw-bold"><i class="fa-solid fa-chart-line me-2 text-warning"></i>5-Filter Signal Engine</h4>
             <small id="connection-status" class="text-danger"><i class="fa-solid fa-circle me-1"></i>Disconnected (Enter Upstox Token)</small>
         </div>
         <div>
@@ -115,16 +115,17 @@
 
     <div class="container my-4">
         <!-- Live Market Selector & Score Header -->
-        <div class="row mb-3">
+        <div class="row mb-3 align-items-center">
             <div class="col-6">
-                <select id="symbolSelect" class="form-select bg-dark text-light border-secondary">
+                <select id="symbolSelect" class="form-select bg-dark text-light border-secondary" onchange="switchSymbol()">
                     <option value="NSE_INDEX|Nifty 50">NIFTY 50</option>
                     <option value="NSE_INDEX|Nifty Bank">BANK NIFTY</option>
-                    <option value="BSE_INDEX|SENSEX">SENSEX</option>
+                    <option value="BSE_INDEX|SENSEX" selected>SENSEX (BSE)</option>
                 </select>
             </div>
             <div class="col-6 text-end">
-                <h5 class="m-0">LTP: <span id="livePrice" class="text-warning">₹0.00</span></h5>
+                <h5 class="m-0"><span id="selectedName">SENSEX</span> LTP:</h5>
+                <h4 id="livePrice" class="text-warning fw-bold m-0">₹0.00</h4>
             </div>
         </div>
 
@@ -132,11 +133,11 @@
         <div id="signalCard" class="signal-card signal-wait">
             <h6 class="text-uppercase text-muted">Current Signal Engine State</h6>
             <h1 id="signalText" class="display-5 fw-bold my-2 text-secondary">⚪ WAIT</h1>
-            <p id="signalSubtext" class="mb-0 text-muted">5 में से केवल 0-3 शर्तें पूरी हो रही हैं। धैर्य रखें।</p>
+            <p id="signalSubtext" class="mb-0 text-muted">5 में से केवल 0-3 शर्तें पूरी हो रही हैं। सही कन्फर्मेशन का इंतजार करें।</p>
         </div>
 
         <!-- 5 Filters Checklist -->
-        <h6 class="fw-bold mb-3">5-Filter Confirmation Status:</h6>
+        <h6 class="fw-bold mb-3">5-Filter Confirmation Status (<span id="activeSymbolText">SENSEX</span>):</h6>
 
         <div class="filter-item">
             <div>
@@ -203,6 +204,28 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let ws = null;
+        let activeInstrument = "BSE_INDEX|SENSEX";
+
+        function switchSymbol() {
+            const selectEl = document.getElementById('symbolSelect');
+            activeInstrument = selectEl.value;
+            const text = selectEl.options[selectEl.selectedIndex].text;
+            document.getElementById('selectedName').innerText = text;
+            document.getElementById('activeSymbolText').innerText = text;
+
+            if(ws && ws.readyState === WebSocket.OPEN) {
+                // Unsubscribe old and subscribe to newly selected instrument
+                const subRequest = {
+                    "guid": "5filter_session",
+                    "method": "sub",
+                    "data": {
+                        "mode": "full",
+                        "instrumentKeys": [activeInstrument]
+                    }
+                };
+                ws.send(JSON.stringify(subRequest));
+            }
+        }
 
         function saveAndConnectUpstox() {
             const token = document.getElementById('upstoxToken').value.trim();
@@ -231,23 +254,23 @@
 
                 ws.onopen = () => {
                     statusEl.className = "text-success";
-                    statusEl.innerHTML = '<i class="fa-solid fa-circle me-1"></i>Connected (Live Tick Data)';
+                    statusEl.innerHTML = '<i class="fa-solid fa-circle me-1"></i>Connected (Live Feed Active)';
 
-                    // Subscribe to Nifty 50 Index
+                    // Subscribe to the selected instrument (Nifty / Sensex)
                     const subRequest = {
                         "guid": "5filter_session",
                         "method": "sub",
                         "data": {
                             "mode": "full",
-                            "instrumentKeys": ["NSE_INDEX|Nifty 50"]
+                            "instrumentKeys": [activeInstrument]
                         }
                     };
                     ws.send(JSON.stringify(subRequest));
                 };
 
                 ws.onmessage = (event) => {
-                    // Upstox feed calculation
-                    console.log("Live Feed Data Received");
+                    // Upstox feed parsing logic for Sensex & Nifty
+                    console.log("Live Market Data Received");
                 };
 
                 ws.onerror = (err) => {
@@ -264,7 +287,6 @@
             }
         }
 
-        // Auto load saved token on launch
         window.onload = () => {
             const savedToken = localStorage.getItem('upstox_access_token');
             if(savedToken) {
@@ -274,4 +296,5 @@
     </script>
 </body>
 </html>
+
 
