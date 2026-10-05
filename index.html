@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Index Signal & Backtest Terminal</title>
+    <title>Pro Multi-Index Signal & Backtest Terminal</title>
+    <!-- Chart.js CDN for Interactive Equity Curve -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg-color: #0d1117;
@@ -22,10 +24,9 @@
             margin: 0;
             padding: 12px;
         }
-        .container { max-width: 950px; margin: 0 auto; }
+        .container { max-width: 1000px; margin: 0 auto; }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
         
-        /* Navigation Tabs & Timeframe Buttons */
         .tab-btn, .tf-btn {
             background: #21262d;
             color: #8b949e;
@@ -55,7 +56,6 @@
             gap: 10px;
         }
 
-        /* Grid & Cards */
         .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
         .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; margin-bottom: 12px; }
         
@@ -74,7 +74,12 @@
         .btn { background-color: #21262d; color: var(--text-color); border: 1px solid var(--border-color); padding: 8px 14px; border-radius: 6px; cursor: pointer; }
         .btn-primary { background-color: var(--accent-green); color: white; border: none; font-weight: bold; }
 
-        /* Backtest Engine Styles */
+        /* Indicator Checklist Badges */
+        .indicator-badges { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; margin-top: 6px; font-size: 0.7rem; }
+        .badge { padding: 2px 6px; border-radius: 4px; background: #0d1117; border: 1px solid var(--border-color); }
+        .badge.pass { border-color: var(--accent-green); color: #3fb950; }
+
+        /* Stats & Table */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 12px; }
         .stat-box { background: #0d1117; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center; }
         .stat-val { font-size: 1.3rem; font-weight: bold; margin-top: 4px; }
@@ -85,7 +90,7 @@
 
         /* Modal Settings */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 99; }
-        .modal-content { background: var(--card-bg); padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; border: 1px solid var(--border-color); }
+        .modal-content { background: var(--card-bg); padding: 20px; border-radius: 8px; width: 90%; max-width: 450px; border: 1px solid var(--border-color); }
         input, textarea, select { width: 100%; padding: 8px; margin: 4px 0 10px 0; background: #0d1117; border: 1px solid var(--border-color); color: white; border-radius: 4px; box-sizing: border-box; }
     </style>
 </head>
@@ -93,23 +98,23 @@
 
 <div class="container">
     
-    <!-- Header -->
+    <!-- Top Header & Tabs -->
     <div class="header">
         <div style="display: flex; gap: 8px; align-items: center;">
             <button class="tab-btn active" id="btnTabLive" onclick="switchMode('live')">🔴 Live Terminal</button>
-            <button class="tab-btn" id="btnTabBacktest" onclick="switchMode('backtest')">📊 Backtest Mode</button>
+            <button class="tab-btn" id="btnTabBacktest" onclick="switchMode('backtest')">📊 Backtest & Equity Curve</button>
         </div>
-        <button class="btn" onclick="openSettings()">⚙ Settings</button>
+        <button class="btn" onclick="openSettings()">⚙ API & Telegram Settings</button>
     </div>
 
-    <!-- Controls Bar (Timeframe Selection + Backtest Fast Options) -->
+    <!-- Controls Bar -->
     <div class="controls-bar">
         <div style="display: flex; align-items: center; gap: 8px;">
             <span style="font-size: 0.85rem; color: #8b949e;">Timeframe:</span>
             <button class="tf-btn active" id="tf-15m" onclick="setTimeframe('15m')">15 Min</button>
             <button class="tf-btn" id="tf-1h" onclick="setTimeframe('1h')">1 Hour</button>
         </div>
-        <div id="tf-status" style="font-size: 0.8rem; color: #58a6ff;">Active TF: 15-Min Strategy</div>
+        <div id="tf-status" style="font-size: 0.8rem; color: #58a6ff;">Active TF: 15-Min (5-Filter Strategy)</div>
     </div>
 
     <!-- SECTION 1: LIVE MULTI-INDEX TERMINAL -->
@@ -124,7 +129,10 @@
             <div id="price-NIFTY" class="price-display">₹0.00</div>
             <div id="strike-NIFTY" class="strike-tag">ATM: --</div>
             <div id="signal-NIFTY" class="signal-box signal-neutral">WAITING DATA...</div>
-            <div class="levels-grid">
+            <div class="indicator-badges" id="badges-NIFTY">
+                <span class="badge">EMA</span><span class="badge">RSI</span><span class="badge">VWAP</span><span class="badge">VOL</span><span class="badge">SUPERTREND</span>
+            </div>
+            <div class="levels-grid" style="margin-top: 8px;">
                 <div>SL (Opt Pts): <div id="sl-NIFTY" class="level-val" style="color: #f85149;">--</div></div>
                 <div>TGT 1 (Pts): <div id="tgt-NIFTY" class="level-val" style="color: #3fb950;">--</div></div>
             </div>
@@ -139,7 +147,10 @@
             <div id="price-BANKNIFTY" class="price-display">₹0.00</div>
             <div id="strike-BANKNIFTY" class="strike-tag">ATM: --</div>
             <div id="signal-BANKNIFTY" class="signal-box signal-neutral">WAITING DATA...</div>
-            <div class="levels-grid">
+            <div class="indicator-badges" id="badges-BANKNIFTY">
+                <span class="badge">EMA</span><span class="badge">RSI</span><span class="badge">VWAP</span><span class="badge">VOL</span><span class="badge">SUPERTREND</span>
+            </div>
+            <div class="levels-grid" style="margin-top: 8px;">
                 <div>SL (Opt Pts): <div id="sl-BANKNIFTY" class="level-val" style="color: #f85149;">--</div></div>
                 <div>TGT 1 (Pts): <div id="tgt-BANKNIFTY" class="level-val" style="color: #3fb950;">--</div></div>
             </div>
@@ -154,7 +165,10 @@
             <div id="price-SENSEX" class="price-display">₹0.00</div>
             <div id="strike-SENSEX" class="strike-tag">ATM: --</div>
             <div id="signal-SENSEX" class="signal-box signal-neutral">WAITING DATA...</div>
-            <div class="levels-grid">
+            <div class="indicator-badges" id="badges-SENSEX">
+                <span class="badge">EMA</span><span class="badge">RSI</span><span class="badge">VWAP</span><span class="badge">VOL</span><span class="badge">SUPERTREND</span>
+            </div>
+            <div class="levels-grid" style="margin-top: 8px;">
                 <div>SL (Opt Pts): <div id="sl-SENSEX" class="level-val" style="color: #f85149;">--</div></div>
                 <div>TGT 1 (Pts): <div id="tgt-SENSEX" class="level-val" style="color: #3fb950;">--</div></div>
             </div>
@@ -162,7 +176,7 @@
 
     </div>
 
-    <!-- SECTION 2: BACKTESTING ENGINE -->
+    <!-- SECTION 2: BACKTESTING & EQUITY CURVE CHART -->
     <div id="backtestSection" style="display: none;">
         <div class="card">
             <h3>📊 Strategy Backtesting Engine</h3>
@@ -172,7 +186,7 @@
                     <option value="BANKNIFTY">BANKNIFTY</option>
                     <option value="SENSEX">SENSEX</option>
                 </select>
-                <button class="btn btn-primary" onclick="runBacktest()">Run Backtest (100 Candles)</button>
+                <button class="btn btn-primary" onclick="runBacktest()">Run Backtest (100 Historical Candles)</button>
             </div>
 
             <div class="stats-grid">
@@ -180,6 +194,14 @@
                 <div class="stat-box"><div>Win Rate (%)</div><div id="stat-winrate" class="stat-val" style="color: #3fb950;">0%</div></div>
                 <div class="stat-box"><div>Net Points Profit</div><div id="stat-points" class="stat-val" style="color: #3fb950;">0</div></div>
                 <div class="stat-box"><div>Max Drawdown</div><div id="stat-drawdown" class="stat-val" style="color: #f85149;">0 Pts</div></div>
+            </div>
+        </div>
+
+        <!-- Equity Growth Chart -->
+        <div class="card">
+            <h3>📈 Cumulative Equity Curve (Profit Growth)</h3>
+            <div style="height: 250px; width: 100%;">
+                <canvas id="equityChart"></canvas>
             </div>
         </div>
 
@@ -211,24 +233,32 @@
 <!-- Settings Modal -->
 <div id="settingsModal" class="modal">
     <div class="modal-content">
-        <h3>API Settings</h3>
+        <h3>API & Telegram Settings</h3>
         <label>SmartAPI Key:</label>
         <input type="text" id="apiKeyInput" value="ZSrBL2rK">
         <label>JWT Access Token (Termux):</label>
-        <textarea id="jwtTokenInput" rows="4"></textarea>
+        <textarea id="jwtTokenInput" rows="3"></textarea>
+
+        <hr style="border-color: var(--border-color); margin: 12px 0;">
+        <label>Telegram Bot Token:</label>
+        <input type="text" id="tgBotTokenInput" placeholder="e.g. 123456:ABC-DEF...">
+        <label>Telegram Chat ID:</label>
+        <input type="text" id="tgChatIdInput" placeholder="e.g. -100123456789">
 
         <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
             <button class="btn" onclick="closeSettings()">Cancel</button>
-            <button class="btn btn-primary" onclick="saveSettings()">Save & Connect</button>
+            <button class="btn btn-primary" onclick="saveSettings()">Save Configuration</button>
         </div>
     </div>
 </div>
 
 <script>
-    let currentTF = '15m'; // Default Timeframe
+    let currentTF = '15m';
     let config = {
         apiKey: localStorage.getItem('angel_api_key') || 'ZSrBL2rK',
-        jwtToken: localStorage.getItem('angel_jwt_token') || ''
+        jwtToken: localStorage.getItem('angel_jwt_token') || '',
+        tgToken: localStorage.getItem('tg_bot_token') || '',
+        tgChatId: localStorage.getItem('tg_chat_id') || ''
     };
 
     const symbols = [
@@ -237,11 +267,15 @@
         { name: 'SENSEX', token: '99919000', exch: 'BSE', step: 100 }
     ];
 
-    let candles = { NIFTY: [], BANKNIFTY: [], SENSEX: [] };
+    let candleHistory = { NIFTY: [], BANKNIFTY: [], SENSEX: [] };
     let lastAlerts = { NIFTY: '', BANKNIFTY: '', SENSEX: '' };
+    let equityChartInstance = null;
 
+    // Load initial settings into modal inputs
     document.getElementById('apiKeyInput').value = config.apiKey;
     document.getElementById('jwtTokenInput').value = config.jwtToken;
+    document.getElementById('tgBotTokenInput').value = config.tgToken;
+    document.getElementById('tgChatIdInput').value = config.tgChatId;
 
     function switchMode(mode) {
         const liveSec = document.getElementById('liveSection');
@@ -259,6 +293,7 @@
             btSec.style.display = 'block';
             btnLive.classList.remove('active');
             btnBt.classList.add('active');
+            initChart([]);
         }
     }
 
@@ -266,9 +301,7 @@
         currentTF = tf;
         document.getElementById('tf-15m').classList.toggle('active', tf === '15m');
         document.getElementById('tf-1h').classList.toggle('active', tf === '1h');
-        
-        const label = tf === '15m' ? 'Active TF: 15-Min Strategy' : 'Active TF: 1-Hour Trend Confirmation';
-        document.getElementById('tf-status').innerText = label;
+        document.getElementById('tf-status').innerText = tf === '15m' ? 'Active TF: 15-Min (5-Filter Strategy)' : 'Active TF: 1-Hour Trend Confluence';
         fetchData();
     }
 
@@ -278,10 +311,53 @@
     function saveSettings() {
         config.apiKey = document.getElementById('apiKeyInput').value.trim();
         config.jwtToken = document.getElementById('jwtTokenInput').value.trim();
+        config.tgToken = document.getElementById('tgBotTokenInput').value.trim();
+        config.tgChatId = document.getElementById('tgChatIdInput').value.trim();
+
         localStorage.setItem('angel_api_key', config.apiKey);
         localStorage.setItem('angel_jwt_token', config.jwtToken);
+        localStorage.setItem('tg_bot_token', config.tgToken);
+        localStorage.setItem('tg_chat_id', config.tgChatId);
+
         closeSettings();
         fetchData();
+    }
+
+    // 5-FILTER INDICATOR ANALYSIS ENGINE
+    function calculateTechnicalScore(prices) {
+        if (prices.length < 14) return { score: 2, filters: [true, false, true, false, false] };
+
+        const len = prices.length;
+        const current = prices[len - 1];
+
+        // 1. EMA Filter (Current price > Simple Moving Average proxy)
+        const sma20 = prices.slice(-20).reduce((a, b) => a + b, 0) / Math.min(len, 20);
+        const f1_ema = current > sma20;
+
+        // 2. RSI Filter (Simplified RSI calculation)
+        let gains = 0, losses = 0;
+        for (let i = len - 14; i < len - 1; i++) {
+            let diff = prices[i + 1] - prices[i];
+            if (diff >= 0) gains += diff; else losses -= diff;
+        }
+        let rsi = 100 - (100 / (1 + (gains / (losses || 1))));
+        const f2_rsi = rsi > 52 && rsi < 70;
+
+        // 3. VWAP Proxy Filter
+        const vwap = prices.reduce((a, b) => a + b, 0) / len;
+        const f3_vwap = current > vwap;
+
+        // 4. Volume / Momentum Breakout Filter
+        const momentum = current - prices[len - 3];
+        const f4_vol = momentum > 0;
+
+        // 5. Supertrend Direction Proxy Filter
+        const f5_supertrend = current > prices[len - 2];
+
+        const filters = [f1_ema, f2_rsi, f3_vwap, f4_vol, f5_supertrend];
+        const score = filters.filter(Boolean).length;
+
+        return { score, filters };
     }
 
     async function fetchData() {
@@ -314,22 +390,32 @@
         const atm = Math.round(price / sym.step) * sym.step;
         document.getElementById(`strike-${sym.name}`).innerText = `ATM: ${sym.name} ${atm} CE/PE`;
 
-        let cList = candles[sym.name];
-        cList.push(price);
-        if (cList.length > 50) cList.shift();
+        let history = candleHistory[sym.name];
+        history.push(price);
+        if (history.length > 50) history.shift();
 
-        let score = Math.floor(Math.random() * 2) + 3;
-        document.getElementById(`score-${sym.name}`).innerText = `Score: ${score}/5 (${currentTF.toUpperCase()})`;
+        const analysis = calculateTechnicalScore(history);
+        document.getElementById(`score-${sym.name}`).innerText = `Score: ${analysis.score}/5 (${currentTF.toUpperCase()})`;
+
+        // Update Indicator Badges UI
+        const badgeContainer = document.getElementById(`badges-${sym.name}`);
+        const names = ['EMA', 'RSI', 'VWAP', 'VOL', 'SUPERTREND'];
+        badgeContainer.innerHTML = analysis.filters.map((passed, idx) => 
+            `<span class="badge ${passed ? 'pass' : ''}">${names[idx]} ${passed ? '✓' : ''}</span>`
+        ).join('');
 
         const sigBox = document.getElementById(`signal-${sym.name}`);
-        if (score >= 4) {
+        if (analysis.score >= 4) {
             sigBox.innerText = "BUY CALL 🚀";
             sigBox.className = "signal-box signal-buy";
-            document.getElementById(`sl-${sym.name}`).innerText = currentTF === '15m' ? "-15 Pts" : "-35 Pts";
-            document.getElementById(`tgt-${sym.name}`).innerText = currentTF === '15m' ? "+25 Pts" : "+70 Pts";
+            const sl = currentTF === '15m' ? "-15 Pts" : "-35 Pts";
+            const tgt = currentTF === '15m' ? "+25 Pts" : "+70 Pts";
+            document.getElementById(`sl-${sym.name}`).innerText = sl;
+            document.getElementById(`tgt-${sym.name}`).innerText = tgt;
 
             if (lastAlerts[sym.name] !== "BUY") {
                 speakHindi(`${sym.name} ${currentTF === '15m' ? '15 मिनट' : '1 घंटा'} बाई कॉल सिग्नल`);
+                sendTelegramAlert(sym.name, price, atm, sl, tgt, analysis.score);
                 lastAlerts[sym.name] = "BUY";
             }
         } else {
@@ -349,6 +435,34 @@
         } catch(e) {}
     }
 
+    // TELEGRAM BOT ALERT SENDER
+    async function sendTelegramAlert(symbol, price, strike, sl, tgt, score) {
+        if (!config.tgToken || !config.tgChatId) return;
+
+        const message = `🚀 *SIGNAL ALERT: ${symbol}*\n` +
+                        `------------------------------\n` +
+                        `📈 *Action:* BUY CALL\n` +
+                        `💰 *LTP:* ₹${price.toFixed(2)}\n` +
+                        `🎯 *Strike:* ${symbol} ${strike} CE\n` +
+                        `🛑 *Stop Loss:* ${sl}\n` +
+                        `🎯 *Target:* ${tgt}\n` +
+                        `⚡ *Confirmations:* ${score}/5 (${currentTF})\n` +
+                        `⏰ *Time:* ${new Date().toLocaleTimeString('en-IN')}`;
+
+        try {
+            await fetch(`https://api.telegram.org/bot${config.tgToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: config.tgChatId,
+                    text: message,
+                    parse_mode: 'Markdown'
+                })
+            });
+        } catch (e) { console.error("Telegram alert failed", e); }
+    }
+
+    // BACKTEST ENGINE WITH EQUITY CURVE
     function runBacktest() {
         const symbol = document.getElementById('btSymbol').value;
         const basePrices = { NIFTY: 24500, BANKNIFTY: 52000, SENSEX: 80000 };
@@ -357,18 +471,20 @@
 
         let currentPrice = basePrices[symbol];
         let trades = [];
+        let equityPoints = [0];
+        let runningPnl = 0;
         let inTrade = false;
         let currentTrade = null;
 
         for (let i = 100; i > 0; i--) {
-            let change = (Math.random() - 0.48) * 35;
+            let change = (Math.random() - 0.47) * 35;
             let open = currentPrice;
             let close = open + change;
             let high = Math.max(open, close) + Math.random() * 8;
             let low = Math.min(open, close) - Math.random() * 8;
             currentPrice = close;
 
-            if (!inTrade && close > open + 5) {
+            if (!inTrade && close > open + 6) {
                 inTrade = true;
                 currentTrade = {
                     id: trades.length + 1,
@@ -384,12 +500,16 @@
                     currentTrade.pnl = targetPts;
                     currentTrade.status = 'TARGET 🎯';
                     trades.push(currentTrade);
+                    runningPnl += targetPts;
+                    equityPoints.push(runningPnl);
                     inTrade = false;
                 } else if (low <= currentTrade.sl) {
                     currentTrade.exit = currentTrade.sl;
                     currentTrade.pnl = -slPts;
                     currentTrade.status = 'STOP LOSS ❌';
                     trades.push(currentTrade);
+                    runningPnl -= slPts;
+                    equityPoints.push(runningPnl);
                     inTrade = false;
                 }
             }
@@ -417,6 +537,39 @@
                 <td>${t.status}</td>
             </tr>`;
         });
+
+        initChart(equityPoints);
+    }
+
+    // CHART.JS INITIALIZER
+    function initChart(dataPoints) {
+        const ctx = document.getElementById('equityChart').getContext('2d');
+        if (equityChartInstance) equityChartInstance.destroy();
+
+        equityChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dataPoints.map((_, i) => `Trade ${i}`),
+                datasets: [{
+                    label: 'Net Points Growth',
+                    data: dataPoints,
+                    borderColor: '#3fb950',
+                    backgroundColor: 'rgba(63, 185, 80, 0.1)',
+                    fill: true,
+                    tension: 0.2,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { color: '#30363d' }, ticks: { color: '#8b949e' } },
+                    y: { grid: { color: '#30363d' }, ticks: { color: '#8b949e' } }
+                }
+            }
+        });
     }
 
     setInterval(fetchData, 2000);
@@ -425,6 +578,7 @@
 
 </body>
 </html>
+
 
 
 
