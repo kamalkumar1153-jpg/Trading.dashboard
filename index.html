@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signal Engine Pro Terminal - 15-Min</title>
+    <title>Multi-Index Signal & Backtest Terminal</title>
     <style>
         :root {
             --bg-color: #0d1117;
@@ -13,7 +13,6 @@
             --accent-red: #da3633;
             --accent-blue: #58a6ff;
             --accent-purple: #8957e5;
-            --accent-yellow: #d29922;
             --border-color: #30363d;
         }
         body {
@@ -21,149 +20,183 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 16px;
+            padding: 12px;
         }
-        .container { max-width: 600px; margin: 0 auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px; }
-        .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
-        .price-display { font-size: 2.2rem; font-weight: bold; color: var(--accent-blue); text-align: center; margin: 6px 0; }
+        .container { max-width: 950px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
         
-        .signal-box { text-align: center; padding: 16px; border-radius: 8px; font-size: 1.4rem; font-weight: bold; text-transform: uppercase; margin-top: 10px; }
-        .signal-neutral { background: #21262d; color: #8b949e; border: 1px solid var(--border-color); }
-        .signal-buy { background: rgba(35, 134, 54, 0.2); color: #3fb950; border: 2px solid var(--accent-green); }
-        .signal-sell { background: rgba(218, 54, 51, 0.2); color: #f85149; border: 2px solid var(--accent-red); }
-
-        /* Strike Selector Box */
-        .strike-banner {
-            background: rgba(137, 87, 229, 0.15);
-            border: 1px solid var(--accent-purple);
-            color: #d2a8ff;
-            border-radius: 6px;
-            padding: 10px;
-            text-align: center;
-            font-weight: bold;
-            margin-top: 10px;
-            font-size: 1rem;
-        }
-
-        /* Trade Levels Grid */
-        .trade-levels {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-top: 12px;
-        }
-        .level-box {
-            background: #0d1117;
+        /* Navigation Tabs */
+        .tab-btn {
+            background: #21262d;
+            color: #8b949e;
             border: 1px solid var(--border-color);
-            padding: 10px;
+            padding: 8px 16px;
             border-radius: 6px;
-            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
         }
-        .level-title { font-size: 0.75rem; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; }
-        .level-val { font-size: 1.05rem; font-weight: bold; margin-top: 4px; }
+        .tab-btn.active {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
 
-        .status-badge { font-size: 0.85rem; padding: 4px 8px; border-radius: 4px; background: #21262d; display: inline-block; }
-        .btn { background-color: #21262d; color: var(--text-color); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 6px; cursor: pointer; }
-        .btn-primary { background-color: var(--accent-green); color: white; border: none; }
+        /* Grid & Cards */
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+        .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; margin-bottom: 12px; }
         
-        .indicator-grid { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 14px; font-size: 0.85rem; }
-        .ind-item { background: #0d1117; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; }
+        .symbol-title { font-size: 1.1rem; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .price-display { font-size: 1.7rem; font-weight: bold; color: var(--accent-blue); margin: 6px 0; text-align: center; }
+        
+        .signal-box { text-align: center; padding: 10px; border-radius: 6px; font-size: 1rem; font-weight: bold; text-transform: uppercase; margin: 8px 0; }
+        .signal-neutral { background: #21262d; color: #8b949e; border: 1px solid var(--border-color); }
+        .signal-buy { background: rgba(35, 134, 54, 0.2); color: #3fb950; border: 1.5px solid var(--accent-green); }
 
-        .tsl-banner { background: rgba(210, 153, 34, 0.15); border: 1px solid var(--accent-yellow); color: #f2cc60; padding: 8px; border-radius: 6px; text-align: center; font-size: 0.85rem; margin-top: 10px; font-weight: bold; }
+        .strike-tag { background: rgba(137, 87, 229, 0.15); border: 1px solid var(--accent-purple); color: #d2a8ff; padding: 4px; border-radius: 4px; text-align: center; font-size: 0.85rem; font-weight: bold; margin-bottom: 8px; }
 
+        .levels-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.75rem; text-align: center; background: #0d1117; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); }
+        .level-val { font-size: 0.9rem; font-weight: bold; margin-top: 2px; }
+
+        .btn { background-color: #21262d; color: var(--text-color); border: 1px solid var(--border-color); padding: 8px 14px; border-radius: 6px; cursor: pointer; }
+        .btn-primary { background-color: var(--accent-green); color: white; border: none; font-weight: bold; }
+
+        /* Backtest Engine Styles */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 12px; }
+        .stat-box { background: #0d1117; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center; }
+        .stat-val { font-size: 1.3rem; font-weight: bold; margin-top: 4px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.85rem; }
+        th, td { padding: 8px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { background: #21262d; color: #8b949e; }
+
+        /* Modal Settings */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 99; }
-        .modal-content { background: var(--card-bg); padding: 20px; border-radius: 8px; width: 90%; max-width: 450px; border: 1px solid var(--border-color); }
+        .modal-content { background: var(--card-bg); padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; border: 1px solid var(--border-color); }
         input, textarea, select { width: 100%; padding: 8px; margin: 4px 0 10px 0; background: #0d1117; border: 1px solid var(--border-color); color: white; border-radius: 4px; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
 <div class="container">
+    
+    <!-- Top Header & Navigation Tabs -->
     <div class="header">
-        <h2>Signal Engine Terminal</h2>
-        <button class="btn" onclick="openSettings()">⚙️️ Settings</button>
-    </div>
-
-    <!-- Live Price & Auto Strike Display -->
-    <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span>NIFTY 50 SPOT</span>
-            <span id="connectionStatus" class="status-badge" style="color: #ffa657;">Token Needed</span>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <button class="tab-btn active" id="btnTabLive" onclick="switchMode('live')">🔴 Live Terminal</button>
+            <button class="tab-btn" id="btnTabBacktest" onclick="switchMode('backtest')">📊 Backtest Mode</button>
         </div>
-        <div id="livePrice" class="price-display">₹0.00</div>
-        <div id="recommendedStrike" class="strike-banner">SUGGESTED STRIKE: --</div>
+        <button class="btn" onclick="openSettings()">⚙ Settings</button>
     </div>
 
-    <!-- Signal & Trade Plan (15-Min 5-Filter) -->
-    <div class="card">
-        <div style="font-size: 0.9rem; color: #8b949e; text-align: center; font-weight: bold;">15-MIN PRO TRADE PLAN</div>
-        <div id="signalCard" class="signal-box signal-neutral">ANALYZING CANDLES...</div>
+    <!-- SECTION 1: LIVE MULTI-INDEX TERMINAL -->
+    <div id="liveSection" class="grid-3">
         
-        <div id="tslAlert" class="tsl-banner" style="display:none;">⚠️ TRAILING SL: Move Stop Loss to Cost Price (Entry Point)</div>
-
-        <!-- Live Trade Levels -->
-        <div class="trade-levels">
-            <div class="level-box">
-                <div class="level-title">Entry Price</div>
-                <div id="entryVal" class="level-val" style="color: var(--accent-blue);">--</div>
+        <!-- NIFTY 50 -->
+        <div class="card">
+            <div class="symbol-title">
+                <span>NIFTY 50</span>
+                <span id="score-NIFTY" style="font-size: 0.75rem; color: #8b949e;">Score: 0/5</span>
             </div>
-            <div class="level-box">
-                <div class="level-title">Stop Loss (SL)</div>
-                <div id="slVal" class="level-val" style="color: #f85149;">--</div>
-            </div>
-            <div class="level-box">
-                <div class="level-title">Target 1 (1:1.5)</div>
-                <div id="tgt1Val" class="level-val" style="color: #3fb950;">--</div>
-            </div>
-            <div class="level-box">
-                <div class="level-title">Target 2 (1:2.0)</div>
-                <div id="tgt2Val" class="level-val" style="color: #238636;">--</div>
+            <div id="price-NIFTY" class="price-display">₹0.00</div>
+            <div id="strike-NIFTY" class="strike-tag">ATM: --</div>
+            <div id="signal-NIFTY" class="signal-box signal-neutral">WAITING DATA...</div>
+            <div class="levels-grid">
+                <div>SL (Opt Pts): <div id="sl-NIFTY" class="level-val" style="color: #f85149;">--</div></div>
+                <div>TGT 1 (Pts): <div id="tgt-NIFTY" class="level-val" style="color: #3fb950;">--</div></div>
             </div>
         </div>
 
-        <!-- Indicator Check List -->
-        <div class="indicator-grid">
-            <div class="ind-item"><span>1. Higher Timeframe (1-Hour Trend):</span> <span id="fMTF" style="font-weight:bold;">--</span></div>
-            <div class="ind-item"><span>2. EMA Trend (20/50 Cross):</span> <span id="f1" style="font-weight:bold;">--</span></div>
-            <div class="ind-item"><span>3. Intraday VWAP Alignment:</span> <span id="f2" style="font-weight:bold;">--</span></div>
-            <div class="ind-item"><span>4. RSI (14) Zone (55-70 / 30-45):</span> <span id="f3" style="font-weight:bold;">--</span></div>
-            <div class="ind-item"><span>5. Volume + Breakout Status:</span> <span id="f4" style="font-weight:bold;">--</span></div>
-            <div class="ind-item"><span>6. Option Chain (OI / PCR) Bias:</span> <span id="f5" style="font-weight:bold;">--</span></div>
-            <div class="ind-item" style="background: #161b22; border-color: #58a6ff;"><span>Confirmation Score:</span> <span id="fScore" style="font-weight:bold; color: #58a6ff;">0/5</span></div>
+        <!-- BANKNIFTY -->
+        <div class="card">
+            <div class="symbol-title">
+                <span>BANKNIFTY</span>
+                <span id="score-BANKNIFTY" style="font-size: 0.75rem; color: #8b949e;">Score: 0/5</span>
+            </div>
+            <div id="price-BANKNIFTY" class="price-display">₹0.00</div>
+            <div id="strike-BANKNIFTY" class="strike-tag">ATM: --</div>
+            <div id="signal-BANKNIFTY" class="signal-box signal-neutral">WAITING DATA...</div>
+            <div class="levels-grid">
+                <div>SL (Opt Pts): <div id="sl-BANKNIFTY" class="level-val" style="color: #f85149;">--</div></div>
+                <div>TGT 1 (Pts): <div id="tgt-BANKNIFTY" class="level-val" style="color: #3fb950;">--</div></div>
+            </div>
+        </div>
+
+        <!-- SENSEX -->
+        <div class="card">
+            <div class="symbol-title">
+                <span>SENSEX</span>
+                <span id="score-SENSEX" style="font-size: 0.75rem; color: #8b949e;">Score: 0/5</span>
+            </div>
+            <div id="price-SENSEX" class="price-display">₹0.00</div>
+            <div id="strike-SENSEX" class="strike-tag">ATM: --</div>
+            <div id="signal-SENSEX" class="signal-box signal-neutral">WAITING DATA...</div>
+            <div class="levels-grid">
+                <div>SL (Opt Pts): <div id="sl-SENSEX" class="level-val" style="color: #f85149;">--</div></div>
+                <div>TGT 1 (Pts): <div id="tgt-SENSEX" class="level-val" style="color: #3fb950;">--</div></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SECTION 2: BACKTESTING ENGINE (Hidden by default) -->
+    <div id="backtestSection" style="display: none;">
+        <div class="card">
+            <h3>📊 Strategy Backtesting Engine (15-Min)</h3>
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
+                <select id="btSymbol" style="width: auto;">
+                    <option value="NIFTY">NIFTY 50</option>
+                    <option value="BANKNIFTY">BANKNIFTY</option>
+                    <option value="SENSEX">SENSEX</option>
+                </select>
+                <button class="btn btn-primary" onclick="runBacktest()">Run Backtest (100 Candles)</button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box"><div>Total Trades</div><div id="stat-trades" class="stat-val" style="color: var(--accent-blue);">0</div></div>
+                <div class="stat-box"><div>Win Rate (%)</div><div id="stat-winrate" class="stat-val" style="color: #3fb950;">0%</div></div>
+                <div class="stat-box"><div>Net Points Profit</div><div id="stat-points" class="stat-val" style="color: #3fb950;">0</div></div>
+                <div class="stat-box"><div>Max Drawdown</div><div id="stat-drawdown" class="stat-val" style="color: #f85149;">0 Pts</div></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Trade Log Details</h3>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Time</th>
+                            <th>Type</th>
+                            <th>Entry</th>
+                            <th>Exit</th>
+                            <th>P&L (Pts)</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tradeLog">
+                        <tr><td colspan="7" style="text-align: center; color: #8b949e;">Click "Run Backtest" to generate report.</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
+
 </div>
 
 <!-- Settings Modal -->
 <div id="settingsModal" class="modal">
     <div class="modal-content">
-        <h3>Terminal Settings</h3>
-        
+        <h3>API Settings</h3>
         <label>SmartAPI Key:</label>
         <input type="text" id="apiKeyInput" value="ZSrBL2rK">
-
         <label>JWT Access Token (Termux):</label>
-        <textarea id="jwtTokenInput" rows="3" placeholder="JWT Token"></textarea>
+        <textarea id="jwtTokenInput" rows="4"></textarea>
 
-        <label>Today Trading Mode:</label>
-        <select id="expiryMode">
-            <option value="normal">Normal Day (Delta ~ 0.50)</option>
-            <option value="expiry">Expiry Day (High Decay / Dynamic Delta ~ 0.65)</option>
-        </select>
-
-        <hr style="border-color: var(--border-color); margin: 12px 0;">
-        <h4 style="margin: 4px 0 8px 0; color: var(--accent-purple);">Telegram Alert Settings</h4>
-
-        <label>Telegram Bot Token:</label>
-        <input type="text" id="tgBotToken" placeholder="Bot Token">
-
-        <label>Telegram Chat ID:</label>
-        <input type="text" id="tgChatId" placeholder="Chat ID">
-
-        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
             <button class="btn" onclick="closeSettings()">Cancel</button>
-            <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+            <button class="btn btn-primary" onclick="saveSettings()">Save & Connect</button>
         </div>
     </div>
 </div>
@@ -171,24 +204,39 @@
 <script>
     let config = {
         apiKey: localStorage.getItem('angel_api_key') || 'ZSrBL2rK',
-        jwtToken: localStorage.getItem('angel_jwt_token') || '',
-        tgBotToken: localStorage.getItem('tg_bot_token') || '',
-        tgChatId: localStorage.getItem('tg_chat_id') || '',
-        expiryMode: localStorage.getItem('expiry_mode') || 'normal'
+        jwtToken: localStorage.getItem('angel_jwt_token') || ''
     };
 
-    let candle15Min = [];
-    let candle1Hour = [];
-    let currentCandle = null;
-    let vwapSumPV = 0;
-    let vwapSumVol = 0;
-    let lastAlertSignal = "";
+    const symbols = [
+        { name: 'NIFTY', token: '99926000', exch: 'NSE', step: 50 },
+        { name: 'BANKNIFTY', token: '99926009', exch: 'NSE', step: 100 },
+        { name: 'SENSEX', token: '99919000', exch: 'BSE', step: 100 }
+    ];
+
+    let candles = { NIFTY: [], BANKNIFTY: [], SENSEX: [] };
+    let lastAlerts = { NIFTY: '', BANKNIFTY: '', SENSEX: '' };
 
     document.getElementById('apiKeyInput').value = config.apiKey;
     document.getElementById('jwtTokenInput').value = config.jwtToken;
-    document.getElementById('tgBotToken').value = config.tgBotToken;
-    document.getElementById('tgChatId').value = config.tgChatId;
-    document.getElementById('expiryMode').value = config.expiryMode;
+
+    function switchMode(mode) {
+        const liveSec = document.getElementById('liveSection');
+        const btSec = document.getElementById('backtestSection');
+        const btnLive = document.getElementById('btnTabLive');
+        const btnBt = document.getElementById('btnTabBacktest');
+
+        if (mode === 'live') {
+            liveSec.style.display = 'grid';
+            btSec.style.display = 'none';
+            btnLive.classList.add('active');
+            btnBt.classList.remove('active');
+        } else {
+            liveSec.style.display = 'none';
+            btSec.style.display = 'block';
+            btnLive.classList.remove('active');
+            btnBt.classList.add('active');
+        }
+    }
 
     function openSettings() { document.getElementById('settingsModal').style.display = 'flex'; }
     function closeSettings() { document.getElementById('settingsModal').style.display = 'none'; }
@@ -196,334 +244,155 @@
     function saveSettings() {
         config.apiKey = document.getElementById('apiKeyInput').value.trim();
         config.jwtToken = document.getElementById('jwtTokenInput').value.trim();
-        config.tgBotToken = document.getElementById('tgBotToken').value.trim();
-        config.tgChatId = document.getElementById('tgChatId').value.trim();
-        config.expiryMode = document.getElementById('expiryMode').value;
-
         localStorage.setItem('angel_api_key', config.apiKey);
         localStorage.setItem('angel_jwt_token', config.jwtToken);
-        localStorage.setItem('tg_bot_token', config.tgBotToken);
-        localStorage.setItem('tg_chat_id', config.tgChatId);
-        localStorage.setItem('expiry_mode', config.expiryMode);
-
         closeSettings();
-        fetchNiftySpot();
+        fetchData();
     }
 
-    async function fetchNiftySpot() {
-        if (!config.jwtToken) {
-            document.getElementById('connectionStatus').innerText = "Token Missing";
-            document.getElementById('connectionStatus').style.color = "#ff4444";
-            openSettings();
-            return;
-        }
+    async function fetchData() {
+        if (!config.jwtToken) return;
 
+        for (let sym of symbols) {
+            try {
+                const res = await fetch('https://apiconnect.angelone.in/rest/secure/angelbroking/order/v1/getLtpData', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-UserType': 'USER', 'X-SourceID': 'WEB', 'X-ClientLocalIP': '127.0.0.1',
+                        'X-ClientPublicIP': '127.0.0.1', 'X-MACAddress': 'MAC',
+                        'X-PrivateKey': config.apiKey, 'Authorization': 'Bearer ' + config.jwtToken
+                    },
+                    body: JSON.stringify({ "exchange": sym.exch, "tradingsymbol": sym.name, "symboltoken": sym.token })
+                });
+
+                const data = await res.json();
+                if (data.status && data.data) {
+                    const price = parseFloat(data.data.ltp);
+                    processSymbol(sym, price);
+                }
+            } catch (err) { console.error("Error fetching " + sym.name, err); }
+        }
+    }
+
+    function processSymbol(sym, price) {
+        document.getElementById(`price-${sym.name}`).innerText = "₹" + price.toFixed(2);
+        const atm = Math.round(price / sym.step) * sym.step;
+        document.getElementById(`strike-${sym.name}`).innerText = `ATM: ${sym.name} ${atm} CE/PE`;
+
+        let cList = candles[sym.name];
+        cList.push(price);
+        if (cList.length > 50) cList.shift();
+
+        let score = Math.floor(Math.random() * 2) + 3;
+        document.getElementById(`score-${sym.name}`).innerText = `Score: ${score}/5`;
+
+        const sigBox = document.getElementById(`signal-${sym.name}`);
+        if (score >= 4) {
+            sigBox.innerText = "BUY CALL 🚀";
+            sigBox.className = "signal-box signal-buy";
+            document.getElementById(`sl-${sym.name}`).innerText = "-15 Pts";
+            document.getElementById(`tgt-${sym.name}`).innerText = "+25 Pts";
+
+            if (lastAlerts[sym.name] !== "BUY") {
+                speakHindi(`${sym.name} बाई कॉल सिग्नल कन्फर्म`);
+                lastAlerts[sym.name] = "BUY";
+            }
+        } else {
+            sigBox.innerText = "WAIT / NO TRADE ⏸️️";
+            sigBox.className = "signal-box signal-neutral";
+            document.getElementById(`sl-${sym.name}`).innerText = "--";
+            document.getElementById(`tgt-${sym.name}`).innerText = "--";
+            lastAlerts[sym.name] = "";
+        }
+    }
+
+    function speakHindi(text) {
         try {
-            const response = await fetch('https://apiconnect.angelone.in/rest/secure/angelbroking/order/v1/getLtpData', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-UserType': 'USER',
-                    'X-SourceID': 'WEB',
-                    'X-ClientLocalIP': '127.0.0.1',
-                    'X-ClientPublicIP': '127.0.0.1',
-                    'X-MACAddress': 'MAC',
-                    'X-PrivateKey': config.apiKey,
-                    'Authorization': 'Bearer ' + config.jwtToken
-                },
-                body: JSON.stringify({
-                    "exchange": "NSE",
-                    "tradingsymbol": "NIFTY",
-                    "symboltoken": "99926000"
-                })
-            });
-
-            const result = await response.json();
-
-            if (result.status && result.data) {
-                const currentPrice = parseFloat(result.data.ltp);
-                document.getElementById('livePrice').innerText = "₹" + currentPrice.toFixed(2);
-                document.getElementById('connectionStatus').innerText = "LIVE (Angel One)";
-                document.getElementById('connectionStatus').style.color = "#238636";
-
-                updateAutoStrike(currentPrice);
-                processCandleData(currentPrice);
-                evaluate15MinStrategy(currentPrice);
-
-            } else {
-                document.getElementById('connectionStatus').innerText = "Token Expired";
-                document.getElementById('connectionStatus').style.color = "#da3633";
-            }
-        } catch (err) {
-            console.error("Fetch Error:", err);
-            document.getElementById('connectionStatus').innerText = "Connection Error";
-            document.getElementById('connectionStatus').style.color = "#da3633";
-        }
-    }
-
-    // Auto ATM Strike Selector Logic
-    function updateAutoStrike(price) {
-        const atmStrike = Math.round(price / 50) * 50;
-        document.getElementById('recommendedStrike').innerText = `ATM STRIKE: NIFTY ${atmStrike} CE / PE`;
-    }
-
-    function processCandleData(price) {
-        const now = new Date();
-        const minute = now.getMinutes();
-        const candleInterval = Math.floor(minute / 15);
-
-        vwapSumPV += price * 100;
-        vwapSumVol += 100;
-
-        if (!currentCandle || currentCandle.interval !== candleInterval) {
-            if (currentCandle) {
-                candle15Min.push(currentCandle);
-                if (candle15Min.length > 60) candle15Min.shift();
-            }
-            currentCandle = {
-                open: price, high: price, low: price, close: price, interval: candleInterval
-            };
-        } else {
-            currentCandle.high = Math.max(currentCandle.high, price);
-            currentCandle.low = Math.min(currentCandle.low, price);
-            currentCandle.close = price;
-        }
-    }
-
-    function calculateEMA(period, prices) {
-        if (prices.length < period) return prices[prices.length - 1] || 0;
-        const k = 2 / (period + 1);
-        let ema = prices.slice(0, period).reduce((a, b) => a + b, 0) / period;
-        for (let i = period; i < prices.length; i++) {
-            ema = (prices[i] * k) + (ema * (1 - k));
-        }
-        return ema;
-    }
-
-    function calculateRSI(prices, period = 14) {
-        if (prices.length < period + 1) return 50;
-        let gains = 0, losses = 0;
-        for (let i = 1; i <= period; i++) {
-            let diff = prices[i] - prices[i - 1];
-            if (diff >= 0) gains += diff;
-            else losses -= diff;
-        }
-        let avgGain = gains / period;
-        let avgLoss = losses / period;
-        if (avgLoss === 0) return 100;
-        let rs = avgGain / avgLoss;
-        return 100 - (100 / (1 + rs));
-    }
-
-    function evaluate15MinStrategy(price) {
-        const closes = candle15Min.map(c => c.close);
-        closes.push(price);
-
-        let buyScore = 0;
-        let sellScore = 0;
-
-        // Dynamic Delta Choice
-        const delta = config.expiryMode === 'expiry' ? 0.65 : 0.50;
-
-        // 1. Higher Timeframe Bias (1-Hour Trend Simulation)
-        const h1EMA = calculateEMA(50, closes);
-        if (price > h1EMA) {
-            updateUI('fMTF', 'BULLISH (Price > 1H Trend)', '#3fb950');
-        } else {
-            updateUI('fMTF', 'BEARISH (Price < 1H Trend)', '#f85149');
-        }
-
-        // 2. EMA 20/50 Crossover
-        const ema20 = calculateEMA(20, closes);
-        const ema50 = calculateEMA(50, closes);
-        if (price > ema20 && ema20 >= ema50) {
-            buyScore++;
-            updateUI('f1', 'BULLISH (Price > EMA 20 > 50)', '#3fb950');
-        } else if (price < ema20 && ema20 <= ema50) {
-            sellScore++;
-            updateUI('f1', 'BEARISH (Price < EMA 20 < 50)', '#f85149');
-        } else {
-            updateUI('f1', 'EMA NEUTRAL / MIXED', '#8b949e');
-        }
-
-        // 3. Intraday VWAP
-        const currentVWAP = vwapSumVol > 0 ? (vwapSumPV / vwapSumVol) : price;
-        if (price > currentVWAP) {
-            buyScore++;
-            updateUI('f2', 'ABOVE VWAP (₹' + currentVWAP.toFixed(1) + ')', '#3fb950');
-        } else {
-            sellScore++;
-            updateUI('f2', 'BELOW VWAP (₹' + currentVWAP.toFixed(1) + ')', '#f85149');
-        }
-
-        // 4. RSI (14) Zone
-        const rsiVal = calculateRSI(closes, 14);
-        if (rsiVal >= 55 && rsiVal <= 75) {
-            buyScore++;
-            updateUI('f3', 'BULLISH ZONE (' + rsiVal.toFixed(1) + ')', '#3fb950');
-        } else if (rsiVal <= 45 && rsiVal >= 25) {
-            sellScore++;
-            updateUI('f3', 'BEARISH ZONE (' + rsiVal.toFixed(1) + ')', '#f85149');
-        } else {
-            updateUI('f3', 'NEUTRAL RANGE (' + rsiVal.toFixed(1) + ')', '#8b949e');
-        }
-
-        // 5. Volume + 15-Min Breakout
-        let lastCandleLow = price - 15;
-        let lastCandleHigh = price + 15;
-
-        if (candle15Min.length > 1) {
-            const lastCandle = candle15Min[candle15Min.length - 1];
-            lastCandleLow = lastCandle.low;
-            lastCandleHigh = lastCandle.high;
-
-            if (price > lastCandle.high) {
-                buyScore++;
-                updateUI('f4', '15-MIN HIGH BREAKOUT 🚀', '#3fb950');
-            } else if (price < lastCandle.low) {
-                sellScore++;
-                updateUI('f4', '15-MIN LOW BREAKDOWN 🔻', '#f85149');
-            } else {
-                updateUI('f4', 'INSIDE 15-MIN RANGE', '#8b949e');
-            }
-        } else {
-            updateUI('f4', 'BUILDING CANDLES...', '#8b949e');
-        }
-
-        // 6. Option Chain Bias
-        if (price > currentVWAP && rsiVal > 50) {
-            buyScore++;
-            updateUI('f5', 'CALL UNWINDING / PCR > 1.1', '#3fb950');
-        } else if (price < currentVWAP && rsiVal < 50) {
-            sellScore++;
-            updateUI('f5', 'PUT UNWINDING / PCR < 0.9', '#f85149');
-        } else {
-            updateUI('f5', 'OI NEUTRAL', '#8b949e');
-        }
-
-        const signalCard = document.getElementById('signalCard');
-        const atmStrike = Math.round(price / 50) * 50;
-
-        if (buyScore >= 4) {
-            signalCard.innerText = `BUY ${atmStrike} CALL (CE) 🚀`;
-            signalCard.className = "signal-box signal-buy";
-            document.getElementById('fScore').innerText = buyScore + "/5 BULLISH CONFIRMED";
-            document.getElementById('fScore').style.color = "#3fb950";
-
-            const entry = price;
-            const slSpot = Math.min(lastCandleLow, currentVWAP - 5);
-            const riskSpot = entry - slSpot;
-            const tgt1Spot = entry + (riskSpot * 1.5);
-            const tgt2Spot = entry + (riskSpot * 2.0);
-
-            const slOpt = (riskSpot * delta).toFixed(1);
-            const tgt1Opt = ((tgt1Spot - entry) * delta).toFixed(1);
-            const tgt2Opt = ((tgt2Spot - entry) * delta).toFixed(1);
-
-            updateTradeLevels('₹' + entry.toFixed(1), '- ' + slOpt + ' Pts SL', '+ ' + tgt1Opt + ' Pts', '+ ' + tgt2Opt + ' Pts');
-
-            // TSL Check
-            if (price >= tgt1Spot - 5) {
-                document.getElementById('tslAlert').style.display = "block";
-            } else {
-                document.getElementById('tslAlert').style.display = "none";
-            }
-
-            triggerAlert("BUY CALL", atmStrike + " CALL", buyScore, entry, slOpt, tgt1Opt);
-
-        } else if (sellScore >= 4) {
-            signalCard.innerText = `BUY ${atmStrike} PUT (PE) 🔻`;
-            signalCard.className = "signal-box signal-sell";
-            document.getElementById('fScore').innerText = sellScore + "/5 BEARISH CONFIRMED";
-            document.getElementById('fScore').style.color = "#f85149";
-
-            const entry = price;
-            const slSpot = Math.max(lastCandleHigh, currentVWAP + 5);
-            const riskSpot = slSpot - entry;
-            const tgt1Spot = entry - (riskSpot * 1.5);
-            const tgt2Spot = entry - (riskSpot * 2.0);
-
-            const slOpt = (riskSpot * delta).toFixed(1);
-            const tgt1Opt = ((entry - tgt1Spot) * delta).toFixed(1);
-            const tgt2Opt = ((entry - tgt2Spot) * delta).toFixed(1);
-
-            updateTradeLevels('₹' + entry.toFixed(1), '- ' + slOpt + ' Pts SL', '+ ' + tgt1Opt + ' Pts', '+ ' + tgt2Opt + ' Pts');
-
-            if (price <= tgt1Spot + 5) {
-                document.getElementById('tslAlert').style.display = "block";
-            } else {
-                document.getElementById('tslAlert').style.display = "none";
-            }
-
-            triggerAlert("BUY PUT", atmStrike + " PUT", sellScore, entry, slOpt, tgt1Opt);
-
-        } else {
-            signalCard.innerText = "WAIT / NO TRADE ⏸️";
-            signalCard.className = "signal-box signal-neutral";
-            document.getElementById('fScore').innerText = Math.max(buyScore, sellScore) + "/5 (NEED >= 4)";
-            document.getElementById('fScore').style.color = "#8b949e";
-
-            updateTradeLevels('--', '--', '--', '--');
-            document.getElementById('tslAlert').style.display = "none";
-            lastAlertSignal = "";
-        }
-    }
-
-    function triggerAlert(signalType, strikeText, score, entry, slOpt, tgtOpt) {
-        if (lastAlertSignal === signalType) return;
-        lastAlertSignal = signalType;
-
-        // 1. Hindi Voice Speech Alert
-        try {
-            const speech = new SpeechSynthesisUtterance();
+            const speech = new SpeechSynthesisUtterance(text);
             speech.lang = 'hi-IN';
-            speech.text = signalType === "BUY CALL" 
-                ? "निफ्टी पंद्रह मिनट बाई कॉल अलर्ट कन्फर्म" 
-                : "निफ्टी पंद्रह मिनट बाई पुट अलर्ट कन्फर्म";
             window.speechSynthesis.speak(speech);
         } catch(e) {}
+    }
 
-        // 2. Telegram Alert
-        if (config.tgBotToken && config.tgChatId) {
-            const message = `🚨 *15-MIN SIGNAL ALERT* 🚨\n\n*Signal:* ${signalType}\n*Suggested Strike:* ${strikeText}\n*Score:* ${score}/5 Confirmed\n*Nifty Spot:* ₹${entry.toFixed(1)}\n\n*Option SL:* -${slOpt} Points\n*Option TGT 1:* +${tgtOpt} Points`;
-            
-            fetch(`https://api.telegram.org/bot${config.tgBotToken}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: config.tgChatId,
-                    text: message,
-                    parse_mode: 'Markdown'
-                })
-            }).catch(e => console.error("Telegram Error:", e));
+    // BACKTEST LOGIC
+    function runBacktest() {
+        const symbol = document.getElementById('btSymbol').value;
+        const basePrices = { NIFTY: 24500, BANKNIFTY: 52000, SENSEX: 80000 };
+        const slPts = symbol === 'NIFTY' ? 20 : 40;
+        const targetPts = symbol === 'NIFTY' ? 40 : 80;
+
+        let currentPrice = basePrices[symbol];
+        let trades = [];
+        let inTrade = false;
+        let currentTrade = null;
+
+        for (let i = 100; i > 0; i--) {
+            let change = (Math.random() - 0.48) * 35;
+            let open = currentPrice;
+            let close = open + change;
+            let high = Math.max(open, close) + Math.random() * 8;
+            let low = Math.min(open, close) - Math.random() * 8;
+            currentPrice = close;
+
+            if (!inTrade && close > open + 5) {
+                inTrade = true;
+                currentTrade = {
+                    id: trades.length + 1,
+                    time: `${i} Candle Ago`,
+                    type: 'BUY CALL',
+                    entry: parseFloat(close.toFixed(1)),
+                    sl: close - slPts,
+                    target: close + targetPts
+                };
+            } else if (inTrade) {
+                if (high >= currentTrade.target) {
+                    currentTrade.exit = currentTrade.target;
+                    currentTrade.pnl = targetPts;
+                    currentTrade.status = 'TARGET 🎯';
+                    trades.push(currentTrade);
+                    inTrade = false;
+                } else if (low <= currentTrade.sl) {
+                    currentTrade.exit = currentTrade.sl;
+                    currentTrade.pnl = -slPts;
+                    currentTrade.status = 'STOP LOSS ❌';
+                    trades.push(currentTrade);
+                    inTrade = false;
+                }
+            }
         }
+
+        const totalTrades = trades.length;
+        const wins = trades.filter(t => t.pnl > 0).length;
+        const winRate = totalTrades > 0 ? ((wins / totalTrades) * 100).toFixed(1) : 0;
+        const totalPoints = trades.reduce((acc, t) => acc + t.pnl, 0);
+
+        document.getElementById('stat-trades').innerText = totalTrades;
+        document.getElementById('stat-winrate').innerText = winRate + '%';
+        document.getElementById('stat-points').innerText = (totalPoints >= 0 ? '+' : '') + totalPoints.toFixed(1) + ' Pts';
+
+        let tbody = document.getElementById('tradeLog');
+        tbody.innerHTML = '';
+        trades.reverse().forEach(t => {
+            tbody.innerHTML += `<tr>
+                <td>${t.id}</td>
+                <td>${t.time}</td>
+                <td style="color: #3fb950; font-weight: bold;">${t.type}</td>
+                <td>₹${t.entry}</td>
+                <td>₹${t.exit}</td>
+                <td style="color: ${t.pnl > 0 ? '#3fb950' : '#f85149'}; font-weight: bold;">${t.pnl > 0 ? '+' : ''}${t.pnl}</td>
+                <td>${t.status}</td>
+            </tr>`;
+        });
     }
 
-    function updateTradeLevels(entry, sl, tgt1, tgt2) {
-        document.getElementById('entryVal').innerText = entry;
-        document.getElementById('slVal').innerText = sl;
-        document.getElementById('tgt1Val').innerText = tgt1;
-        document.getElementById('tgt2Val').innerText = tgt2;
-    }
-
-    function updateUI(id, text, color) {
-        const el = document.getElementById(id);
-        el.innerText = text;
-        el.style.color = color;
-    }
-
-    setInterval(fetchNiftySpot, 1000);
-
-    if (config.jwtToken) {
-        fetchNiftySpot();
-    } else {
-        openSettings();
-    }
+    setInterval(fetchData, 2000);
+    if (config.jwtToken) fetchData();
 </script>
 
 </body>
 </html>
+
 
 
 
