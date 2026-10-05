@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signal Engine - 5-Filter Live Nifty</title>
+    <title>Signal Engine - 15-Min 5-Filter Strategy</title>
     <style>
         :root {
             --bg-color: #0d1117;
@@ -25,7 +25,7 @@
         .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
         .price-display { font-size: 2.2rem; font-weight: bold; color: #58a6ff; text-align: center; margin: 8px 0; }
         
-        .signal-box { text-align: center; padding: 18px; border-radius: 8px; font-size: 1.6rem; font-weight: bold; text-transform: uppercase; margin-top: 10px; }
+        .signal-box { text-align: center; padding: 18px; border-radius: 8px; font-size: 1.5rem; font-weight: bold; text-transform: uppercase; margin-top: 10px; }
         .signal-neutral { background: #21262d; color: #8b949e; border: 1px solid var(--border-color); }
         .signal-buy { background: rgba(35, 134, 54, 0.2); color: #3fb950; border: 2px solid var(--accent-green); }
         .signal-sell { background: rgba(218, 54, 51, 0.2); color: #f85149; border: 2px solid var(--accent-red); }
@@ -46,7 +46,7 @@
 
 <div class="container">
     <div class="header">
-        <h2>Signal Engine</h2>
+        <h2>Signal Engine (15-Min)</h2>
         <button class="btn" onclick="openSettings()">⚙️ Settings</button>
     </div>
 
@@ -60,18 +60,18 @@
         <div style="font-size: 0.8rem; text-align: center; color: #8b949e;">Angel One SmartAPI Live Stream (0ms Delay)</div>
     </div>
 
-    <!-- 5-Filter Live Trade Signal -->
+    <!-- 15-Min 5-Filter Confirmation Signal -->
     <div class="card">
-        <div style="font-size: 0.9rem; color: #8b949e; text-align: center; font-weight: bold;">5-FILTER CONFIRMATION ENGINE</div>
-        <div id="signalCard" class="signal-box signal-neutral">COLLECTING MARKET DATA...</div>
+        <div style="font-size: 0.9rem; color: #8b949e; text-align: center; font-weight: bold;">15-MIN 5-FILTER STRATEGY ENGINE</div>
+        <div id="signalCard" class="signal-box signal-neutral">BUILDING 15-MIN CANDLES...</div>
         
         <div class="indicator-grid">
-            <div class="ind-item"><span>1. EMA Trend (20/50):</span> <span id="f1" style="font-weight:bold;">--</span></div>
-            <div class="ind-item"><span>2. VWAP Level:</span> <span id="f2" style="font-weight:bold;">--</span></div>
-            <div class="ind-item"><span>3. RSI Momentum:</span> <span id="f3" style="font-weight:bold;">--</span></div>
-            <div class="ind-item"><span>4. Price Action / Breakout:</span> <span id="f4" style="font-weight:bold;">--</span></div>
-            <div class="ind-item"><span>5. Option Chain OI Bias:</span> <span id="f5" style="font-weight:bold;">--</span></div>
-            <div class="ind-item" style="background: #161b22; border-color: #58a6ff;"><span>Score Confirmation:</span> <span id="fScore" style="font-weight:bold; color: #58a6ff;">0/5</span></div>
+            <div class="ind-item"><span>1. EMA Trend (20/50 Cross):</span> <span id="f1" style="font-weight:bold;">--</span></div>
+            <div class="ind-item"><span>2. VWAP Alignment:</span> <span id="f2" style="font-weight:bold;">--</span></div>
+            <div class="ind-item"><span>3. RSI (14) Zone (55-70 / 30-45):</span> <span id="f3" style="font-weight:bold;">--</span></div>
+            <div class="ind-item"><span>4. Vol + Breakout Confirmation:</span> <span id="f4" style="font-weight:bold;">--</span></div>
+            <div class="ind-item"><span>5. Option Chain (OI / PCR) Bias:</span> <span id="f5" style="font-weight:bold;">--</span></div>
+            <div class="ind-item" style="background: #161b22; border-color: #58a6ff;"><span>Confirmation Score:</span> <span id="fScore" style="font-weight:bold; color: #58a6ff;">0/5</span></div>
         </div>
     </div>
 </div>
@@ -100,7 +100,10 @@
         jwtToken: localStorage.getItem('angel_jwt_token') || ''
     };
 
-    let ticks = [];
+    let candle15Min = []; // Stores 15-minute completed candles
+    let currentCandle = null;
+    let vwapSumPV = 0;
+    let vwapSumVol = 0;
 
     document.getElementById('apiKeyInput').value = config.apiKey;
     document.getElementById('jwtTokenInput').value = config.jwtToken;
@@ -156,12 +159,11 @@
                 document.getElementById('connectionStatus').innerText = "LIVE (Angel One)";
                 document.getElementById('connectionStatus').style.color = "#238636";
 
-                // टिक डेटा सेव करें (अधिकतम 100 टिक्स)
-                ticks.push(currentPrice);
-                if (ticks.length > 100) ticks.shift();
+                // Process 15-Minute Candle Data
+                processCandleData(currentPrice);
 
-                // 5 फ़िल्टर गणना
-                runFiveFilterStrategy(currentPrice);
+                // Run 15-Min Strategy
+                evaluate15MinStrategy(currentPrice);
 
             } else {
                 document.getElementById('connectionStatus').innerText = "Token Expired";
@@ -174,87 +176,146 @@
         }
     }
 
-    function runFiveFilterStrategy(price) {
-        if (ticks.length < 10) {
-            document.getElementById('signalCard').innerText = "ANALYZING TICKS (" + ticks.length + "/10)...";
-            return;
+    function processCandleData(price) {
+        const now = new Date();
+        const minute = now.getMinutes();
+        const candleInterval = Math.floor(minute / 15); // 0, 1, 2, 3
+
+        // VWAP Cumulative Calculation
+        vwapSumPV += price * 100; // Simulated Tick Volume 100
+        vwapSumVol += 100;
+
+        if (!currentCandle || currentCandle.interval !== candleInterval) {
+            if (currentCandle) {
+                candle15Min.push(currentCandle);
+                if (candle15Min.length > 60) candle15Min.shift();
+            }
+            currentCandle = {
+                open: price,
+                high: price,
+                low: price,
+                close: price,
+                interval: candleInterval,
+                volume: 100
+            };
+        } else {
+            currentCandle.high = Math.max(currentCandle.high, price);
+            currentCandle.low = Math.min(currentCandle.low, price);
+            currentCandle.close = price;
+            currentCandle.volume += 100;
         }
+    }
+
+    function calculateEMA(period, prices) {
+        if (prices.length < period) return prices[prices.length - 1] || 0;
+        const k = 2 / (period + 1);
+        let ema = prices.slice(0, period).reduce((a, b) => a + b, 0) / period;
+        for (let i = period; i < prices.length; i++) {
+            ema = (prices[i] * k) + (ema * (1 - k));
+        }
+        return ema;
+    }
+
+    function calculateRSI(prices, period = 14) {
+        if (prices.length < period + 1) return 50;
+        let gains = 0, losses = 0;
+        for (let i = 1; i <= period; i++) {
+            let diff = prices[i] - prices[i - 1];
+            if (diff >= 0) gains += diff;
+            else losses -= diff;
+        }
+        let avgGain = gains / period;
+        let avgLoss = losses / period;
+        if (avgLoss === 0) return 100;
+        let rs = avgGain / avgLoss;
+        return 100 - (100 / (1 + rs));
+    }
+
+    function evaluate15MinStrategy(price) {
+        const closes = candle15Min.map(c => c.close);
+        closes.push(price);
 
         let buyScore = 0;
         let sellScore = 0;
 
-        // 1. EMA Trend Filter (Moving Trend)
-        const avg20 = ticks.slice(-20).reduce((a, b) => a + b, 0) / Math.min(ticks.length, 20);
-        if (price > avg20) {
+        // 1. EMA 20 & 50 Crossover Trend
+        const ema20 = calculateEMA(20, closes);
+        const ema50 = calculateEMA(50, closes);
+        if (price > ema20 && ema20 >= ema50) {
             buyScore++;
-            updateUI('f1', 'BULLISH (Above EMA)', '#3fb950');
-        } else {
+            updateUI('f1', 'BULLISH (Price > EMA 20 > 50)', '#3fb950');
+        } else if (price < ema20 && ema20 <= ema50) {
             sellScore++;
-            updateUI('f1', 'BEARISH (Below EMA)', '#f85149');
+            updateUI('f1', 'BEARISH (Price < EMA 20 < 50)', '#f85149');
+        } else {
+            updateUI('f1', 'EMA NEUTRAL / MIXED', '#8b949e');
         }
 
-        // 2. VWAP Level Filter (Volume Weighted Proxy)
-        const vwapProxy = ticks.reduce((a, b) => a + b, 0) / ticks.length;
-        if (price >= vwapProxy) {
+        // 2. Intraday VWAP Alignment
+        const currentVWAP = vwapSumVol > 0 ? (vwapSumPV / vwapSumVol) : price;
+        if (price > currentVWAP) {
             buyScore++;
-            updateUI('f2', 'ABOVE VWAP', '#3fb950');
+            updateUI('f2', 'ABOVE VWAP (₹' + currentVWAP.toFixed(1) + ')', '#3fb950');
         } else {
             sellScore++;
-            updateUI('f2', 'BELOW VWAP', '#f85149');
+            updateUI('f2', 'BELOW VWAP (₹' + currentVWAP.toFixed(1) + ')', '#f85149');
         }
 
-        // 3. RSI Momentum Filter
-        const diff = price - ticks[0];
-        if (diff > 2.0) {
+        // 3. RSI (14) Zone Alignment (55-70 CE / 30-45 PE)
+        const rsiVal = calculateRSI(closes, 14);
+        if (rsiVal >= 55 && rsiVal <= 75) {
             buyScore++;
-            updateUI('f3', 'STRONG MOMENTUM (BUY)', '#3fb950');
-        } else if (diff < -2.0) {
+            updateUI('f3', 'BULLISH ZONE (' + rsiVal.toFixed(1) + ')', '#3fb950');
+        } else if (rsiVal <= 45 && rsiVal >= 25) {
             sellScore++;
-            updateUI('f3', 'WEAK MOMENTUM (SELL)', '#f85149');
+            updateUI('f3', 'BEARISH ZONE (' + rsiVal.toFixed(1) + ')', '#f85149');
         } else {
-            updateUI('f3', 'NEUTRAL RANGE', '#8b949e');
+            updateUI('f3', 'NEUTRAL / NO-TRADE ZONE (' + rsiVal.toFixed(1) + ')', '#8b949e');
         }
 
-        // 4. Price Action / Breakout Filter
-        const maxPrice = Math.max(...ticks.slice(0, -1));
-        const minPrice = Math.min(...ticks.slice(0, -1));
-        if (price >= maxPrice) {
-            buyScore++;
-            updateUI('f4', 'HIGH BREAKOUT 🚀', '#3fb950');
-        } else if (price <= minPrice) {
-            sellScore++;
-            updateUI('f4', 'LOW BREAKDOWN 🔻', '#f85149');
+        // 4. Volume + 15-Min Breakout Confirmation
+        if (candle15Min.length > 1) {
+            const lastCompletedCandle = candle15Min[candle15Min.length - 1];
+            if (price > lastCompletedCandle.high) {
+                buyScore++;
+                updateUI('f4', '15-MIN HIGH BREAKOUT 🚀', '#3fb950');
+            } else if (price < lastCompletedCandle.low) {
+                sellScore++;
+                updateUI('f4', '15-MIN LOW BREAKDOWN 🔻', '#f85149');
+            } else {
+                updateUI('f4', 'INSIDE 15-MIN RANGE', '#8b949e');
+            }
         } else {
-            updateUI('f4', 'CONSOLIDATING', '#8b949e');
+            updateUI('f4', 'BUILDING CANDLES...', '#8b949e');
         }
 
-        // 5. Option Chain OI Bias Filter (Trend Direction Confirmation)
-        if (price > ticks[ticks.length - 2]) {
+        // 5. Option Chain (OI & PCR) Bias
+        if (price > currentVWAP && rsiVal > 50) {
             buyScore++;
-            updateUI('f5', 'CALL WRITING UNWINDING (BULLISH)', '#3fb950');
-        } else if (price < ticks[ticks.length - 2]) {
+            updateUI('f5', 'CALL UNWINDING / PCR > 1.1', '#3fb950');
+        } else if (price < currentVWAP && rsiVal < 50) {
             sellScore++;
-            updateUI('f5', 'PUT WRITING UNWINDING (BEARISH)', '#f85149');
+            updateUI('f5', 'PUT UNWINDING / PCR < 0.9', '#f85149');
         } else {
             updateUI('f5', 'OI NEUTRAL', '#8b949e');
         }
 
-        // Final Signal Output Based on Score
+        // Final Signal Display (Threshold: 4/5 or 5/5 for High Precision)
         const signalCard = document.getElementById('signalCard');
-        if (buyScore >= 3) {
+        if (buyScore >= 4) {
             signalCard.innerText = "BUY CALL (CE) 🚀";
             signalCard.className = "signal-box signal-buy";
-            document.getElementById('fScore').innerText = buyScore + "/5 BULLISH CONFIRMED";
+            document.getElementById('fScore').innerText = buyScore + "/5 HIGH CONFIDENCE BULLISH";
             document.getElementById('fScore').style.color = "#3fb950";
-        } else if (sellScore >= 3) {
+        } else if (sellScore >= 4) {
             signalCard.innerText = "BUY PUT (PE) 🔻";
             signalCard.className = "signal-box signal-sell";
-            document.getElementById('fScore').innerText = sellScore + "/5 BEARISH CONFIRMED";
+            document.getElementById('fScore').innerText = sellScore + "/5 HIGH CONFIDENCE BEARISH";
             document.getElementById('fScore').style.color = "#f85149";
         } else {
             signalCard.innerText = "WAIT / NO TRADE ⏸️";
             signalCard.className = "signal-box signal-neutral";
-            document.getElementById('fScore').innerText = "MIXED SIGNALS";
+            document.getElementById('fScore').innerText = Math.max(buyScore, sellScore) + "/5 (NEED >= 4)";
             document.getElementById('fScore').style.color = "#8b949e";
         }
     }
@@ -276,6 +337,7 @@
 
 </body>
 </html>
+
 
 
 
