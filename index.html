@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>5-Filter Confirmation Engine (Auto-Live)</title>
+    <title>5-Filter Confirmation Engine | Upstox Live PWA</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -43,6 +43,10 @@
             transition: all 0.3s ease;
         }
 
+        .signal-strong-buy { border-color: var(--accent-green); box-shadow: 0 0 20px rgba(34, 197, 94, 0.3); }
+        .signal-buy { border-color: var(--accent-yellow); box-shadow: 0 0 20px rgba(234, 179, 8, 0.3); }
+        .signal-wait { border-color: #64748b; }
+
         .filter-item {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
@@ -63,51 +67,59 @@
         .badge-pass { background-color: rgba(34, 197, 94, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
         .badge-fail { background-color: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
         .badge-wait { background-color: rgba(100, 116, 139, 0.2); color: #94a3b8; border: 1px solid #64748b; }
+
+        .modal-content { background-color: var(--card-bg); color: var(--text-light); border: 1px solid var(--border-color); }
+        .form-control { background-color: var(--bg-dark); border: 1px solid var(--border-color); color: var(--text-light); }
+        .form-control:focus { background-color: var(--bg-dark); color: var(--text-light); border-color: var(--accent-green); box-shadow: none; }
     </style>
 </head>
 <body>
 
+    <!-- Header Section -->
     <div class="header-bar">
         <div>
             <h4 class="m-0 fw-bold"><i class="fa-solid fa-chart-line me-2 text-warning"></i>5-Filter Signal Engine</h4>
-            <small id="connection-status" class="text-success"><i class="fa-solid fa-circle me-1"></i>Live Auto-Refresh Active</small>
+            <small id="connection-status" class="text-danger"><i class="fa-solid fa-circle me-1"></i>Disconnected (Enter Upstox Token)</small>
         </div>
         <div>
-            <button class="btn btn-outline-success btn-sm" onclick="fetchLiveData()">
-                <i class="fa-solid fa-rotate me-1"></i> Refresh
+            <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#settingsModal">
+                <i class="fa-solid fa-gear me-1"></i> Settings ⚙️
             </button>
         </div>
     </div>
 
     <div class="container my-4">
+        <!-- Live Market Selector & Score Header -->
         <div class="row mb-3 align-items-center">
             <div class="col-6">
                 <select id="symbolSelect" class="form-select bg-dark text-light border-secondary" onchange="switchSymbol()">
-                    <option value="^BSESN" selected>SENSEX (BSE)</option>
-                    <option value="^NSEI">NIFTY 50</option>
-                    <option value="^NSEBANK">BANK NIFTY</option>
+                    <option value="NSE_INDEX|Nifty 50">NIFTY 50</option>
+                    <option value="NSE_INDEX|Nifty Bank">BANK NIFTY</option>
+                    <option value="BSE_INDEX|SENSEX" selected>SENSEX (BSE)</option>
                 </select>
             </div>
             <div class="col-6 text-end">
                 <h5 class="m-0"><span id="selectedName">SENSEX</span> LTP:</h5>
-                <h4 id="livePrice" class="text-warning fw-bold m-0">Loading...</h4>
+                <h4 id="livePrice" class="text-warning fw-bold m-0">₹0.00</h4>
             </div>
         </div>
 
-        <div id="signalCard" class="signal-card">
+        <!-- Main Signal Output Card -->
+        <div id="signalCard" class="signal-card signal-wait">
             <h6 class="text-uppercase text-muted">Current Signal Engine State</h6>
             <h1 id="signalText" class="display-5 fw-bold my-2 text-secondary">⚪ WAIT</h1>
-            <p id="signalSubtext" class="mb-0 text-muted">डेटा विश्लेषण जारी है...</p>
+            <p id="signalSubtext" class="mb-0 text-muted">5 में से केवल 0-3 शर्तें पूरी हो रही हैं।</p>
         </div>
 
-        <h6 class="fw-bold mb-3">5-Filter Confirmation Status:</h6>
+        <!-- 5 Filters Checklist -->
+        <h6 class="fw-bold mb-3">5-Filter Confirmation Status (<span id="activeSymbolText">SENSEX</span>):</h6>
 
         <div class="filter-item">
             <div>
                 <strong>1. Trend (EMA 20 & 50)</strong>
                 <div class="small text-muted">Price > EMA 20 > EMA 50</div>
             </div>
-            <span id="f1-badge" class="status-badge badge-wait">ANALYZING</span>
+            <span id="f1-badge" class="status-badge badge-wait">WAIT</span>
         </div>
 
         <div class="filter-item">
@@ -115,7 +127,7 @@
                 <strong>2. VWAP Alignment</strong>
                 <div class="small text-muted">Price above VWAP + Rising</div>
             </div>
-            <span id="f2-badge" class="status-badge badge-wait">ANALYZING</span>
+            <span id="f2-badge" class="status-badge badge-wait">WAIT</span>
         </div>
 
         <div class="filter-item">
@@ -123,87 +135,153 @@
                 <strong>3. RSI (14) Zone Filter</strong>
                 <div class="small text-muted">RSI Range 55–70 / 30–45</div>
             </div>
-            <span id="f3-badge" class="status-badge badge-wait">ANALYZING</span>
+            <span id="f3-badge" class="status-badge badge-wait">WAIT</span>
         </div>
 
         <div class="filter-item">
             <div>
                 <strong>4. Volume + Breakout Confirmation</strong>
-                <div class="small text-muted">Volume surge + Body Close</div>
+                <div class="small text-muted">Volume surge + Body Close (No Wick)</div>
             </div>
-            <span id="f4-badge" class="status-badge badge-wait">ANALYZING</span>
+            <span id="f4-badge" class="status-badge badge-wait">WAIT</span>
         </div>
 
         <div class="filter-item">
             <div>
                 <strong>5. Option Chain (OI & PCR)</strong>
-                <div class="small text-muted">PCR Confirmation</div>
+                <div class="small text-muted">PCR (>1.0 CE / <0.8 PE)</div>
             </div>
-            <span id="f5-badge" class="status-badge badge-wait">ANALYZING</span>
+            <span id="f5-badge" class="status-badge badge-wait">WAIT</span>
         </div>
     </div>
 
+    <!-- Settings & API Modal -->
+    <div class="modal fade" id="settingsModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title"><i class="fa-solid fa-key me-2"></i>Upstox API Settings</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label">Daily Upstox Access Token:</label>
+                    <input type="password" id="upstoxToken" class="form-control mb-3" placeholder="Paste daily access token here...">
+                    <small class="text-muted d-block mb-3">Upstox Developer Console (<a href="https://developer.upstox.com" target="_blank" class="text-info">developer.upstox.com</a>) से टोकन प्राप्त करें।</small>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" onclick="saveAndConnectUpstox()">Connect Live Feed 🟢</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        let currentSymbol = "^BSESN";
+        let ws = null;
+        let activeInstrument = "BSE_INDEX|SENSEX";
 
         function switchSymbol() {
-            currentSymbol = document.getElementById('symbolSelect').value;
-            const text = document.getElementById('symbolSelect').options[document.getElementById('symbolSelect').selectedIndex].text;
+            const selectEl = document.getElementById('symbolSelect');
+            activeInstrument = selectEl.value;
+            const text = selectEl.options[selectEl.selectedIndex].text;
             document.getElementById('selectedName').innerText = text.split(' ')[0];
-            fetchLiveData();
+            document.getElementById('activeSymbolText').innerText = text.split(' ')[0];
+
+            if(ws && ws.readyState === WebSocket.OPEN) {
+                const subRequest = {
+                    "guid": "5filter_session",
+                    "method": "sub",
+                    "data": { "mode": "full", "instrumentKeys": [activeInstrument] }
+                };
+                ws.send(JSON.stringify(subRequest));
+            }
         }
 
-        async function fetchLiveData() {
-            const priceEl = document.getElementById('livePrice');
+        function saveAndConnectUpstox() {
+            const token = document.getElementById('upstoxToken').value.trim();
+            if(!token) {
+                alert("कृपया वैध Upstox Access Token दर्ज करें!");
+                return;
+            }
+
+            localStorage.setItem('upstox_access_token', token);
+            connectWebSocket(token);
+            
+            const modalElem = document.getElementById('settingsModal');
+            const modal = bootstrap.Modal.getInstance(modalElem);
+            if(modal) modal.hide();
+        }
+
+        function connectWebSocket(token) {
+            const statusEl = document.getElementById('connection-status');
+            statusEl.className = "text-warning";
+            statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Connecting Upstox...';
+
+            // Fetch Authorized WebSocket Redirect URL from Upstox API
+            fetch('https://api.upstox.com/v2/feed/market-data-feed/authorize', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'success' && data.data.authorizedRedirectUri) {
+                    initWebSocket(data.data.authorizedRedirectUri);
+                } else {
+                    throw new Error("Invalid Token or Unauthorized");
+                }
+            })
+            .catch(err => {
+                statusEl.className = "text-danger";
+                statusEl.innerHTML = '<i class="fa-solid fa-circle me-1"></i>Token Expired / Connection Failed';
+            });
+        }
+
+        function initWebSocket(wsUrl) {
+            const statusEl = document.getElementById('connection-status');
             try {
-                // Public API Proxy to get real-time Yahoo Finance market data without token
-                const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${currentSymbol}?interval=5m&range=1d`);
-                const data = await res.json();
-                
-                const meta = data.chart.result[0].meta;
-                const quote = data.chart.result[0].indicators.quote[0];
-                const closePrices = quote.close.filter(p => p !== null);
-                const currentLTP = meta.regularMarketPrice || closePrices[closePrices.length - 1];
+                ws = new WebSocket(wsUrl);
 
-                priceEl.innerText = "₹" + currentLTP.toLocaleString('en-IN', {minimumFractionDigits: 2});
+                ws.onopen = () => {
+                    statusEl.className = "text-success";
+                    statusEl.innerHTML = '<i class="fa-solid fa-circle me-1"></i>Connected (Upstox Live Feed)';
 
-                // Calculate EMA & Indicators
-                evaluateEngine(closePrices, currentLTP);
+                    const subRequest = {
+                        "guid": "5filter_session",
+                        "method": "sub",
+                        "data": { "mode": "full", "instrumentKeys": [activeInstrument] }
+                    };
+                    ws.send(JSON.stringify(subRequest));
+                };
 
-            } catch (err) {
-                // Fallback Engine if Direct CORS blocked
-                priceEl.innerText = "Fetch Mode Active";
-                console.log("Fetching fallback market feed...");
+                ws.onmessage = (event) => {
+                    // Feed processing logic
+                    console.log("Upstox Live Stream Active");
+                };
+
+                ws.onerror = () => {
+                    statusEl.className = "text-danger";
+                    statusEl.innerHTML = '<i class="fa-solid fa-circle me-1"></i>Connection Error';
+                };
+
+                ws.onclose = () => {
+                    statusEl.className = "text-danger";
+                    statusEl.innerHTML = '<i class="fa-solid fa-circle me-1"></i>Disconnected';
+                };
+            } catch(e) {
+                console.error(e);
             }
         }
 
-        function evaluateEngine(prices, ltp) {
-            if (!prices || prices.length < 20) return;
-
-            // Simple EMA 20 & 50 logic
-            const ema20 = prices.slice(-20).reduce((a, b) => a + b, 0) / 20;
-            const ema50 = prices.length >= 50 ? prices.slice(-50).reduce((a, b) => a + b, 0) / 50 : ema20 * 0.998;
-
-            // Check Filter 1: Trend
-            const f1 = document.getElementById('f1-badge');
-            if (ltp > ema20 && ema20 > ema50) {
-                f1.className = "status-badge badge-pass";
-                f1.innerText = "BULLISH 🟢";
-            } else if (ltp < ema20 && ema20 < ema50) {
-                f1.className = "status-badge badge-fail";
-                f1.innerText = "BEARISH 🔴";
-            } else {
-                f1.className = "status-badge badge-wait";
-                f1.innerText = "SIDEWAYS ⚪";
+        window.onload = () => {
+            const savedToken = localStorage.getItem('upstox_access_token');
+            if(savedToken) {
+                document.getElementById('upstoxToken').value = savedToken;
             }
-        }
-
-        // Auto Refresh Every 10 Seconds
-        setInterval(fetchLiveData, 10000);
-        window.onload = fetchLiveData;
+        };
     </script>
 </body>
 </html>
+
 
 
 
