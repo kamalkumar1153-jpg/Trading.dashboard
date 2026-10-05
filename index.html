@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signal Engine - 15-Min 5-Filter Strategy</title>
+    <title>Signal Engine Terminal - 15-Min Pro</title>
     <style>
         :root {
             --bg-color: #0d1117;
@@ -11,6 +11,8 @@
             --text-color: #c9d1d9;
             --accent-green: #238636;
             --accent-red: #da3633;
+            --accent-blue: #58a6ff;
+            --accent-purple: #8957e5;
             --border-color: #30363d;
         }
         body {
@@ -23,12 +25,29 @@
         .container { max-width: 600px; margin: 0 auto; }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px; }
         .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
-        .price-display { font-size: 2.2rem; font-weight: bold; color: #58a6ff; text-align: center; margin: 8px 0; }
+        .price-display { font-size: 2.2rem; font-weight: bold; color: var(--accent-blue); text-align: center; margin: 8px 0; }
         
-        .signal-box { text-align: center; padding: 18px; border-radius: 8px; font-size: 1.5rem; font-weight: bold; text-transform: uppercase; margin-top: 10px; }
+        .signal-box { text-align: center; padding: 16px; border-radius: 8px; font-size: 1.5rem; font-weight: bold; text-transform: uppercase; margin-top: 10px; }
         .signal-neutral { background: #21262d; color: #8b949e; border: 1px solid var(--border-color); }
         .signal-buy { background: rgba(35, 134, 54, 0.2); color: #3fb950; border: 2px solid var(--accent-green); }
         .signal-sell { background: rgba(218, 54, 51, 0.2); color: #f85149; border: 2px solid var(--accent-red); }
+
+        /* Trade Levels Grid */
+        .trade-levels {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .level-box {
+            background: #0d1117;
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .level-title { font-size: 0.75rem; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; }
+        .level-val { font-size: 1.05rem; font-weight: bold; margin-top: 4px; }
 
         .status-badge { font-size: 0.85rem; padding: 4px 8px; border-radius: 4px; background: #21262d; display: inline-block; }
         .btn { background-color: #21262d; color: var(--text-color); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 6px; cursor: pointer; }
@@ -37,17 +56,17 @@
         .indicator-grid { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 14px; font-size: 0.85rem; }
         .ind-item { background: #0d1117; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; }
 
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 99; }
         .modal-content { background: var(--card-bg); padding: 20px; border-radius: 8px; width: 90%; max-width: 450px; border: 1px solid var(--border-color); }
-        input, textarea { width: 100%; padding: 10px; margin: 6px 0 14px 0; background: #0d1117; border: 1px solid var(--border-color); color: white; border-radius: 4px; box-sizing: border-box; }
+        input, textarea { width: 100%; padding: 8px; margin: 4px 0 10px 0; background: #0d1117; border: 1px solid var(--border-color); color: white; border-radius: 4px; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h2>Signal Engine (15-Min)</h2>
-        <button class="btn" onclick="openSettings()">⚙️ Settings</button>
+        <h2>Signal Engine Terminal</h2>
+        <button class="btn" onclick="openSettings()">⚙️ Settings & Alerts</button>
     </div>
 
     <!-- Live Price Display -->
@@ -57,14 +76,35 @@
             <span id="connectionStatus" class="status-badge" style="color: #ffa657;">Token Needed</span>
         </div>
         <div id="livePrice" class="price-display">₹0.00</div>
-        <div style="font-size: 0.8rem; text-align: center; color: #8b949e;">Angel One SmartAPI Live Stream (0ms Delay)</div>
+        <div style="font-size: 0.8rem; text-align: center; color: #8b949e;">Angel One SmartAPI Live Stream</div>
     </div>
 
-    <!-- 15-Min 5-Filter Confirmation Signal -->
+    <!-- Signal & Trade Plan (Spot + Option Points) -->
     <div class="card">
-        <div style="font-size: 0.9rem; color: #8b949e; text-align: center; font-weight: bold;">15-MIN 5-FILTER STRATEGY ENGINE</div>
-        <div id="signalCard" class="signal-box signal-neutral">BUILDING 15-MIN CANDLES...</div>
+        <div style="font-size: 0.9rem; color: #8b949e; text-align: center; font-weight: bold;">15-MIN 5-FILTER TRADE PLAN</div>
+        <div id="signalCard" class="signal-box signal-neutral">ANALYZING CANDLES...</div>
         
+        <!-- Live Trade Levels -->
+        <div class="trade-levels">
+            <div class="level-box">
+                <div class="level-title">Entry (Spot / Option Est)</div>
+                <div id="entryVal" class="level-val" style="color: var(--accent-blue);">--</div>
+            </div>
+            <div class="level-box">
+                <div class="level-title">Stop Loss (SL Points)</div>
+                <div id="slVal" class="level-val" style="color: #f85149;">--</div>
+            </div>
+            <div class="level-box">
+                <div class="level-title">Target 1 (1:1.5)</div>
+                <div id="tgt1Val" class="level-val" style="color: #3fb950;">--</div>
+            </div>
+            <div class="level-box">
+                <div class="level-title">Target 2 (1:2.0)</div>
+                <div id="tgt2Val" class="level-val" style="color: #238636;">--</div>
+            </div>
+        </div>
+
+        <!-- Indicator Check List -->
         <div class="indicator-grid">
             <div class="ind-item"><span>1. EMA Trend (20/50 Cross):</span> <span id="f1" style="font-weight:bold;">--</span></div>
             <div class="ind-item"><span>2. VWAP Alignment:</span> <span id="f2" style="font-weight:bold;">--</span></div>
@@ -79,15 +119,24 @@
 <!-- Settings Modal -->
 <div id="settingsModal" class="modal">
     <div class="modal-content">
-        <h3>Angel One API Settings</h3>
+        <h3>Settings & Auto Alerts</h3>
         
         <label>SmartAPI Key:</label>
-        <input type="text" id="apiKeyInput" value="ZSrBL2rK" placeholder="API Key">
+        <input type="text" id="apiKeyInput" value="ZSrBL2rK">
 
-        <label>JWT Access Token (Termux से पेस्ट करें):</label>
-        <textarea id="jwtTokenInput" rows="5" placeholder="Termux में जनरेट हुआ JWT Token यहाँ पेस्ट करें (eyJhbGci...)"></textarea>
+        <label>JWT Access Token (Termux):</label>
+        <textarea id="jwtTokenInput" rows="3" placeholder="JWT Token"></textarea>
 
-        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+        <hr style="border-color: var(--border-color); margin: 12px 0;">
+        <h4 style="margin: 4px 0 8px 0; color: var(--accent-purple);">Telegram Alert Settings (Optional)</h4>
+
+        <label>Telegram Bot Token:</label>
+        <input type="text" id="tgBotToken" placeholder="e.g. 123456789:ABCdef...">
+
+        <label>Telegram Chat ID:</label>
+        <input type="text" id="tgChatId" placeholder="e.g. -100123456789">
+
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
             <button class="btn" onclick="closeSettings()">Cancel</button>
             <button class="btn btn-primary" onclick="saveSettings()">Save & Connect</button>
         </div>
@@ -97,16 +146,21 @@
 <script>
     let config = {
         apiKey: localStorage.getItem('angel_api_key') || 'ZSrBL2rK',
-        jwtToken: localStorage.getItem('angel_jwt_token') || ''
+        jwtToken: localStorage.getItem('angel_jwt_token') || '',
+        tgBotToken: localStorage.getItem('tg_bot_token') || '',
+        tgChatId: localStorage.getItem('tg_chat_id') || ''
     };
 
-    let candle15Min = []; // Stores 15-minute completed candles
+    let candle15Min = [];
     let currentCandle = null;
     let vwapSumPV = 0;
     let vwapSumVol = 0;
+    let lastAlertSignal = ""; // Prevents duplicate spam alerts
 
     document.getElementById('apiKeyInput').value = config.apiKey;
     document.getElementById('jwtTokenInput').value = config.jwtToken;
+    document.getElementById('tgBotToken').value = config.tgBotToken;
+    document.getElementById('tgChatId').value = config.tgChatId;
 
     function openSettings() { document.getElementById('settingsModal').style.display = 'flex'; }
     function closeSettings() { document.getElementById('settingsModal').style.display = 'none'; }
@@ -114,9 +168,13 @@
     function saveSettings() {
         config.apiKey = document.getElementById('apiKeyInput').value.trim();
         config.jwtToken = document.getElementById('jwtTokenInput').value.trim();
+        config.tgBotToken = document.getElementById('tgBotToken').value.trim();
+        config.tgChatId = document.getElementById('tgChatId').value.trim();
 
         localStorage.setItem('angel_api_key', config.apiKey);
         localStorage.setItem('angel_jwt_token', config.jwtToken);
+        localStorage.setItem('tg_bot_token', config.tgBotToken);
+        localStorage.setItem('tg_chat_id', config.tgChatId);
 
         closeSettings();
         fetchNiftySpot();
@@ -159,10 +217,7 @@
                 document.getElementById('connectionStatus').innerText = "LIVE (Angel One)";
                 document.getElementById('connectionStatus').style.color = "#238636";
 
-                // Process 15-Minute Candle Data
                 processCandleData(currentPrice);
-
-                // Run 15-Min Strategy
                 evaluate15MinStrategy(currentPrice);
 
             } else {
@@ -179,10 +234,9 @@
     function processCandleData(price) {
         const now = new Date();
         const minute = now.getMinutes();
-        const candleInterval = Math.floor(minute / 15); // 0, 1, 2, 3
+        const candleInterval = Math.floor(minute / 15);
 
-        // VWAP Cumulative Calculation
-        vwapSumPV += price * 100; // Simulated Tick Volume 100
+        vwapSumPV += price * 100;
         vwapSumVol += 100;
 
         if (!currentCandle || currentCandle.interval !== candleInterval) {
@@ -238,7 +292,7 @@
         let buyScore = 0;
         let sellScore = 0;
 
-        // 1. EMA 20 & 50 Crossover Trend
+        // 1. EMA 20 & 50
         const ema20 = calculateEMA(20, closes);
         const ema50 = calculateEMA(50, closes);
         if (price > ema20 && ema20 >= ema50) {
@@ -251,7 +305,7 @@
             updateUI('f1', 'EMA NEUTRAL / MIXED', '#8b949e');
         }
 
-        // 2. Intraday VWAP Alignment
+        // 2. Intraday VWAP
         const currentVWAP = vwapSumVol > 0 ? (vwapSumPV / vwapSumVol) : price;
         if (price > currentVWAP) {
             buyScore++;
@@ -261,7 +315,7 @@
             updateUI('f2', 'BELOW VWAP (₹' + currentVWAP.toFixed(1) + ')', '#f85149');
         }
 
-        // 3. RSI (14) Zone Alignment (55-70 CE / 30-45 PE)
+        // 3. RSI (14)
         const rsiVal = calculateRSI(closes, 14);
         if (rsiVal >= 55 && rsiVal <= 75) {
             buyScore++;
@@ -270,16 +324,22 @@
             sellScore++;
             updateUI('f3', 'BEARISH ZONE (' + rsiVal.toFixed(1) + ')', '#f85149');
         } else {
-            updateUI('f3', 'NEUTRAL / NO-TRADE ZONE (' + rsiVal.toFixed(1) + ')', '#8b949e');
+            updateUI('f3', 'NEUTRAL RANGE (' + rsiVal.toFixed(1) + ')', '#8b949e');
         }
 
-        // 4. Volume + 15-Min Breakout Confirmation
+        // 4. Volume + Breakout
+        let lastCandleLow = price - 15;
+        let lastCandleHigh = price + 15;
+
         if (candle15Min.length > 1) {
-            const lastCompletedCandle = candle15Min[candle15Min.length - 1];
-            if (price > lastCompletedCandle.high) {
+            const lastCandle = candle15Min[candle15Min.length - 1];
+            lastCandleLow = lastCandle.low;
+            lastCandleHigh = lastCandle.high;
+
+            if (price > lastCandle.high) {
                 buyScore++;
                 updateUI('f4', '15-MIN HIGH BREAKOUT 🚀', '#3fb950');
-            } else if (price < lastCompletedCandle.low) {
+            } else if (price < lastCandle.low) {
                 sellScore++;
                 updateUI('f4', '15-MIN LOW BREAKDOWN 🔻', '#f85149');
             } else {
@@ -289,7 +349,7 @@
             updateUI('f4', 'BUILDING CANDLES...', '#8b949e');
         }
 
-        // 5. Option Chain (OI & PCR) Bias
+        // 5. Option Chain Bias
         if (price > currentVWAP && rsiVal > 50) {
             buyScore++;
             updateUI('f5', 'CALL UNWINDING / PCR > 1.1', '#3fb950');
@@ -300,24 +360,97 @@
             updateUI('f5', 'OI NEUTRAL', '#8b949e');
         }
 
-        // Final Signal Display (Threshold: 4/5 or 5/5 for High Precision)
         const signalCard = document.getElementById('signalCard');
+        
         if (buyScore >= 4) {
             signalCard.innerText = "BUY CALL (CE) 🚀";
             signalCard.className = "signal-box signal-buy";
-            document.getElementById('fScore').innerText = buyScore + "/5 HIGH CONFIDENCE BULLISH";
+            document.getElementById('fScore').innerText = buyScore + "/5 BULLISH CONFIRMED";
             document.getElementById('fScore').style.color = "#3fb950";
+
+            const entry = price;
+            const slSpot = Math.min(lastCandleLow, currentVWAP - 5);
+            const riskSpot = entry - slSpot;
+            const tgt1Spot = entry + (riskSpot * 1.5);
+            const tgt2Spot = entry + (riskSpot * 2.0);
+
+            // ATM Option Delta ~ 0.5 Estimation
+            const slOpt = (riskSpot * 0.5).toFixed(1);
+            const tgt1Opt = ((tgt1Spot - entry) * 0.5).toFixed(1);
+            const tgt2Opt = ((tgt2Spot - entry) * 0.5).toFixed(1);
+
+            updateTradeLevels('₹' + entry.toFixed(1), '- ' + slOpt + ' Pts SL', '+ ' + tgt1Opt + ' Pts', '+ ' + tgt2Opt + ' Pts');
+
+            // Trigger Alert
+            triggerAlert("BUY CALL (CE)", buyScore, entry, slOpt, tgt1Opt);
+
         } else if (sellScore >= 4) {
             signalCard.innerText = "BUY PUT (PE) 🔻";
             signalCard.className = "signal-box signal-sell";
-            document.getElementById('fScore').innerText = sellScore + "/5 HIGH CONFIDENCE BEARISH";
+            document.getElementById('fScore').innerText = sellScore + "/5 BEARISH CONFIRMED";
             document.getElementById('fScore').style.color = "#f85149";
+
+            const entry = price;
+            const slSpot = Math.max(lastCandleHigh, currentVWAP + 5);
+            const riskSpot = slSpot - entry;
+            const tgt1Spot = entry - (riskSpot * 1.5);
+            const tgt2Spot = entry - (riskSpot * 2.0);
+
+            const slOpt = (riskSpot * 0.5).toFixed(1);
+            const tgt1Opt = ((entry - tgt1Spot) * 0.5).toFixed(1);
+            const tgt2Opt = ((entry - tgt2Spot) * 0.5).toFixed(1);
+
+            updateTradeLevels('₹' + entry.toFixed(1), '- ' + slOpt + ' Pts SL', '+ ' + tgt1Opt + ' Pts', '+ ' + tgt2Opt + ' Pts');
+
+            // Trigger Alert
+            triggerAlert("BUY PUT (PE)", sellScore, entry, slOpt, tgt1Opt);
+
         } else {
             signalCard.innerText = "WAIT / NO TRADE ⏸️";
             signalCard.className = "signal-box signal-neutral";
             document.getElementById('fScore').innerText = Math.max(buyScore, sellScore) + "/5 (NEED >= 4)";
             document.getElementById('fScore').style.color = "#8b949e";
+
+            updateTradeLevels('--', '--', '--', '--');
+            lastAlertSignal = "";
         }
+    }
+
+    function triggerAlert(signalType, score, entry, slOpt, tgtOpt) {
+        if (lastAlertSignal === signalType) return; // Prevent spamming
+        lastAlertSignal = signalType;
+
+        // 1. Play Audio Beep
+        try {
+            let ctx = new (window.AudioContext || window.webkitAudioContext)();
+            let osc = ctx.createOscillator();
+            osc.connect(ctx.destination);
+            osc.frequency.value = signalType.includes("CALL") ? 880 : 440;
+            osc.start();
+            osc.stop(ctx.currentTime + 0.5);
+        } catch(e) {}
+
+        // 2. Telegram Bot Alert
+        if (config.tgBotToken && config.tgChatId) {
+            const message = `🚨 *15-MIN SIGNAL ALERT* 🚨\n\n*Signal:* ${signalType}\n*Score:* ${score}/5 Confirmed\n*Nifty Spot:* ₹${entry.toFixed(1)}\n\n*Option SL:* -${slOpt} Points\n*Option TGT 1:* +${tgtOpt} Points`;
+            
+            fetch(`https://api.telegram.org/bot${config.tgBotToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: config.tgChatId,
+                    text: message,
+                    parse_mode: 'Markdown'
+                })
+            }).catch(e => console.error("Telegram Error:", e));
+        }
+    }
+
+    function updateTradeLevels(entry, sl, tgt1, tgt2) {
+        document.getElementById('entryVal').innerText = entry;
+        document.getElementById('slVal').innerText = sl;
+        document.getElementById('tgt1Val').innerText = tgt1;
+        document.getElementById('tgt2Val').innerText = tgt2;
     }
 
     function updateUI(id, text, color) {
@@ -337,6 +470,7 @@
 
 </body>
 </html>
+
 
 
 
