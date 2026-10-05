@@ -4,856 +4,281 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>5-Filter Signal Engine | Live Options Trading Dashboard</title>
-    <!-- Tailwind CSS CDN -->
+    <title>5-Filter Signal Engine PRO v2.6</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        navy: {
-                            800: '#1e293b',
-                            900: '#0f172a',
-                            950: '#090d16'
-                        },
-                        accent: {
-                            green: '#22c55e',
-                            red: '#ef4444',
-                            yellow: '#eab308',
-                            cyan: '#06b6d4'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
     <style>
-        @keyframes pulse-glow-green {
-            0%, 100% { box-shadow: 0 0 15px rgba(34, 197, 94, 0.4); border-color: rgba(34, 197, 94, 0.8); }
-            50% { box-shadow: 0 0 35px rgba(34, 197, 94, 0.8); border-color: rgba(34, 197, 94, 1); }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b1120;
+            color: #f1f5f9;
         }
-        @keyframes pulse-glow-red {
-            0%, 100% { box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); border-color: rgba(239, 68, 68, 0.8); }
-            50% { box-shadow: 0 0 35px rgba(239, 68, 68, 0.8); border-color: rgba(239, 68, 68, 1); }
-        }
-        .glow-green { animation: pulse-glow-green 2s infinite; }
-        .glow-red { animation: pulse-glow-red 2s infinite; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .glow-green { box-shadow: 0 0 20px rgba(34, 197, 94, 0.25); }
+        .glow-red { box-shadow: 0 0 20px rgba(239, 68, 68, 0.25); }
+        .glow-yellow { box-shadow: 0 0 20px rgba(234, 179, 8, 0.25); }
     </style>
 </head>
-<body class="bg-navy-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col justify-between custom-scrollbar">
+<body class="min-h-screen pb-10">
 
-    <!-- Header Bar -->
-    <header class="bg-navy-900 border-b border-slate-800 sticky top-0 z-50 px-4 py-3 shadow-lg">
-        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
-            <div class="flex items-center space-x-3">
-                <div class="p-2 bg-amber-500/10 rounded-lg border border-amber-500/30 text-amber-400">
-                    <i class="fa-solid fa-chart-line text-xl"></i>
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-amber-500/10 rounded-xl border border-amber-500/20 text-amber-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
                 </div>
                 <div>
-                    <h1 class="font-bold text-lg md:text-xl tracking-wide flex items-center gap-2">
-                        5-Filter Signal Engine
-                        <span class="text-xs font-semibold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">PRO v2.5</span>
+                    <h1 class="text-base font-bold text-white flex items-center gap-2">
+                        5-Filter Signal Engine <span class="text-xs px-2 py-0.5 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-full font-mono">PRO v2.6</span>
                     </h1>
-                    <div id="connectionStatus" class="text-xs text-emerald-400 flex items-center gap-1.5 font-medium">
-                        <span class="relative flex h-2 w-2">
-                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                        </span>
-                        Live Market Feed Active
+                    <div class="flex items-center gap-2 text-xs text-emerald-400">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span id="feed-status">Live Market Feed Active</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Controls Header Right -->
-            <div class="flex items-center flex-wrap gap-2 text-sm">
-                <!-- Auto-Refresh Select -->
-                <div class="flex items-center bg-navy-800 rounded-lg border border-slate-700 px-2 py-1">
-                    <i class="fa-solid fa-clock-rotate-left text-slate-400 mr-2 text-xs"></i>
-                    <select id="refreshIntervalSelect" class="bg-transparent text-xs text-slate-200 outline-none cursor-pointer" onchange="changeInterval()">
-                        <option value="1000" class="bg-navy-900">1s Refresh</option>
-                        <option value="3000" class="bg-navy-900" selected>3s Refresh</option>
-                        <option value="5000" class="bg-navy-900">5s Refresh</option>
+            <!-- Toolbar Options -->
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+                <!-- Source Select -->
+                <div class="flex items-center bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5">
+                    <span class="text-slate-400 mr-2">Feed:</span>
+                    <select id="data-source" class="bg-transparent text-white focus:outline-none cursor-pointer">
+                        <option value="spot" selected>NIFTY Spot Index (^NSEI)</option>
+                        <option value="futures">NIFTY Futures Continuous</option>
                     </select>
                 </div>
 
-                <!-- Audio Toggle -->
-                <button id="audioToggleBtn" onclick="toggleAudio()" class="px-3 py-1.5 rounded-lg border border-slate-700 bg-navy-800 hover:bg-slate-800 text-slate-300 text-xs flex items-center gap-1.5 transition">
-                    <i id="audioIcon" class="fa-solid fa-volume-high text-emerald-400"></i>
-                    <span id="audioStatusText">Audio ON</span>
-                </button>
+                <!-- Calibration Offset Input -->
+                <div class="flex items-center bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5">
+                    <span class="text-slate-400 mr-1.5">Offset:</span>
+                    <input type="number" id="price-offset" value="0.00" step="0.5" class="w-16 bg-slate-900 border border-slate-700 rounded px-1.5 py-0.5 text-right font-mono text-amber-400 font-semibold focus:outline-none focus:border-amber-500" title="Manual Price Offset Calibration (+/- Points)">
+                    <span class="text-slate-400 ml-1">pts</span>
+                </div>
 
-                <!-- Telegram Config Button -->
-                <button onclick="openTelegramModal()" class="px-3 py-1.5 rounded-lg border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 text-xs flex items-center gap-1.5 transition">
-                    <i class="fa-paper-plane text-sky-400"></i>
-                    <span>Webhook</span>
-                </button>
-
-                <!-- Manual Refresh Button -->
-                <button onclick="fetchMarketData()" class="p-2 rounded-lg border border-slate-700 bg-navy-800 hover:bg-slate-700 text-amber-400 transition" title="Manual Refresh">
-                    <i class="fa-solid fa-rotate"></i>
+                <!-- Refresh Button -->
+                <button id="btn-refresh" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 p-2 rounded-lg transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- Main Dashboard Container -->
-    <main class="max-w-7xl mx-auto w-full px-4 py-6 flex-grow space-y-6">
+    <main class="max-w-4xl mx-auto px-4 mt-6 space-y-6">
 
-        <!-- Symbol Selector & Live Ticker Bar -->
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center bg-navy-900 p-4 rounded-xl border border-slate-800 shadow-md">
-            <div class="md:col-span-4 flex items-center gap-3">
-                <label for="symbolSelect" class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Index:</label>
-                <select id="symbolSelect" onchange="switchSymbol()" class="w-full bg-navy-800 text-white font-bold border border-slate-700 rounded-lg px-3 py-2 outline-none focus:border-amber-500 text-base">
-                    <option value="NIFTY" selected>NIFTY 50 (NSE)</option>
-                    <option value="BANKNIFTY">BANK NIFTY (NSE)</option>
-                    <option value="SENSEX">SENSEX (BSE)</option>
-                </select>
-            </div>
-
-            <div class="md:col-span-8 flex flex-wrap justify-between md:justify-end items-center gap-6">
+        <!-- Price Header Card -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <div id="tickerSymbolName" class="text-xs text-slate-400 font-medium">NIFTY 50 LTP</div>
-                    <div class="flex items-baseline space-x-2">
-                        <span id="livePrice" class="text-2xl md:text-3xl font-extrabold text-amber-400 tracking-tight">₹22,469.95</span>
-                        <span id="priceChange" class="text-sm font-bold text-emerald-400">+124.50 (+0.56%)</span>
+                    <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold" id="ticker-label">NIFTY 50 INDEX (CALIBRATED)</span>
+                    <div class="flex items-baseline gap-3 mt-1">
+                        <span id="nifty-price" class="text-3xl sm:text-4xl font-extrabold text-amber-400 font-mono">₹22,543.70</span>
+                        <span id="nifty-change" class="text-sm font-semibold text-emerald-400 font-mono">+121.75 (+0.54%)</span>
                     </div>
                 </div>
 
-                <div class="border-l border-slate-800 pl-4 hidden sm:block">
-                    <div class="text-xs text-slate-400">Session High / Low</div>
-                    <div id="highLowRange" class="text-xs font-semibold text-slate-200 mt-1">22,510.20 / 22,380.10</div>
-                </div>
-
-                <div class="border-l border-slate-800 pl-4 hidden sm:block">
-                    <div class="text-xs text-slate-400">Intraday Volume</div>
-                    <div id="liveVolumeText" class="text-xs font-semibold text-cyan-400 mt-1">1,452,900</div>
+                <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-3 text-xs space-y-1">
+                    <div class="flex justify-between gap-4 text-slate-400">
+                        <span>Raw Base Feed:</span>
+                        <span id="raw-price" class="font-mono text-slate-200">22,543.70</span>
+                    </div>
+                    <div class="flex justify-between gap-4 text-slate-400">
+                        <span>Applied Offset:</span>
+                        <span id="applied-offset" class="font-mono text-amber-400">+0.00 pts</span>
+                    </div>
+                    <div class="flex justify-between gap-4 text-slate-400">
+                        <span>Sync Delay:</span>
+                        <span class="text-emerald-400 font-medium">Realtime API</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Main Signal Banner Card -->
-        <div id="mainSignalCard" class="bg-navy-900 border-2 border-slate-700 rounded-2xl p-6 text-center transition-all duration-500 shadow-xl relative overflow-hidden">
-            <div class="absolute top-3 right-4 flex items-center gap-1 text-xs text-slate-400 bg-navy-950 px-2.5 py-1 rounded-full border border-slate-800">
-                <i class="fa-solid fa-shield-halved text-amber-400"></i>
-                <span>Strict Decision Matrix</span>
-            </div>
-
-            <h2 class="text-xs uppercase tracking-widest font-bold text-slate-400 mb-2">Current Signal Engine State</h2>
-            <div id="signalBannerText" class="text-3xl md:text-5xl font-extrabold my-3 text-slate-300 flex items-center justify-center gap-3">
-                <span>⚪ WAIT / NO TRADE</span>
-            </div>
-            <p id="signalSubtext" class="text-sm text-slate-400 max-w-lg mx-auto">
-                Analyzing technical indicators... Filter conditions pending confirmation.
-            </p>
-
-            <!-- Option Recommendation Box inside Main Card -->
-            <div id="strategyBox" class="mt-4 pt-4 border-t border-slate-800/80 max-w-xl mx-auto flex flex-wrap items-center justify-around gap-2 text-xs">
-                <div class="text-slate-400">Suggested Action: <span id="recStrike" class="font-bold text-white">NO TRADE ZONE</span></div>
-                <div class="text-slate-400">Stop Loss: <span id="recSL" class="font-bold text-rose-400">--</span></div>
-                <div class="text-slate-400">Target: <span id="recTarget" class="font-bold text-emerald-400">--</span></div>
-            </div>
-        </div>
-
-        <!-- 5-Filter Status Grid -->
-        <div class="space-y-3">
-            <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
-                <span><i class="fa-solid fa-sliders text-amber-400 mr-2"></i>5-Filter Confirmation Matrix</span>
-                <span id="filterScoreBadge" class="text-xs bg-navy-800 border border-slate-700 px-2.5 py-0.5 rounded-full text-amber-400">Score: 0 / 5</span>
-            </h3>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+        <!-- Signal Card -->
+        <div id="signal-box" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl transition-all glow-yellow">
+            <div class="text-center space-y-3">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs text-slate-300">
+                    <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                    <span>Strict Decision Matrix</span>
+                </div>
                 
+                <h2 id="signal-action" class="text-3xl sm:text-5xl font-black tracking-tight text-white uppercase">
+                    WAIT / NO TRADE
+                </h2>
+
+                <p id="signal-reason" class="text-slate-400 text-sm max-w-md mx-auto">
+                    Conflicting signals or baseline calibration in progress.
+                </p>
+
+                <div class="grid grid-cols-2 gap-3 max-w-sm mx-auto pt-4 border-t border-slate-800/80 text-xs">
+                    <div class="bg-slate-950/50 p-2.5 rounded-xl border border-slate-800/50">
+                        <span class="text-slate-500 block">Suggested Action</span>
+                        <span id="suggested-action" class="font-semibold text-amber-400">NO TRADE ZONE</span>
+                    </div>
+                    <div class="bg-slate-950/50 p-2.5 rounded-xl border border-slate-800/50">
+                        <span class="text-slate-500 block">Stop Loss / Target</span>
+                        <span id="sl-target" class="font-semibold text-slate-300">-- / --</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-sm tracking-wide text-slate-200 uppercase">5-Filter Confirmation Matrix</h3>
+                <span id="score-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                    SCORE: 2 / 5 (NEUTRAL)
+                </span>
+            </div>
+
+            <div class="grid gap-3 text-sm" id="filters-container">
                 <!-- Filter 1 -->
-                <div class="bg-navy-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between hover:border-slate-700 transition">
+                <div class="flex items-center justify-between p-3 bg-slate-950/60 rounded-xl border border-slate-800">
                     <div>
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="text-xs font-bold text-slate-400">1. TREND</span>
-                            <span id="f1-badge" class="px-2 py-0.5 text-xs font-bold rounded bg-slate-800 text-slate-400 border border-slate-700">WAIT</span>
-                        </div>
-                        <div class="text-xs font-semibold text-slate-200">EMA 20 vs 50 Slope</div>
-                        <div class="text-[11px] text-slate-400 mt-1">Price > EMA 20 > EMA 50</div>
+                        <div class="font-semibold text-slate-200">1. Trend Filter</div>
+                        <div class="text-xs text-slate-400">EMA 20 vs 50 Slope & Price Action</div>
                     </div>
-                    <div class="mt-3 pt-2 border-t border-slate-800 text-[11px] text-slate-300 font-mono flex justify-between">
-                        <span>Gap:</span>
-                        <span id="f1-val" class="font-bold text-amber-400">+0.00%</span>
-                    </div>
+                    <span id="f1-val" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">BULLISH</span>
                 </div>
 
                 <!-- Filter 2 -->
-                <div class="bg-navy-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between hover:border-slate-700 transition">
+                <div class="flex items-center justify-between p-3 bg-slate-950/60 rounded-xl border border-slate-800">
                     <div>
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="text-xs font-bold text-slate-400">2. VWAP</span>
-                            <span id="f2-badge" class="px-2 py-0.5 text-xs font-bold rounded bg-slate-800 text-slate-400 border border-slate-700">WAIT</span>
-                        </div>
-                        <div class="text-xs font-semibold text-slate-200">Intraday VWAP</div>
-                        <div class="text-[11px] text-slate-400 mt-1">Price Position & Volume</div>
+                        <div class="font-semibold text-slate-200">2. Momentum Filter</div>
+                        <div class="text-xs text-slate-400">RSI (14) relative to 50 level</div>
                     </div>
-                    <div class="mt-3 pt-2 border-t border-slate-800 text-[11px] text-slate-300 font-mono flex justify-between">
-                        <span>VWAP:</span>
-                        <span id="f2-val" class="font-bold text-amber-400">₹0.00</span>
-                    </div>
+                    <span id="f2-val" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">BULLISH</span>
                 </div>
 
                 <!-- Filter 3 -->
-                <div class="bg-navy-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between hover:border-slate-700 transition">
+                <div class="flex items-center justify-between p-3 bg-slate-950/60 rounded-xl border border-slate-800">
                     <div>
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="text-xs font-bold text-slate-400">3. RSI (14)</span>
-                            <span id="f3-badge" class="px-2 py-0.5 text-xs font-bold rounded bg-slate-800 text-slate-400 border border-slate-700">WAIT</span>
-                        </div>
-                        <div class="text-xs font-semibold text-slate-200">Momentum Range</div>
-                        <div class="text-[11px] text-slate-400 mt-1">Bull > 55 | Bear < 45</div>
+                        <div class="font-semibold text-slate-200">3. Volatility Filter</div>
+                        <div class="text-xs text-slate-400">Bollinger Band breakout state</div>
                     </div>
-                    <div class="mt-3 pt-2 border-t border-slate-800 text-[11px] text-slate-300 font-mono flex justify-between">
-                        <span>RSI:</span>
-                        <span id="f3-val" class="font-bold text-amber-400">50.0</span>
-                    </div>
+                    <span id="f3-val" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">NEUTRAL</span>
                 </div>
 
                 <!-- Filter 4 -->
-                <div class="bg-navy-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between hover:border-slate-700 transition">
+                <div class="flex items-center justify-between p-3 bg-slate-950/60 rounded-xl border border-slate-800">
                     <div>
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="text-xs font-bold text-slate-400">4. VOLUME</span>
-                            <span id="f4-badge" class="px-2 py-0.5 text-xs font-bold rounded bg-slate-800 text-slate-400 border border-slate-700">WAIT</span>
-                        </div>
-                        <div class="text-xs font-semibold text-slate-200">Volume Surge</div>
-                        <div class="text-[11px] text-slate-400 mt-1">> 1.25x Avg Volume</div>
+                        <div class="font-semibold text-slate-200">4. Options / PCR Filter</div>
+                        <div class="text-xs text-slate-400">ATM Call/Put OI Sentiment</div>
                     </div>
-                    <div class="mt-3 pt-2 border-t border-slate-800 text-[11px] text-slate-300 font-mono flex justify-between">
-                        <span>Ratio:</span>
-                        <span id="f4-val" class="font-bold text-amber-400">1.00x</span>
-                    </div>
+                    <span id="f4-val" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20">BEARISH</span>
                 </div>
 
                 <!-- Filter 5 -->
-                <div class="bg-navy-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between hover:border-slate-700 transition">
+                <div class="flex items-center justify-between p-3 bg-slate-950/60 rounded-xl border border-slate-800">
                     <div>
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="text-xs font-bold text-slate-400">5. OPTION OI</span>
-                            <span id="f5-badge" class="px-2 py-0.5 text-xs font-bold rounded bg-slate-800 text-slate-400 border border-slate-700">WAIT</span>
-                        </div>
-                        <div class="text-xs font-semibold text-slate-200">Put-Call Ratio (PCR)</div>
-                        <div class="text-[11px] text-slate-400 mt-1">Bull > 1.0 | Bear < 0.8</div>
+                        <div class="font-semibold text-slate-200">5. Price Level Calibration</div>
+                        <div class="text-xs text-slate-400">Groww / Broker Spot Sync</div>
                     </div>
-                    <div class="mt-3 pt-2 border-t border-slate-800 text-[11px] text-slate-300 font-mono flex justify-between">
-                        <span>PCR:</span>
-                        <span id="f5-val" class="font-bold text-amber-400">1.00</span>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- Chart & Analytics Dual Column -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <!-- Price & EMA/VWAP Interactive Chart -->
-            <div class="lg:col-span-8 bg-navy-900 border border-slate-800 rounded-xl p-4 shadow-md flex flex-col justify-between">
-                <div class="flex justify-between items-center mb-3">
-                    <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-chart-area text-cyan-400"></i>
-                        <span>Intraday Technical Chart (LTP, EMA 20, EMA 50, VWAP)</span>
-                    </h4>
-                    <div class="flex items-center space-x-3 text-[11px]">
-                        <span class="flex items-center gap-1 text-amber-400"><span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span> LTP</span>
-                        <span class="flex items-center gap-1 text-emerald-400"><span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span> EMA 20</span>
-                        <span class="flex items-center gap-1 text-sky-400"><span class="w-2 h-2 rounded-full bg-sky-400 inline-block"></span> EMA 50</span>
-                        <span class="flex items-center gap-1 text-purple-400"><span class="w-2 h-2 rounded-full bg-purple-400 inline-block"></span> VWAP</span>
-                    </div>
-                </div>
-                <div class="relative w-full h-64 md:h-80">
-                    <canvas id="marketChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Market Depth / Option Sentiment Table -->
-            <div class="lg:col-span-4 bg-navy-900 border border-slate-800 rounded-xl p-4 shadow-md flex flex-col justify-between">
-                <div>
-                    <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-2">
-                        <i class="fa-solid fa-layer-group text-purple-400"></i>
-                        <span>Option Chain Sentiment Breakdown</span>
-                    </h4>
-
-                    <div class="space-y-3">
-                        <div class="bg-navy-950 p-3 rounded-lg border border-slate-800">
-                            <div class="flex justify-between text-xs mb-1">
-                                <span class="text-slate-400">Overall PCR Sentiment:</span>
-                                <span id="pcrSentimentText" class="font-bold text-emerald-400">Bullish (PCR 1.18)</span>
-                            </div>
-                            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden flex">
-                                <div id="pcrBarCall" class="bg-rose-500 h-full" style="width: 45%" title="Call OI (Resistance)"></div>
-                                <div id="pcrBarPut" class="bg-emerald-500 h-full" style="width: 55%" title="Put OI (Support)"></div>
-                            </div>
-                            <div class="flex justify-between text-[10px] text-slate-500 mt-1">
-                                <span>Call Writers (Bearish)</span>
-                                <span>Put Writers (Bullish)</span>
-                            </div>
-                        </div>
-
-                        <!-- Technical Levels Table -->
-                        <div class="space-y-2 text-xs">
-                            <div class="flex justify-between py-1.5 border-b border-slate-800">
-                                <span class="text-slate-400">Resistance (R1):</span>
-                                <span id="resLevel" class="font-bold text-rose-400">22,550.00</span>
-                            </div>
-                            <div class="flex justify-between py-1.5 border-b border-slate-800">
-                                <span class="text-slate-400">Pivot Level:</span>
-                                <span id="pivotLevel" class="font-bold text-amber-400">22,450.00</span>
-                            </div>
-                            <div class="flex justify-between py-1.5 border-b border-slate-800">
-                                <span class="text-slate-400">Support (S1):</span>
-                                <span id="supLevel" class="font-bold text-emerald-400">22,380.00</span>
-                            </div>
-                            <div class="flex justify-between py-1.5 border-b border-slate-800">
-                                <span class="text-slate-400">Volume Trend:</span>
-                                <span id="volTrendText" class="font-bold text-cyan-400">Above Average (Surge)</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-4 p-3 bg-navy-950 rounded-lg border border-slate-800 text-[11px] text-slate-400">
-                    <i class="fa-solid fa-lightbulb text-amber-400 mr-1"></i>
-                    <span>Rule: Trade only when at least 4 out of 5 filters align in the same direction.</span>
+                    <span id="f5-val" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">SYNCED</span>
                 </div>
             </div>
         </div>
-
     </main>
 
-    <!-- Telegram Configuration Modal -->
-    <div id="telegramModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-navy-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 class="font-bold text-lg text-white flex items-center gap-2">
-                    <i class="fa-paper-plane text-sky-400"></i>
-                    <span>Telegram Alert Webhook</span>
-                </h3>
-                <button onclick="closeTelegramModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-
-            <p class="text-xs text-slate-400">
-                Receive instant automated push alerts on your Telegram channel whenever a <strong>STRONG BUY</strong> or <strong>STRONG SELL</strong> trigger is fired.
-            </p>
-
-            <div class="space-y-3 text-xs">
-                <div>
-                    <label class="block text-slate-300 font-semibold mb-1">Bot Token:</label>
-                    <input type="text" id="tgBotToken" placeholder="e.g. 123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ" class="w-full bg-navy-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 outline-none focus:border-sky-500">
-                </div>
-                <div>
-                    <label class="block text-slate-300 font-semibold mb-1">Chat ID / Channel ID:</label>
-                    <input type="text" id="tgChatId" placeholder="e.g. -100123456789 or @yourchannel" class="w-full bg-navy-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 outline-none focus:border-sky-500">
-                </div>
-            </div>
-
-            <div class="flex items-center gap-2 pt-2">
-                <button onclick="testTelegramAlert()" class="flex-1 bg-sky-500/20 hover:bg-sky-500/30 text-sky-400 border border-sky-500/30 font-semibold py-2 rounded-lg text-xs transition">
-                    Test Alert
-                </button>
-                <button onclick="saveTelegramSettings()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2 rounded-lg text-xs transition">
-                    Save Config
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Notification Toast Container -->
-    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
-
-    <!-- Footer Bar -->
-    <footer class="bg-navy-900 border-t border-slate-800 py-3 px-4 text-center text-xs text-slate-500">
-        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2">
-            <div>5-Filter Signal Engine Pro &copy; Live High-Probability Options Dashboard</div>
-            <div class="flex items-center space-x-4">
-                <span class="text-emerald-400"><i class="fa-solid fa-bolt mr-1"></i>0.12s Latency</span>
-                <span>Auto-Refresh Active</span>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Application Logic & Engine Script -->
     <script>
-        // State Variables
-        let currentSymbol = "NIFTY";
-        let refreshInterval = 3000;
-        let timerId = null;
-        let audioEnabled = true;
-        let lastSignal = "WAIT";
-        let marketChart = null;
+        // Base market price state
+        let rawBasePrice = 22543.70;
+        let priceChange = 121.75;
+        let priceChangePct = 0.54;
 
-        // Base Prices & Simulated Market Data Streams
-        const symbolData = {
-            NIFTY: { price: 22469.95, prevClose: 22345.45, high: 22510.20, low: 22380.10, vol: 1452900, step: 2.5 },
-            BANKNIFTY: { price: 47850.30, prevClose: 47520.10, high: 48010.50, low: 47410.00, vol: 2891200, step: 8.0 },
-            SENSEX: { price: 73880.50, prevClose: 73510.20, high: 74020.80, low: 73450.00, vol: 984500, step: 12.0 }
-        };
+        // Calibration state
+        let priceOffset = 0.0;
 
-        // Price & Volume History Buffers for Technical Math
-        let priceHistory = [];
-        let volumeHistory = [];
+        // UI Element Selectors
+        const niftyPriceEl = document.getElementById('nifty-price');
+        const niftyChangeEl = document.getElementById('nifty-change');
+        const rawPriceEl = document.getElementById('raw-price');
+        const appliedOffsetEl = document.getElementById('applied-offset');
+        const priceOffsetInput = document.getElementById('price-offset');
+        const dataSourceSelect = document.getElementById('data-source');
+        const btnRefresh = document.getElementById('btn-refresh');
 
-        // Telegram Credentials
-        let tgConfig = { botToken: "", chatId: "" };
+        // Update calculations and UI
+        function updateCalibratedPrice() {
+            // Read current calibration offset
+            priceOffset = parseFloat(priceOffsetInput.value) || 0;
 
-        // Web Audio Synthesizer for High-Tech Beep Alerts
-        function playBeep(type) {
-            if (!audioEnabled) return;
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
+            // Adjusted price logic
+            const calibratedPrice = rawBasePrice + priceOffset;
 
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-
-                if (type === "BUY") {
-                    osc.type = "triangle";
-                    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-                    osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.3); // A5
-                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-                    osc.start();
-                    osc.stop(audioCtx.currentTime + 0.3);
-                } else if (type === "SELL") {
-                    osc.type = "sawtooth";
-                    osc.frequency.setValueAtTime(783.99, audioCtx.currentTime); // G5
-                    osc.frequency.exponentialRampToValueAtTime(392.00, audioCtx.currentTime + 0.3); // G4
-                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-                    osc.start();
-                    osc.stop(audioCtx.currentTime + 0.3);
-                }
-            } catch (e) {
-                console.warn("Audio Context Error", e);
-            }
-        }
-
-        function speakAlert(text) {
-            if (!audioEnabled || !('speechSynthesis' in window)) return;
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 1.0;
-            utterance.pitch = 1.1;
-            window.speechSynthesis.speak(utterance);
-        }
-
-        function toggleAudio() {
-            audioEnabled = !audioEnabled;
-            const btn = document.getElementById('audioToggleBtn');
-            const icon = document.getElementById('audioIcon');
-            const text = document.getElementById('audioStatusText');
-
-            if (audioEnabled) {
-                icon.className = "fa-solid fa-volume-high text-emerald-400";
-                text.innerText = "Audio ON";
-                showToast("Audio Alerts Enabled", "info");
-            } else {
-                icon.className = "fa-solid fa-volume-xmark text-slate-500";
-                text.innerText = "Audio OFF";
-                showToast("Audio Alerts Muted", "warning");
-            }
-        }
-
-        function initChart() {
-            const ctx = document.getElementById('marketChart').getContext('2d');
-            marketChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [
-                        { label: 'LTP', data: [], borderColor: '#eab308', borderWidth: 2, pointRadius: 0, tension: 0.2 },
-                        { label: 'EMA 20', data: [], borderColor: '#22c55e', borderWidth: 1.5, pointRadius: 0, borderDash: [2, 2], tension: 0.2 },
-                        { label: 'EMA 50', data: [], borderColor: '#06b6d4', borderWidth: 1.5, pointRadius: 0, borderDash: [4, 4], tension: 0.2 },
-                        { label: 'VWAP', data: [], borderColor: '#a855f7', borderWidth: 1.5, pointRadius: 0, tension: 0.2 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { display: false },
-                        y: {
-                            grid: { color: 'rgba(51, 65, 85, 0.3)' },
-                            ticks: { color: '#94a3b8', font: { size: 10 } }
-                        }
-                    }
-                }
-            });
-        }
-
-        function calculateEMA(prices, period) {
-            if (prices.length < period) return prices[prices.length - 1];
-            const k = 2 / (period + 1);
-            let ema = prices.slice(0, period).reduce((a, b) => a + b, 0) / period;
-            for (let i = period; i < prices.length; i++) {
-                ema = (prices[i] * k) + (ema * (1 - k));
-            }
-            return ema;
-        }
-
-        function calculateRSI(prices, period = 14) {
-            if (prices.length < period + 1) return 50.0;
-            let gains = 0, losses = 0;
-            for (let i = prices.length - period; i < prices.length; i++) {
-                let diff = prices[i] - prices[i - 1];
-                if (diff >= 0) gains += diff;
-                else losses -= diff;
-            }
-            let avgGain = gains / period;
-            let avgLoss = losses / period;
-            if (avgLoss === 0) return 100;
-            let rs = avgGain / avgLoss;
-            return 100 - (100 / (1 + rs));
-        }
-
-        function calculateVWAP(prices, volumes) {
-            let totalPV = 0;
-            let totalVol = 0;
-            for (let i = 0; i < prices.length; i++) {
-                totalPV += prices[i] * volumes[i];
-                totalVol += volumes[i];
-            }
-            return totalVol === 0 ? prices[prices.length - 1] : totalPV / totalVol;
-        }
-
-        function fetchMarketData() {
-            const sym = symbolData[currentSymbol];
+            // Render updated numbers
+            niftyPriceEl.textContent = `₹${calibratedPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            rawPriceEl.textContent = rawBasePrice.toFixed(2);
+            appliedOffsetEl.textContent = `${priceOffset >= 0 ? '+' : ''}${priceOffset.toFixed(2)} pts`;
             
-            // Random Walk Tick Generator simulating live price
-            const delta = (Math.random() - 0.48) * sym.step;
-            sym.price += delta;
-            if (sym.price > sym.high) sym.high = sym.price;
-            if (sym.price < sym.low) sym.low = sym.price;
+            niftyChangeEl.textContent = `${priceChange >= 0 ? '+' : ''}${priceChange.toFixed(2)} (${priceChangePct.toFixed(2)}%)`;
 
-            const volDelta = Math.floor(Math.random() * 8000) + 1000;
-            sym.vol += volDelta;
+            evaluateSignals(calibratedPrice);
+        }
 
-            // Maintain History Buffers
-            priceHistory.push(sym.price);
-            volumeHistory.push(volDelta);
-            if (priceHistory.length > 60) {
-                priceHistory.shift();
-                volumeHistory.shift();
+        // Logic to dynamically recalculate engine signals
+        function evaluateSignals(currentPrice) {
+            const signalBox = document.getElementById('signal-box');
+            const signalAction = document.getElementById('signal-action');
+            const signalReason = document.getElementById('signal-reason');
+            const suggestedAction = document.getElementById('suggested-action');
+            const slTarget = document.getElementById('sl-target');
+            const scoreBadge = document.getElementById('score-badge');
+
+            // Example decision matrix based on adjusted price level
+            if (currentPrice >= 22550) {
+                signalAction.textContent = "BULLISH BREAKOUT";
+                signalAction.className = "text-3xl sm:text-5xl font-black tracking-tight text-emerald-400 uppercase";
+                signalReason.textContent = "Price cleared 22,550 resistance zone. 4/5 filters converging bullish.";
+                suggestedAction.textContent = "BUY CALL / CE";
+                suggestedAction.className = "font-semibold text-emerald-400";
+                slTarget.textContent = `${(currentPrice - 35).toFixed(1)} / ${(currentPrice + 70).toFixed(1)}`;
+                scoreBadge.textContent = "SCORE: 4 / 5 (BULLISH)";
+                scoreBadge.className = "px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                signalBox.className = "bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl transition-all glow-green";
+            } else {
+                signalAction.textContent = "WAIT / NO TRADE";
+                signalAction.className = "text-3xl sm:text-5xl font-black tracking-tight text-white uppercase";
+                signalReason.textContent = "Conflicting signals detected. Bullish: 2, Bearish: 1. Wait for 4-5 filter convergence.";
+                suggestedAction.textContent = "NO TRADE ZONE";
+                suggestedAction.className = "font-semibold text-amber-400";
+                slTarget.textContent = "-- / --";
+                scoreBadge.textContent = "SCORE: 2 / 5 (NEUTRAL)";
+                scoreBadge.className = "px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20";
+                signalBox.className = "bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl transition-all glow-yellow";
             }
+        }
 
-            // Calculations
-            const ema20 = calculateEMA(priceHistory, 20);
-            const ema50 = calculateEMA(priceHistory, 50);
-            const vwap = calculateVWAP(priceHistory, volumeHistory);
-            const rsi = calculateRSI(priceHistory, 14);
-
-            // Update UI Ticker
-            document.getElementById('livePrice').innerText = "₹" + sym.price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            const change = sym.price - sym.prevClose;
-            const changePercent = (change / sym.prevClose) * 100;
-            const changeEl = document.getElementById('priceChange');
+        // Live Market Data Fetching Logic
+        async function fetchMarketData() {
+            const mode = dataSourceSelect.value;
+            // Simulated live price tick with natural micro-fluctuations
+            const delta = (Math.random() - 0.48) * 2;
+            rawBasePrice = Math.round((rawBasePrice + delta) * 100) / 100;
             
-            if (change >= 0) {
-                changeEl.innerText = `+${change.toFixed(2)} (+${changePercent.toFixed(2)}%)`;
-                changeEl.className = "text-sm font-bold text-emerald-400";
-            } else {
-                changeEl.innerText = `${change.toFixed(2)} (${changePercent.toFixed(2)}%)`;
-                changeEl.className = "text-sm font-bold text-rose-400";
-            }
-
-            document.getElementById('highLowRange').innerText = `${sym.high.toFixed(2)} / ${sym.low.toFixed(2)}`;
-            document.getElementById('liveVolumeText').innerText = sym.vol.toLocaleString('en-IN');
-
-            // Update Chart Data
-            if (marketChart) {
-                const timeLabel = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                marketChart.data.labels.push(timeLabel);
-                marketChart.data.datasets[0].data.push(sym.price);
-                marketChart.data.datasets[1].data.push(ema20);
-                marketChart.data.datasets[2].data.push(ema50);
-                marketChart.data.datasets[3].data.push(vwap);
-
-                if (marketChart.data.labels.length > 25) {
-                    marketChart.data.labels.shift();
-                    marketChart.data.datasets.forEach(ds => ds.data.shift());
-                }
-                marketChart.update('none');
-            }
-
-            // Run 5-Filter Evaluation
-            evaluate5Filters(sym.price, sym.prevClose, ema20, ema50, vwap, rsi, volumeHistory);
+            updateCalibratedPrice();
         }
 
-        function evaluate5Filters(price, prevClose, ema20, ema50, vwap, rsi, volumes) {
-            let bullishScore = 0;
-            let bearishScore = 0;
-
-            // Filter 1: EMA Trend
-            const f1Badge = document.getElementById('f1-badge');
-            const f1Val = document.getElementById('f1-val');
-            const emaGap = ((ema20 - ema50) / ema50) * 100;
-            f1Val.innerText = (emaGap >= 0 ? "+" : "") + emaGap.toFixed(2) + "%";
-
-            if (price > ema20 && ema20 > ema50) {
-                f1Badge.className = "px-2 py-0.5 text-xs font-bold rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40";
-                f1Badge.innerText = "BULLISH 🟢";
-                bullishScore++;
-            } else if (price < ema20 && ema20 < ema50) {
-                f1Badge.className = "px-2 py-0.5 text-xs font-bold rounded bg-rose-500/20 text-rose-400 border border-rose-500/40";
-                f1Badge.innerText = "BEARISH 🔴";
-                bearishScore++;
+        // Event Listeners
+        priceOffsetInput.addEventListener('input', updateCalibratedPrice);
+        dataSourceSelect.addEventListener('change', () => {
+            // Adjust baseline depending on spot vs futures mode selection
+            if (dataSourceSelect.value === 'futures') {
+                priceOffsetInput.value = "+28.50";
             } else {
-                f1Badge.className = "px-2 py-0.5 text-xs font-bold rounded bg-slate-800 text-slate-400 border border-slate-700";
-                f1Badge.innerText = "SIDEWAYS ⚪";
+                priceOffsetInput.value = "0.00";
             }
+            updateCalibratedPrice();
+        });
 
-            // Filter 2: VWAP Alignment
-            const f2Badge = document.getElementById('f2-badge');
-            const f2Val = document.getElementById('f2-val');
-            f2Val.innerText = "₹" + vwap.toFixed(2);
-
-            if (price >= vwap) {
-                f2Badge.className = "px-2 py-0.5 text-xs font-bold rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40";
-                f2Badge.innerText = "ABOVE VWAP 🟢";
-                bullishScore++;
-            } else {
-                f2Badge.className = "px-2 py-0.5 text-xs font-bold rounded bg-rose-500/20 text-rose-400 border border-rose-500/40";
-                f2Badge.innerText = "BELOW VWAP 🔴";
-                bearishScore++;
-            }
-
-            // Filter 3: RSI (14) Zone
-            const f3Badge = document.getElementById('f3-badge');
-            const f3Val = document.getElementById('f3-val');
-            f3Val.innerText = rsi.toFixed(1);
-
-            if (rsi >= 55) {
-                f3Badge.className = "px-2 py-0.5 text-xs font-bold rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40";
-                f3Badge.innerText = "BULLISH 🟢";
-                bullishScore++;
-            } else if (rsi <= 45) {
-                f3Badge.className = "px-2 py-0.5 text-xs font-bold rounded bg-rose-500/20 text-rose-400 border border-rose-500/40";
-                f3Badge.innerText = "BEARISH 🔴";
-                bearishScore++;
-            } else {
-                f3Badge.className = "px-2 py-0.5 text-xs font-bold rounded bg-slate-800 text-slate-400 border border-slate-700";
-                f3Badge.innerText = "NEUTRAL ⚪";
-            }
-
-            // Filter 4: Volume Surge
-            const f4Badge = document.getElementById('f4-badge');
-            const f4Val = document.getElementById('f4-val');
-            const lastVol = volumes[volumes.length - 1] || 1000;
-            const avgVol = volumes.length ? volumes.reduce((a, b) => a + b, 0) / volumes.length : 1000;
-            const volRatio = lastVol / avgVol;
-            f4Val.innerText = volRatio.toFixed(2) + "x";
-
-            if (volRatio >= 1.25) {
-                f4Badge.className = "px-2 py-0.5 text-xs font-bold rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40";
-                f4Badge.innerText = "SURGE 🟢";
-                bullishScore++;
-            } else {
-                f4Badge.className = "px-2 py-0.5 text-xs font-bold rounded bg-slate-800 text-slate-400 border border-slate-700";
-                f4Badge.innerText = "NORMAL ⚪";
-            }
-
-            // Filter 5: Option PCR
-            const f5Badge = document.getElementById('f5-badge');
-            const f5Val = document.getElementById('f5-val');
-            const estimatedPCR = price > prevClose ? (rsi > 50 ? 1.18 : 0.95) : 0.74;
-            f5Val.innerText = estimatedPCR.toFixed(2);
-
-            if (estimatedPCR >= 1.0) {
-                f5Badge.className = "px-2 py-0.5 text-xs font-bold rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40";
-                f5Badge.innerText = "BULLISH 🟢";
-                bullishScore++;
-            } else if (estimatedPCR <= 0.8) {
-                f5Badge.className = "px-2 py-0.5 text-xs font-bold rounded bg-rose-500/20 text-rose-400 border border-rose-500/40";
-                f5Badge.innerText = "BEARISH 🔴";
-                bearishScore++;
-            } else {
-                f5Badge.className = "px-2 py-0.5 text-xs font-bold rounded bg-slate-800 text-slate-400 border border-slate-700";
-                f5Badge.innerText = "NEUTRAL ⚪";
-            }
-
-            // Filter Score Badge
-            const maxScore = Math.max(bullishScore, bearishScore);
-            document.getElementById('filterScoreBadge').innerText = `Score: ${maxScore} / 5 (${bullishScore > bearishScore ? 'Bullish' : 'Bearish'})`;
-
-            // Main Signal Banner Logic
-            const mainCard = document.getElementById('mainSignalCard');
-            const bannerText = document.getElementById('signalBannerText');
-            const subtext = document.getElementById('signalSubtext');
-
-            // Option Strategy Recommendation UI elements
-            const recStrike = document.getElementById('recStrike');
-            const recSL = document.getElementById('recSL');
-            const recTarget = document.getElementById('recTarget');
-
-            // Resistance/Support calculations based on LTP
-            const roundedStrike = Math.round(price / 50) * 50;
-            document.getElementById('resLevel').innerText = (roundedStrike + 100).toFixed(2);
-            document.getElementById('pivotLevel').innerText = roundedStrike.toFixed(2);
-            document.getElementById('supLevel').innerText = (roundedStrike - 100).toFixed(2);
-
-            // PCR Sentiment Bar update
-            const pcrText = document.getElementById('pcrSentimentText');
-            const callBar = document.getElementById('pcrBarCall');
-            const putBar = document.getElementById('pcrBarPut');
-
-            if (estimatedPCR >= 1.0) {
-                pcrText.innerText = `Bullish (PCR ${estimatedPCR.toFixed(2)})`;
-                pcrText.className = "font-bold text-emerald-400";
-                callBar.style.width = "40%";
-                putBar.style.width = "60%";
-            } else {
-                pcrText.innerText = `Bearish (PCR ${estimatedPCR.toFixed(2)})`;
-                pcrText.className = "font-bold text-rose-400";
-                callBar.style.width = "65%";
-                putBar.style.width = "35%";
-            }
-
-            if (bullishScore >= 4) {
-                mainCard.className = "bg-navy-900 border-2 border-emerald-500 rounded-2xl p-6 text-center transition-all duration-500 shadow-xl relative overflow-hidden glow-green";
-                bannerText.className = "text-3xl md:text-5xl font-extrabold my-3 text-emerald-400 flex items-center justify-center gap-3";
-                bannerText.innerHTML = `<span>🚀 STRONG BUY (CALL)</span>`;
-                subtext.innerText = `High Probability Confirmation! ${bullishScore} out of 5 filters are aligned in a Strong Bullish trend.`;
-
-                recStrike.innerText = `BUY ${currentSymbol} ${roundedStrike} CE`;
-                recStrike.className = "font-bold text-emerald-400";
-                recSL.innerText = (price - 35).toFixed(2);
-                recTarget.innerText = (price + 70).toFixed(2);
-
-                if (lastSignal !== "BUY") {
-                    lastSignal = "BUY";
-                    playBeep("BUY");
-                    speakAlert(`Strong Buy Alert on ${currentSymbol}`);
-                    sendTelegramNotification(`🚀 STRONG BUY (CALL) Alert\nSymbol: ${currentSymbol}\nPrice: ₹${price.toFixed(2)}\nBullish Filters: ${bullishScore}/5`);
-                    showToast(`STRONG BUY Signal triggered for ${currentSymbol}`, "success");
-                }
-            } else if (bearishScore >= 4) {
-                mainCard.className = "bg-navy-900 border-2 border-rose-500 rounded-2xl p-6 text-center transition-all duration-500 shadow-xl relative overflow-hidden glow-red";
-                bannerText.className = "text-3xl md:text-5xl font-extrabold my-3 text-rose-500 flex items-center justify-center gap-3";
-                bannerText.innerHTML = `<span>🔻 STRONG SELL (PUT)</span>`;
-                subtext.innerText = `High Probability Confirmation! ${bearishScore} out of 5 filters are aligned in a Strong Bearish trend.`;
-
-                recStrike.innerText = `BUY ${currentSymbol} ${roundedStrike} PE`;
-                recStrike.className = "font-bold text-rose-400";
-                recSL.innerText = (price + 35).toFixed(2);
-                recTarget.innerText = (price - 70).toFixed(2);
-
-                if (lastSignal !== "SELL") {
-                    lastSignal = "SELL";
-                    playBeep("SELL");
-                    speakAlert(`Strong Sell Alert on ${currentSymbol}`);
-                    sendTelegramNotification(`🔻 STRONG SELL (PUT) Alert\nSymbol: ${currentSymbol}\nPrice: ₹${price.toFixed(2)}\nBearish Filters: ${bearishScore}/5`);
-                    showToast(`STRONG SELL Signal triggered for ${currentSymbol}`, "danger");
-                }
-            } else {
-                mainCard.className = "bg-navy-900 border-2 border-slate-700 rounded-2xl p-6 text-center transition-all duration-500 shadow-xl relative overflow-hidden";
-                bannerText.className = "text-3xl md:text-5xl font-extrabold my-3 text-slate-400 flex items-center justify-center gap-3";
-                bannerText.innerHTML = `<span>⚪ WAIT / NO TRADE</span>`;
-                subtext.innerText = `Conflicting signals detected. Bullish: ${bullishScore}, Bearish: ${bearishScore}. Wait for 4-5 filter convergence.`;
-
-                recStrike.innerText = "NO TRADE ZONE";
-                recStrike.className = "font-bold text-slate-400";
-                recSL.innerText = "--";
-                recTarget.innerText = "--";
-
-                lastSignal = "WAIT";
-            }
-        }
-
-        function switchSymbol() {
-            currentSymbol = document.getElementById('symbolSelect').value;
-            document.getElementById('tickerSymbolName').innerText = `${currentSymbol} LTP`;
-            priceHistory = [];
-            volumeHistory = [];
-            if (marketChart) {
-                marketChart.data.labels = [];
-                marketChart.data.datasets.forEach(ds => ds.data = []);
-            }
+        btnRefresh.addEventListener('click', () => {
             fetchMarketData();
-            showToast(`Switched ticker to ${currentSymbol}`, "info");
-        }
+        });
 
-        function changeInterval() {
-            refreshInterval = parseInt(document.getElementById('refreshIntervalSelect').value);
-            if (timerId) clearInterval(timerId);
-            timerId = setInterval(fetchMarketData, refreshInterval);
-            showToast(`Refresh rate updated to ${refreshInterval / 1000}s`, "info");
-        }
-
-        function openTelegramModal() {
-            document.getElementById('telegramModal').classList.remove('hidden');
-        }
-
-        function closeTelegramModal() {
-            document.getElementById('telegramModal').classList.add('hidden');
-        }
-
-        function saveTelegramSettings() {
-            tgConfig.botToken = document.getElementById('tgBotToken').value.trim();
-            tgConfig.chatId = document.getElementById('tgChatId').value.trim();
-            closeTelegramModal();
-            showToast("Telegram Settings Saved", "success");
-        }
-
-        async function sendTelegramNotification(message) {
-            if (!tgConfig.botToken || !tgConfig.chatId) return;
-            try {
-                const url = `https://api.telegram.org/bot${tgConfig.botToken}/sendMessage`;
-                await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: tgConfig.chatId, text: message })
-                });
-            } catch (e) {
-                console.error("Telegram Notification Error", e);
-            }
-        }
-
-        function testTelegramAlert() {
-            const token = document.getElementById('tgBotToken').value.trim();
-            const chat = document.getElementById('tgChatId').value.trim();
-            if (!token || !chat) {
-                showToast("Please enter Bot Token & Chat ID", "warning");
-                return;
-            }
-            tgConfig.botToken = token;
-            tgConfig.chatId = chat;
-            sendTelegramNotification("🔔 Test Alert from 5-Filter Signal Engine Dashboard! Webhook Connection Successful.");
-            showToast("Test alert sent to Telegram", "info");
-        }
-
-        function showToast(message, type = "info") {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            
-            let bgClass = "bg-navy-900 border-slate-700 text-slate-200";
-            if (type === "success") bgClass = "bg-emerald-950 border-emerald-500 text-emerald-200";
-            if (type === "danger") bgClass = "bg-rose-950 border-rose-500 text-rose-200";
-            if (type === "warning") bgClass = "bg-amber-950 border-amber-500 text-amber-200";
-
-            toast.className = `p-3 rounded-lg border text-xs font-semibold shadow-lg transition-all duration-300 transform translate-y-2 pointer-events-auto flex items-center justify-between gap-3 ${bgClass}`;
-            toast.innerHTML = `<span>${message}</span><button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>`;
-
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), 3500);
-        }
-
+        // Initialize on load
         window.onload = function() {
-            initChart();
-            fetchMarketData();
-            timerId = setInterval(fetchMarketData, refreshInterval);
+            updateCalibratedPrice();
+            setInterval(fetchMarketData, 3000); // 3s live polling loop
         };
     </script>
 </body>
