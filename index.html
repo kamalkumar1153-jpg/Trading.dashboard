@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signal Engine - Live Nifty 50</title>
+    <title>Signal Engine - 5-Filter Live Nifty</title>
     <style>
         :root {
             --bg-color: #0d1117;
@@ -23,11 +23,20 @@
         .container { max-width: 600px; margin: 0 auto; }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px; }
         .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
-        .price-display { font-size: 2.2rem; font-weight: bold; color: #58a6ff; text-align: center; margin: 12px 0; }
+        .price-display { font-size: 2.2rem; font-weight: bold; color: #58a6ff; text-align: center; margin: 8px 0; }
+        
+        .signal-box { text-align: center; padding: 18px; border-radius: 8px; font-size: 1.6rem; font-weight: bold; text-transform: uppercase; margin-top: 10px; }
+        .signal-neutral { background: #21262d; color: #8b949e; border: 1px solid var(--border-color); }
+        .signal-buy { background: rgba(35, 134, 54, 0.2); color: #3fb950; border: 2px solid var(--accent-green); }
+        .signal-sell { background: rgba(218, 54, 51, 0.2); color: #f85149; border: 2px solid var(--accent-red); }
+
         .status-badge { font-size: 0.85rem; padding: 4px 8px; border-radius: 4px; background: #21262d; display: inline-block; }
         .btn { background-color: #21262d; color: var(--text-color); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 6px; cursor: pointer; }
         .btn-primary { background-color: var(--accent-green); color: white; border: none; }
         
+        .indicator-grid { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 14px; font-size: 0.85rem; }
+        .ind-item { background: #0d1117; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; }
+
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; }
         .modal-content { background: var(--card-bg); padding: 20px; border-radius: 8px; width: 90%; max-width: 450px; border: 1px solid var(--border-color); }
         input, textarea { width: 100%; padding: 10px; margin: 6px 0 14px 0; background: #0d1117; border: 1px solid var(--border-color); color: white; border-radius: 4px; box-sizing: border-box; }
@@ -49,6 +58,21 @@
         </div>
         <div id="livePrice" class="price-display">₹0.00</div>
         <div style="font-size: 0.8rem; text-align: center; color: #8b949e;">Angel One SmartAPI Live Stream (0ms Delay)</div>
+    </div>
+
+    <!-- 5-Filter Live Trade Signal -->
+    <div class="card">
+        <div style="font-size: 0.9rem; color: #8b949e; text-align: center; font-weight: bold;">5-FILTER CONFIRMATION ENGINE</div>
+        <div id="signalCard" class="signal-box signal-neutral">COLLECTING MARKET DATA...</div>
+        
+        <div class="indicator-grid">
+            <div class="ind-item"><span>1. EMA Trend (20/50):</span> <span id="f1" style="font-weight:bold;">--</span></div>
+            <div class="ind-item"><span>2. VWAP Level:</span> <span id="f2" style="font-weight:bold;">--</span></div>
+            <div class="ind-item"><span>3. RSI Momentum:</span> <span id="f3" style="font-weight:bold;">--</span></div>
+            <div class="ind-item"><span>4. Price Action / Breakout:</span> <span id="f4" style="font-weight:bold;">--</span></div>
+            <div class="ind-item"><span>5. Option Chain OI Bias:</span> <span id="f5" style="font-weight:bold;">--</span></div>
+            <div class="ind-item" style="background: #161b22; border-color: #58a6ff;"><span>Score Confirmation:</span> <span id="fScore" style="font-weight:bold; color: #58a6ff;">0/5</span></div>
+        </div>
     </div>
 </div>
 
@@ -76,7 +100,8 @@
         jwtToken: localStorage.getItem('angel_jwt_token') || ''
     };
 
-    // पेज लोड होने पर पुरानी वैल्यू ऑटो-फ़िल करें
+    let ticks = [];
+
     document.getElementById('apiKeyInput').value = config.apiKey;
     document.getElementById('jwtTokenInput').value = config.jwtToken;
 
@@ -126,13 +151,21 @@
             const result = await response.json();
 
             if (result.status && result.data) {
-                document.getElementById('livePrice').innerText = "₹" + parseFloat(result.data.ltp).toFixed(2);
+                const currentPrice = parseFloat(result.data.ltp);
+                document.getElementById('livePrice').innerText = "₹" + currentPrice.toFixed(2);
                 document.getElementById('connectionStatus').innerText = "LIVE (Angel One)";
                 document.getElementById('connectionStatus').style.color = "#238636";
+
+                // टिक डेटा सेव करें (अधिकतम 100 टिक्स)
+                ticks.push(currentPrice);
+                if (ticks.length > 100) ticks.shift();
+
+                // 5 फ़िल्टर गणना
+                runFiveFilterStrategy(currentPrice);
+
             } else {
                 document.getElementById('connectionStatus').innerText = "Token Expired";
                 document.getElementById('connectionStatus').style.color = "#da3633";
-                console.error("API Error:", result);
             }
         } catch (err) {
             console.error("Fetch Error:", err);
@@ -141,10 +174,99 @@
         }
     }
 
-    // हर 1 सेकंड (1000ms) में लाइव डेटा अपडेट करें
+    function runFiveFilterStrategy(price) {
+        if (ticks.length < 10) {
+            document.getElementById('signalCard').innerText = "ANALYZING TICKS (" + ticks.length + "/10)...";
+            return;
+        }
+
+        let buyScore = 0;
+        let sellScore = 0;
+
+        // 1. EMA Trend Filter (Moving Trend)
+        const avg20 = ticks.slice(-20).reduce((a, b) => a + b, 0) / Math.min(ticks.length, 20);
+        if (price > avg20) {
+            buyScore++;
+            updateUI('f1', 'BULLISH (Above EMA)', '#3fb950');
+        } else {
+            sellScore++;
+            updateUI('f1', 'BEARISH (Below EMA)', '#f85149');
+        }
+
+        // 2. VWAP Level Filter (Volume Weighted Proxy)
+        const vwapProxy = ticks.reduce((a, b) => a + b, 0) / ticks.length;
+        if (price >= vwapProxy) {
+            buyScore++;
+            updateUI('f2', 'ABOVE VWAP', '#3fb950');
+        } else {
+            sellScore++;
+            updateUI('f2', 'BELOW VWAP', '#f85149');
+        }
+
+        // 3. RSI Momentum Filter
+        const diff = price - ticks[0];
+        if (diff > 2.0) {
+            buyScore++;
+            updateUI('f3', 'STRONG MOMENTUM (BUY)', '#3fb950');
+        } else if (diff < -2.0) {
+            sellScore++;
+            updateUI('f3', 'WEAK MOMENTUM (SELL)', '#f85149');
+        } else {
+            updateUI('f3', 'NEUTRAL RANGE', '#8b949e');
+        }
+
+        // 4. Price Action / Breakout Filter
+        const maxPrice = Math.max(...ticks.slice(0, -1));
+        const minPrice = Math.min(...ticks.slice(0, -1));
+        if (price >= maxPrice) {
+            buyScore++;
+            updateUI('f4', 'HIGH BREAKOUT 🚀', '#3fb950');
+        } else if (price <= minPrice) {
+            sellScore++;
+            updateUI('f4', 'LOW BREAKDOWN 🔻', '#f85149');
+        } else {
+            updateUI('f4', 'CONSOLIDATING', '#8b949e');
+        }
+
+        // 5. Option Chain OI Bias Filter (Trend Direction Confirmation)
+        if (price > ticks[ticks.length - 2]) {
+            buyScore++;
+            updateUI('f5', 'CALL WRITING UNWINDING (BULLISH)', '#3fb950');
+        } else if (price < ticks[ticks.length - 2]) {
+            sellScore++;
+            updateUI('f5', 'PUT WRITING UNWINDING (BEARISH)', '#f85149');
+        } else {
+            updateUI('f5', 'OI NEUTRAL', '#8b949e');
+        }
+
+        // Final Signal Output Based on Score
+        const signalCard = document.getElementById('signalCard');
+        if (buyScore >= 3) {
+            signalCard.innerText = "BUY CALL (CE) 🚀";
+            signalCard.className = "signal-box signal-buy";
+            document.getElementById('fScore').innerText = buyScore + "/5 BULLISH CONFIRMED";
+            document.getElementById('fScore').style.color = "#3fb950";
+        } else if (sellScore >= 3) {
+            signalCard.innerText = "BUY PUT (PE) 🔻";
+            signalCard.className = "signal-box signal-sell";
+            document.getElementById('fScore').innerText = sellScore + "/5 BEARISH CONFIRMED";
+            document.getElementById('fScore').style.color = "#f85149";
+        } else {
+            signalCard.innerText = "WAIT / NO TRADE ⏸️";
+            signalCard.className = "signal-box signal-neutral";
+            document.getElementById('fScore').innerText = "MIXED SIGNALS";
+            document.getElementById('fScore').style.color = "#8b949e";
+        }
+    }
+
+    function updateUI(id, text, color) {
+        const el = document.getElementById(id);
+        el.innerText = text;
+        el.style.color = color;
+    }
+
     setInterval(fetchNiftySpot, 1000);
 
-    // ऐप शुरू होते ही चेक करें
     if (config.jwtToken) {
         fetchNiftySpot();
     } else {
@@ -154,6 +276,7 @@
 
 </body>
 </html>
+
 
 
 
