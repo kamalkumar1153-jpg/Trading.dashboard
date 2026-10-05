@@ -25,21 +25,34 @@
         .container { max-width: 950px; margin: 0 auto; }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
         
-        /* Navigation Tabs */
-        .tab-btn {
+        /* Navigation Tabs & Timeframe Buttons */
+        .tab-btn, .tf-btn {
             background: #21262d;
             color: #8b949e;
             border: 1px solid var(--border-color);
-            padding: 8px 16px;
+            padding: 6px 12px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
-        .tab-btn.active {
+        .tab-btn.active, .tf-btn.active {
             background: var(--accent-blue);
             color: white;
             border-color: var(--accent-blue);
+        }
+
+        .controls-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         /* Grid & Cards */
@@ -80,13 +93,23 @@
 
 <div class="container">
     
-    <!-- Top Header & Navigation Tabs -->
+    <!-- Header -->
     <div class="header">
         <div style="display: flex; gap: 8px; align-items: center;">
             <button class="tab-btn active" id="btnTabLive" onclick="switchMode('live')">🔴 Live Terminal</button>
             <button class="tab-btn" id="btnTabBacktest" onclick="switchMode('backtest')">📊 Backtest Mode</button>
         </div>
         <button class="btn" onclick="openSettings()">⚙ Settings</button>
+    </div>
+
+    <!-- Controls Bar (Timeframe Selection + Backtest Fast Options) -->
+    <div class="controls-bar">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 0.85rem; color: #8b949e;">Timeframe:</span>
+            <button class="tf-btn active" id="tf-15m" onclick="setTimeframe('15m')">15 Min</button>
+            <button class="tf-btn" id="tf-1h" onclick="setTimeframe('1h')">1 Hour</button>
+        </div>
+        <div id="tf-status" style="font-size: 0.8rem; color: #58a6ff;">Active TF: 15-Min Strategy</div>
     </div>
 
     <!-- SECTION 1: LIVE MULTI-INDEX TERMINAL -->
@@ -139,11 +162,11 @@
 
     </div>
 
-    <!-- SECTION 2: BACKTESTING ENGINE (Hidden by default) -->
+    <!-- SECTION 2: BACKTESTING ENGINE -->
     <div id="backtestSection" style="display: none;">
         <div class="card">
-            <h3>📊 Strategy Backtesting Engine (15-Min)</h3>
-            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
+            <h3>📊 Strategy Backtesting Engine</h3>
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap;">
                 <select id="btSymbol" style="width: auto;">
                     <option value="NIFTY">NIFTY 50</option>
                     <option value="BANKNIFTY">BANKNIFTY</option>
@@ -167,7 +190,7 @@
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Time</th>
+                            <th>Candle/Time</th>
                             <th>Type</th>
                             <th>Entry</th>
                             <th>Exit</th>
@@ -202,6 +225,7 @@
 </div>
 
 <script>
+    let currentTF = '15m'; // Default Timeframe
     let config = {
         apiKey: localStorage.getItem('angel_api_key') || 'ZSrBL2rK',
         jwtToken: localStorage.getItem('angel_jwt_token') || ''
@@ -236,6 +260,16 @@
             btnLive.classList.remove('active');
             btnBt.classList.add('active');
         }
+    }
+
+    function setTimeframe(tf) {
+        currentTF = tf;
+        document.getElementById('tf-15m').classList.toggle('active', tf === '15m');
+        document.getElementById('tf-1h').classList.toggle('active', tf === '1h');
+        
+        const label = tf === '15m' ? 'Active TF: 15-Min Strategy' : 'Active TF: 1-Hour Trend Confirmation';
+        document.getElementById('tf-status').innerText = label;
+        fetchData();
     }
 
     function openSettings() { document.getElementById('settingsModal').style.display = 'flex'; }
@@ -285,21 +319,21 @@
         if (cList.length > 50) cList.shift();
 
         let score = Math.floor(Math.random() * 2) + 3;
-        document.getElementById(`score-${sym.name}`).innerText = `Score: ${score}/5`;
+        document.getElementById(`score-${sym.name}`).innerText = `Score: ${score}/5 (${currentTF.toUpperCase()})`;
 
         const sigBox = document.getElementById(`signal-${sym.name}`);
         if (score >= 4) {
             sigBox.innerText = "BUY CALL 🚀";
             sigBox.className = "signal-box signal-buy";
-            document.getElementById(`sl-${sym.name}`).innerText = "-15 Pts";
-            document.getElementById(`tgt-${sym.name}`).innerText = "+25 Pts";
+            document.getElementById(`sl-${sym.name}`).innerText = currentTF === '15m' ? "-15 Pts" : "-35 Pts";
+            document.getElementById(`tgt-${sym.name}`).innerText = currentTF === '15m' ? "+25 Pts" : "+70 Pts";
 
             if (lastAlerts[sym.name] !== "BUY") {
-                speakHindi(`${sym.name} बाई कॉल सिग्नल कन्फर्म`);
+                speakHindi(`${sym.name} ${currentTF === '15m' ? '15 मिनट' : '1 घंटा'} बाई कॉल सिग्नल`);
                 lastAlerts[sym.name] = "BUY";
             }
         } else {
-            sigBox.innerText = "WAIT / NO TRADE ⏸️️";
+            sigBox.innerText = "WAIT / NO TRADE ⏸";
             sigBox.className = "signal-box signal-neutral";
             document.getElementById(`sl-${sym.name}`).innerText = "--";
             document.getElementById(`tgt-${sym.name}`).innerText = "--";
@@ -315,12 +349,11 @@
         } catch(e) {}
     }
 
-    // BACKTEST LOGIC
     function runBacktest() {
         const symbol = document.getElementById('btSymbol').value;
         const basePrices = { NIFTY: 24500, BANKNIFTY: 52000, SENSEX: 80000 };
-        const slPts = symbol === 'NIFTY' ? 20 : 40;
-        const targetPts = symbol === 'NIFTY' ? 40 : 80;
+        const slPts = (symbol === 'NIFTY' ? 20 : 40) * (currentTF === '1h' ? 2 : 1);
+        const targetPts = (symbol === 'NIFTY' ? 40 : 80) * (currentTF === '1h' ? 2 : 1);
 
         let currentPrice = basePrices[symbol];
         let trades = [];
@@ -339,7 +372,7 @@
                 inTrade = true;
                 currentTrade = {
                     id: trades.length + 1,
-                    time: `${i} Candle Ago`,
+                    time: `${i} Candle (${currentTF})`,
                     type: 'BUY CALL',
                     entry: parseFloat(close.toFixed(1)),
                     sl: close - slPts,
@@ -392,6 +425,7 @@
 
 </body>
 </html>
+
 
 
 
