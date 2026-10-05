@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>5-Filter Signal Engine (Angel One Auto-Login)</title>
-    <!-- TOTP Generation Library for Browser -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsSHA/2.4.2/sha.js"></script>
+    <title>Signal Engine - Live Nifty 50</title>
     <style>
         :root {
             --bg-color: #0d1117;
@@ -31,8 +29,8 @@
         .btn-primary { background-color: var(--accent-green); color: white; border: none; }
         
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; }
-        .modal-content { background: var(--card-bg); padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; border: 1px solid var(--border-color); }
-        input { width: 100%; padding: 10px; margin: 6px 0 14px 0; background: #0d1117; border: 1px solid var(--border-color); color: white; border-radius: 4px; box-sizing: border-box; }
+        .modal-content { background: var(--card-bg); padding: 20px; border-radius: 8px; width: 90%; max-width: 450px; border: 1px solid var(--border-color); }
+        input, textarea { width: 100%; padding: 10px; margin: 6px 0 14px 0; background: #0d1117; border: 1px solid var(--border-color); color: white; border-radius: 4px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -47,7 +45,7 @@
     <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <span>NIFTY 50 SPOT</span>
-            <span id="connectionStatus" class="status-badge" style="color: #ffa657;">Setup Needed</span>
+            <span id="connectionStatus" class="status-badge" style="color: #ffa657;">Token Needed</span>
         </div>
         <div id="livePrice" class="price-display">₹0.00</div>
         <div style="font-size: 0.8rem; text-align: center; color: #8b949e;">Angel One SmartAPI Live Stream (0ms Delay)</div>
@@ -57,143 +55,51 @@
 <!-- Settings Modal -->
 <div id="settingsModal" class="modal">
     <div class="modal-content">
-        <h3>Angel One Auto-Auth Settings</h3>
+        <h3>Angel One API Settings</h3>
         
         <label>SmartAPI Key:</label>
-        <input type="text" id="apiKeyInput" placeholder="API Key">
-        
-        <label>Client Code:</label>
-        <input type="text" id="clientCodeInput" placeholder="Angel One Client ID (e.g. K123456)">
+        <input type="text" id="apiKeyInput" value="ZSrBL2rK" placeholder="API Key">
 
-        <label>PIN (MPIN):</label>
-        <input type="password" id="pinInput" placeholder="4-Digit MPIN">
-
-        <label>TOTP Secret Key:</label>
-        <input type="text" id="totpSecretInput" value="XZCJXF4V7MMPNZ7N6DDAEFZTVA" placeholder="TOTP Secret Key">
+        <label>JWT Access Token (Termux से पेस्ट करें):</label>
+        <textarea id="jwtTokenInput" rows="5" placeholder="Termux में जनरेट हुआ JWT Token यहाँ पेस्ट करें (eyJhbGci...)"></textarea>
 
         <div style="display: flex; justify-content: flex-end; gap: 8px;">
             <button class="btn" onclick="closeSettings()">Cancel</button>
-            <button class="btn btn-primary" onclick="saveSettings()">Connect & Save</button>
+            <button class="btn btn-primary" onclick="saveSettings()">Save & Connect</button>
         </div>
     </div>
 </div>
 
 <script>
     let config = {
-        apiKey: localStorage.getItem('angel_api_key') || '',
-        clientCode: localStorage.getItem('angel_client_code') || '',
-        pin: localStorage.getItem('angel_pin') || '',
-        totpSecret: localStorage.getItem('angel_totp_secret') || 'XZCJXF4V7MMPNZ7N6DDAEFZTVA',
+        apiKey: localStorage.getItem('angel_api_key') || 'ZSrBL2rK',
         jwtToken: localStorage.getItem('angel_jwt_token') || ''
     };
 
-    // Auto-fill modal inputs
+    // पेज लोड होने पर पुरानी वैल्यू ऑटो-फ़िल करें
     document.getElementById('apiKeyInput').value = config.apiKey;
-    document.getElementById('clientCodeInput').value = config.clientCode;
-    document.getElementById('pinInput').value = config.pin;
-    document.getElementById('totpSecretInput').value = config.totpSecret;
+    document.getElementById('jwtTokenInput').value = config.jwtToken;
 
     function openSettings() { document.getElementById('settingsModal').style.display = 'flex'; }
     function closeSettings() { document.getElementById('settingsModal').style.display = 'none'; }
 
-    // JavaScript TOTP Generator (Pure JS)
-    function generateTOTP(secret) {
-        try {
-            function base32tohex(base32) {
-                var base32chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-                var bits = "";
-                var hex = "";
-                for (var i = 0; i < base32.length; i++) {
-                    var val = base32chars.indexOf(base32.charAt(i).toUpperCase());
-                    bits += ("00000" + val.toString(2)).slice(-5);
-                }
-                for (var i = 0; i < bits.length - 3; i += 4) {
-                    var chunk = bits.substr(i, 4);
-                    hex = hex + parseInt(chunk, 2).toString(16);
-                }
-                return hex;
-            }
-            var epoch = Math.round(new Date().getTime() / 1000.0);
-            var time = ("0000000000000000" + (Math.floor(epoch / 30)).toString(16)).slice(-16);
-            var shaObj = new jsSHA("SHA-1", "HEX");
-            shaObj.setHMACKey(base32tohex(secret), "HEX");
-            shaObj.update(time);
-            var hmac = shaObj.getHMAC("HEX");
-            var offset = parseInt(hmac.substring(hmac.length - 1), 16);
-            var otp = (parseInt(hmac.substr(offset * 2, 8), 16) & 0x7fffffff) + "";
-            return otp.substr(otp.length - 6, 6);
-        } catch(e) {
-            return "";
-        }
-    }
-
-    async function loginAndGetToken() {
-        if (!config.apiKey || !config.clientCode || !config.pin || !config.totpSecret) {
-            document.getElementById('connectionStatus').innerText = "Settings Missing";
-            document.getElementById('connectionStatus').style.color = "#ff4444";
-            openSettings();
-            return false;
-        }
-
-        const totp = generateTOTP(config.totpSecret);
-        document.getElementById('connectionStatus').innerText = "Authenticating...";
-
-        try {
-            const response = await fetch('https://apiconnect.angelone.in/rest/auth/angelbroking/user/v1/loginByPassword', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-UserType': 'USER',
-                    'X-SourceID': 'WEB',
-                    'X-ClientLocalIP': '127.0.0.1',
-                    'X-ClientPublicIP': '127.0.0.1',
-                    'X-MACAddress': 'MAC',
-                    'X-PrivateKey': config.apiKey
-                },
-                body: JSON.stringify({
-                    "clientcode": config.clientCode,
-                    "password": config.pin,
-                    "totp": totp
-                })
-            });
-
-            const result = await response.json();
-            if (result.status && result.data && result.data.jwtToken) {
-                config.jwtToken = result.data.jwtToken;
-                localStorage.setItem('angel_jwt_token', config.jwtToken);
-                return true;
-            } else {
-                document.getElementById('connectionStatus').innerText = "Auth Failed";
-                console.error("Login Error:", result);
-                return false;
-            }
-        } catch(err) {
-            console.error("Login Fetch Error:", err);
-            return false;
-        }
-    }
-
-    async function saveSettings() {
+    function saveSettings() {
         config.apiKey = document.getElementById('apiKeyInput').value.trim();
-        config.clientCode = document.getElementById('clientCodeInput').value.trim();
-        config.pin = document.getElementById('pinInput').value.trim();
-        config.totpSecret = document.getElementById('totpSecretInput').value.trim();
+        config.jwtToken = document.getElementById('jwtTokenInput').value.trim();
 
         localStorage.setItem('angel_api_key', config.apiKey);
-        localStorage.setItem('angel_client_code', config.clientCode);
-        localStorage.setItem('angel_pin', config.pin);
-        localStorage.setItem('angel_totp_secret', config.totpSecret);
+        localStorage.setItem('angel_jwt_token', config.jwtToken);
 
         closeSettings();
-        const success = await loginAndGetToken();
-        if(success) fetchNiftySpot();
+        fetchNiftySpot();
     }
 
     async function fetchNiftySpot() {
         if (!config.jwtToken) {
-            const ok = await loginAndGetToken();
-            if(!ok) return;
+            document.getElementById('connectionStatus').innerText = "Token Missing";
+            document.getElementById('connectionStatus').style.color = "#ff4444";
+            openSettings();
+            return;
         }
 
         try {
@@ -222,22 +128,24 @@
             if (result.status && result.data) {
                 document.getElementById('livePrice').innerText = "₹" + parseFloat(result.data.ltp).toFixed(2);
                 document.getElementById('connectionStatus').innerText = "LIVE (Angel One)";
-                document.getElementById('connectionStatus').style.color = "#3fb950";
-            } else if (result.message === "Invalid Token" || result.errorcode === "AG8001") {
-                // टोकन एक्सपायर होने पर दोबारा ऑटो-लॉगिन करेगा
-                config.jwtToken = '';
-                await loginAndGetToken();
+                document.getElementById('connectionStatus').style.color = "#238636";
+            } else {
+                document.getElementById('connectionStatus').innerText = "Token Expired";
+                document.getElementById('connectionStatus').style.color = "#da3633";
+                console.error("API Error:", result);
             }
         } catch (err) {
             console.error("Fetch Error:", err);
+            document.getElementById('connectionStatus').innerText = "Connection Error";
+            document.getElementById('connectionStatus').style.color = "#da3633";
         }
     }
 
-    // हर 1 सेकंड में लाइव टिक अपडेट
+    // हर 1 सेकंड (1000ms) में लाइव डेटा अपडेट करें
     setInterval(fetchNiftySpot, 1000);
 
-    // Initial Start
-    if (config.apiKey && config.clientCode) {
+    // ऐप शुरू होते ही चेक करें
+    if (config.jwtToken) {
         fetchNiftySpot();
     } else {
         openSettings();
@@ -246,6 +154,7 @@
 
 </body>
 </html>
+
 
 
 
