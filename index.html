@@ -43,6 +43,18 @@
             border-color: var(--accent-blue);
         }
 
+        /* Live Pulsing Dot */
+        .live-dot {
+            height: 9px;
+            width: 9px;
+            background-color: #f85149;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+            animation: blinker 1.2s linear infinite;
+        }
+        @keyframes blinker { 50% { opacity: 0; } }
+
         .controls-bar {
             display: flex;
             justify-content: space-between;
@@ -76,8 +88,8 @@
 
         /* Indicator Checklist Badges */
         .indicator-badges { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; margin-top: 6px; font-size: 0.7rem; }
-        .badge { padding: 2px 6px; border-radius: 4px; background: #0d1117; border: 1px solid var(--border-color); }
-        .badge.pass { border-color: var(--accent-green); color: #3fb950; }
+        .badge { padding: 2px 6px; border-radius: 4px; background: #0d1117; border: 1px solid var(--border-color); color: #8b949e; }
+        .badge.pass { border-color: var(--accent-green); color: #3fb950; font-weight: bold; }
 
         /* Stats & Table */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 12px; }
@@ -101,7 +113,7 @@
     <!-- Top Header & Tabs -->
     <div class="header">
         <div style="display: flex; gap: 8px; align-items: center;">
-            <button class="tab-btn active" id="btnTabLive" onclick="switchMode('live')">🔴 Live Terminal</button>
+            <button class="tab-btn active" id="btnTabLive" onclick="switchMode('live')"><span class="live-dot"></span> Live Terminal</button>
             <button class="tab-btn" id="btnTabBacktest" onclick="switchMode('backtest')">📊 Backtest & Equity Curve</button>
         </div>
         <button class="btn" onclick="openSettings()">⚙ API & Telegram Settings</button>
@@ -114,7 +126,7 @@
             <button class="tf-btn active" id="tf-15m" onclick="setTimeframe('15m')">15 Min</button>
             <button class="tf-btn" id="tf-1h" onclick="setTimeframe('1h')">1 Hour</button>
         </div>
-        <div id="tf-status" style="font-size: 0.8rem; color: #58a6ff;">Active TF: 15-Min (5-Filter Strategy)</div>
+        <div id="tf-status" style="font-size: 0.8rem; color: #58a6ff;">Active TF: 15-Min (Strict 5-Min Signal Cooldown)</div>
     </div>
 
     <!-- SECTION 1: LIVE MULTI-INDEX TERMINAL -->
@@ -269,9 +281,10 @@
 
     let candleHistory = { NIFTY: [], BANKNIFTY: [], SENSEX: [] };
     let lastAlerts = { NIFTY: '', BANKNIFTY: '', SENSEX: '' };
+    let lastSignalTime = { NIFTY: 0, BANKNIFTY: 0, SENSEX: 0 }; // Over-trading prevention timer
     let equityChartInstance = null;
 
-    // Load initial settings into modal inputs
+    // Load initial settings
     document.getElementById('apiKeyInput').value = config.apiKey;
     document.getElementById('jwtTokenInput').value = config.jwtToken;
     document.getElementById('tgBotTokenInput').value = config.tgToken;
@@ -301,7 +314,7 @@
         currentTF = tf;
         document.getElementById('tf-15m').classList.toggle('active', tf === '15m');
         document.getElementById('tf-1h').classList.toggle('active', tf === '1h');
-        document.getElementById('tf-status').innerText = tf === '15m' ? 'Active TF: 15-Min (5-Filter Strategy)' : 'Active TF: 1-Hour Trend Confluence';
+        document.getElementById('tf-status').innerText = tf === '15m' ? 'Active TF: 15-Min (Strict 5-Min Cooldown)' : 'Active TF: 1-Hour Trend Confluence';
         fetchData();
     }
 
@@ -323,36 +336,35 @@
         fetchData();
     }
 
-    // 5-FILTER INDICATOR ANALYSIS ENGINE
+    // STRICT TECHNICAL SCORE ENGINE
     function calculateTechnicalScore(prices) {
-        if (prices.length < 14) return { score: 2, filters: [true, false, true, false, false] };
+        if (prices.length < 15) return { score: 0, filters: [false, false, false, false, false] };
 
         const len = prices.length;
         const current = prices[len - 1];
 
-        // 1. EMA Filter (Current price > Simple Moving Average proxy)
+        // 1. EMA Trend Filter (Strict Trend Buffer)
         const sma20 = prices.slice(-20).reduce((a, b) => a + b, 0) / Math.min(len, 20);
-        const f1_ema = current > sma20;
+        const f1_ema = current > (sma20 * 1.0003);
 
-        // 2. RSI Filter (Simplified RSI calculation)
+        // 2. RSI Filter (Range 54 to 68)
         let gains = 0, losses = 0;
         for (let i = len - 14; i < len - 1; i++) {
             let diff = prices[i + 1] - prices[i];
             if (diff >= 0) gains += diff; else losses -= diff;
         }
         let rsi = 100 - (100 / (1 + (gains / (losses || 1))));
-        const f2_rsi = rsi > 52 && rsi < 70;
+        const f2_rsi = rsi >= 54 && rsi <= 68;
 
-        // 3. VWAP Proxy Filter
+        // 3. VWAP Filter
         const vwap = prices.reduce((a, b) => a + b, 0) / len;
         const f3_vwap = current > vwap;
 
-        // 4. Volume / Momentum Breakout Filter
-        const momentum = current - prices[len - 3];
-        const f4_vol = momentum > 0;
+        // 4. Consecutive Candle Volume/Momentum
+        const f4_vol = (prices[len - 1] > prices[len - 2]) && (prices[len - 2] > prices[len - 3]);
 
-        // 5. Supertrend Direction Proxy Filter
-        const f5_supertrend = current > prices[len - 2];
+        // 5. Supertrend High-Breakout Proxy
+        const f5_supertrend = current > Math.max(...prices.slice(-5, -1));
 
         const filters = [f1_ema, f2_rsi, f3_vwap, f4_vol, f5_supertrend];
         const score = filters.filter(Boolean).length;
@@ -397,7 +409,7 @@
         const analysis = calculateTechnicalScore(history);
         document.getElementById(`score-${sym.name}`).innerText = `Score: ${analysis.score}/5 (${currentTF.toUpperCase()})`;
 
-        // Update Indicator Badges UI
+        // Update Badge Display
         const badgeContainer = document.getElementById(`badges-${sym.name}`);
         const names = ['EMA', 'RSI', 'VWAP', 'VOL', 'SUPERTREND'];
         badgeContainer.innerHTML = analysis.filters.map((passed, idx) => 
@@ -405,7 +417,11 @@
         ).join('');
 
         const sigBox = document.getElementById(`signal-${sym.name}`);
-        if (analysis.score >= 4) {
+        const now = Date.now();
+        const cooldownPeriod = 5 * 60 * 1000; // 5 Minutes Cooldown
+
+        // Trigger Buy ONLY if score >= 4 AND 5 minutes passed since last alert
+        if (analysis.score >= 4 && (now - lastSignalTime[sym.name] > cooldownPeriod)) {
             sigBox.innerText = "BUY CALL 🚀";
             sigBox.className = "signal-box signal-buy";
             const sl = currentTF === '15m' ? "-15 Pts" : "-35 Pts";
@@ -414,11 +430,12 @@
             document.getElementById(`tgt-${sym.name}`).innerText = tgt;
 
             if (lastAlerts[sym.name] !== "BUY") {
-                speakHindi(`${sym.name} ${currentTF === '15m' ? '15 मिनट' : '1 घंटा'} बाई कॉल सिग्नल`);
+                speakHindi(`${sym.name} न्यू ट्रेड सिग्नल कन्फर्म`);
                 sendTelegramAlert(sym.name, price, atm, sl, tgt, analysis.score);
                 lastAlerts[sym.name] = "BUY";
+                lastSignalTime[sym.name] = now; // Lock signal for 5 mins
             }
-        } else {
+        } else if (analysis.score < 4) {
             sigBox.innerText = "WAIT / NO TRADE ⏸";
             sigBox.className = "signal-box signal-neutral";
             document.getElementById(`sl-${sym.name}`).innerText = "--";
@@ -435,7 +452,6 @@
         } catch(e) {}
     }
 
-    // TELEGRAM BOT ALERT SENDER
     async function sendTelegramAlert(symbol, price, strike, sl, tgt, score) {
         if (!config.tgToken || !config.tgChatId) return;
 
@@ -446,23 +462,19 @@
                         `🎯 *Strike:* ${symbol} ${strike} CE\n` +
                         `🛑 *Stop Loss:* ${sl}\n` +
                         `🎯 *Target:* ${tgt}\n` +
-                        `⚡ *Confirmations:* ${score}/5 (${currentTF})\n` +
+                        `⚡ *Score:* ${score}/5 (${currentTF})\n` +
                         `⏰ *Time:* ${new Date().toLocaleTimeString('en-IN')}`;
 
         try {
             await fetch(`https://api.telegram.org/bot${config.tgToken}/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: config.tgChatId,
-                    text: message,
-                    parse_mode: 'Markdown'
-                })
+                body: JSON.stringify({ chat_id: config.tgChatId, text: message, parse_mode: 'Markdown' })
             });
-        } catch (e) { console.error("Telegram alert failed", e); }
+        } catch (e) { console.error("Telegram alert error", e); }
     }
 
-    // BACKTEST ENGINE WITH EQUITY CURVE
+    // BACKTEST ENGINE WITH CHART
     function runBacktest() {
         const symbol = document.getElementById('btSymbol').value;
         const basePrices = { NIFTY: 24500, BANKNIFTY: 52000, SENSEX: 80000 };
@@ -484,7 +496,7 @@
             let low = Math.min(open, close) - Math.random() * 8;
             currentPrice = close;
 
-            if (!inTrade && close > open + 6) {
+            if (!inTrade && close > open + 8) {
                 inTrade = true;
                 currentTrade = {
                     id: trades.length + 1,
@@ -541,7 +553,6 @@
         initChart(equityPoints);
     }
 
-    // CHART.JS INITIALIZER
     function initChart(dataPoints) {
         const ctx = document.getElementById('equityChart').getContext('2d');
         if (equityChartInstance) equityChartInstance.destroy();
@@ -572,12 +583,13 @@
         });
     }
 
-    setInterval(fetchData, 2000);
+    setInterval(fetchData, 3000); // Fetch data every 3 seconds
     if (config.jwtToken) fetchData();
 </script>
 
 </body>
 </html>
+
 
 
 
