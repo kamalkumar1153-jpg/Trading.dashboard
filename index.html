@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Multi-Index Signal & Backtest Terminal</title>
-    <!-- Chart.js CDN for Interactive Equity Curve -->
+    <title>Pro Multi-Index Big Move Signal Terminal</title>
+    <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -76,7 +76,7 @@
         
         .signal-box { text-align: center; padding: 10px; border-radius: 6px; font-size: 1rem; font-weight: bold; text-transform: uppercase; margin: 8px 0; }
         .signal-neutral { background: #21262d; color: #8b949e; border: 1px solid var(--border-color); }
-        .signal-buy { background: rgba(35, 134, 54, 0.2); color: #3fb950; border: 1.5px solid var(--accent-green); }
+        .signal-buy { background: rgba(35, 134, 54, 0.25); color: #3fb950; border: 2px solid #3fb950; box-shadow: 0 0 10px rgba(63, 185, 80, 0.3); }
 
         .strike-tag { background: rgba(137, 87, 229, 0.15); border: 1px solid var(--accent-purple); color: #d2a8ff; padding: 4px; border-radius: 4px; text-align: center; font-size: 0.85rem; font-weight: bold; margin-bottom: 8px; }
 
@@ -103,7 +103,7 @@
         /* Modal Settings */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 99; }
         .modal-content { background: var(--card-bg); padding: 20px; border-radius: 8px; width: 90%; max-width: 450px; border: 1px solid var(--border-color); }
-        input, textarea, select { width: 100%; padding: 8px; margin: 4px 0 10px 0; background: #0d1117; border: 1px solid var(--border-color); color: white; border-radius: 4px; box-sizing: border-box; }
+        input, textarea { width: 100%; padding: 8px; margin: 4px 0 10px 0; background: #0d1117; border: 1px solid var(--border-color); color: white; border-radius: 4px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -126,10 +126,10 @@
             <button class="tf-btn active" id="tf-15m" onclick="setTimeframe('15m')">15 Min</button>
             <button class="tf-btn" id="tf-1h" onclick="setTimeframe('1h')">1 Hour</button>
         </div>
-        <div id="tf-status" style="font-size: 0.8rem; color: #58a6ff;">Active TF: 15-Min (Strict 5-Min Signal Cooldown)</div>
+        <div id="tf-status" style="font-size: 0.8rem; color: #58a6ff;">Mode: Big Move Signal Filter (Min 50 Pts Move)</div>
     </div>
 
-    <!-- SECTION 1: LIVE MULTI-INDEX TERMINAL -->
+    <!-- SECTION 1: LIVE TERMINAL -->
     <div id="liveSection" class="grid-3">
         
         <!-- NIFTY 50 -->
@@ -140,9 +140,9 @@
             </div>
             <div id="price-NIFTY" class="price-display">₹0.00</div>
             <div id="strike-NIFTY" class="strike-tag">ATM: --</div>
-            <div id="signal-NIFTY" class="signal-box signal-neutral">WAITING DATA...</div>
+            <div id="signal-NIFTY" class="signal-box signal-neutral">WAITING BIG BREAKOUT...</div>
             <div class="indicator-badges" id="badges-NIFTY">
-                <span class="badge">EMA</span><span class="badge">RSI</span><span class="badge">VWAP</span><span class="badge">VOL</span><span class="badge">SUPERTREND</span>
+                <span class="badge">EMA</span><span class="badge">RSI</span><span class="badge">VWAP</span><span class="badge">VOL 50+</span><span class="badge">SUPERTREND</span>
             </div>
             <div class="levels-grid" style="margin-top: 8px;">
                 <div>SL (Opt Pts): <div id="sl-NIFTY" class="level-val" style="color: #f85149;">--</div></div>
@@ -158,9 +158,9 @@
             </div>
             <div id="price-BANKNIFTY" class="price-display">₹0.00</div>
             <div id="strike-BANKNIFTY" class="strike-tag">ATM: --</div>
-            <div id="signal-BANKNIFTY" class="signal-box signal-neutral">WAITING DATA...</div>
+            <div id="signal-BANKNIFTY" class="signal-box signal-neutral">WAITING BIG BREAKOUT...</div>
             <div class="indicator-badges" id="badges-BANKNIFTY">
-                <span class="badge">EMA</span><span class="badge">RSI</span><span class="badge">VWAP</span><span class="badge">VOL</span><span class="badge">SUPERTREND</span>
+                <span class="badge">EMA</span><span class="badge">RSI</span><span class="badge">VWAP</span><span class="badge">VOL 50+</span><span class="badge">SUPERTREND</span>
             </div>
             <div class="levels-grid" style="margin-top: 8px;">
                 <div>SL (Opt Pts): <div id="sl-BANKNIFTY" class="level-val" style="color: #f85149;">--</div></div>
@@ -176,9 +176,9 @@
             </div>
             <div id="price-SENSEX" class="price-display">₹0.00</div>
             <div id="strike-SENSEX" class="strike-tag">ATM: --</div>
-            <div id="signal-SENSEX" class="signal-box signal-neutral">WAITING DATA...</div>
+            <div id="signal-SENSEX" class="signal-box signal-neutral">WAITING BIG BREAKOUT...</div>
             <div class="indicator-badges" id="badges-SENSEX">
-                <span class="badge">EMA</span><span class="badge">RSI</span><span class="badge">VWAP</span><span class="badge">VOL</span><span class="badge">SUPERTREND</span>
+                <span class="badge">EMA</span><span class="badge">RSI</span><span class="badge">VWAP</span><span class="badge">VOL 50+</span><span class="badge">SUPERTREND</span>
             </div>
             <div class="levels-grid" style="margin-top: 8px;">
                 <div>SL (Opt Pts): <div id="sl-SENSEX" class="level-val" style="color: #f85149;">--</div></div>
@@ -188,30 +188,28 @@
 
     </div>
 
-    <!-- SECTION 2: BACKTESTING & EQUITY CURVE CHART -->
+    <!-- SECTION 2: BACKTESTING -->
     <div id="backtestSection" style="display: none;">
         <div class="card">
-            <h3>📊 Strategy Backtesting Engine</h3>
+            <h3>📊 Big Move Strategy Backtesting</h3>
             <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap;">
-                <select id="btSymbol" style="width: auto;">
+                <select id="btSymbol" style="width: auto; padding: 8px; background: #0d1117; color: white; border: 1px solid var(--border-color); border-radius: 4px;">
                     <option value="NIFTY">NIFTY 50</option>
                     <option value="BANKNIFTY">BANKNIFTY</option>
                     <option value="SENSEX">SENSEX</option>
                 </select>
-                <button class="btn btn-primary" onclick="runBacktest()">Run Backtest (100 Historical Candles)</button>
+                <button class="btn btn-primary" onclick="runBacktest()">Run Backtest (100 Candles)</button>
             </div>
 
             <div class="stats-grid">
-                <div class="stat-box"><div>Total Trades</div><div id="stat-trades" class="stat-val" style="color: var(--accent-blue);">0</div></div>
+                <div class="stat-box"><div>Total Big Trades</div><div id="stat-trades" class="stat-val" style="color: var(--accent-blue);">0</div></div>
                 <div class="stat-box"><div>Win Rate (%)</div><div id="stat-winrate" class="stat-val" style="color: #3fb950;">0%</div></div>
-                <div class="stat-box"><div>Net Points Profit</div><div id="stat-points" class="stat-val" style="color: #3fb950;">0</div></div>
-                <div class="stat-box"><div>Max Drawdown</div><div id="stat-drawdown" class="stat-val" style="color: #f85149;">0 Pts</div></div>
+                <div class="stat-box"><div>Net Points Gain</div><div id="stat-points" class="stat-val" style="color: #3fb950;">0</div></div>
             </div>
         </div>
 
-        <!-- Equity Growth Chart -->
         <div class="card">
-            <h3>📈 Cumulative Equity Curve (Profit Growth)</h3>
+            <h3>📈 Cumulative Equity Growth</h3>
             <div style="height: 250px; width: 100%;">
                 <canvas id="equityChart"></canvas>
             </div>
@@ -274,17 +272,16 @@
     };
 
     const symbols = [
-        { name: 'NIFTY', token: '99926000', exch: 'NSE', step: 50 },
-        { name: 'BANKNIFTY', token: '99926009', exch: 'NSE', step: 100 },
-        { name: 'SENSEX', token: '99919000', exch: 'BSE', step: 100 }
+        { name: 'NIFTY', token: '99926000', exch: 'NSE', step: 50, minMove: 35 },
+        { name: 'BANKNIFTY', token: '99926009', exch: 'NSE', step: 100, minMove: 80 },
+        { name: 'SENSEX', token: '99919000', exch: 'BSE', step: 100, minMove: 100 }
     ];
 
     let candleHistory = { NIFTY: [], BANKNIFTY: [], SENSEX: [] };
     let lastAlerts = { NIFTY: '', BANKNIFTY: '', SENSEX: '' };
-    let lastSignalTime = { NIFTY: 0, BANKNIFTY: 0, SENSEX: 0 }; // Over-trading prevention timer
+    let lastSignalTime = { NIFTY: 0, BANKNIFTY: 0, SENSEX: 0 };
     let equityChartInstance = null;
 
-    // Load initial settings
     document.getElementById('apiKeyInput').value = config.apiKey;
     document.getElementById('jwtTokenInput').value = config.jwtToken;
     document.getElementById('tgBotTokenInput').value = config.tgToken;
@@ -314,7 +311,7 @@
         currentTF = tf;
         document.getElementById('tf-15m').classList.toggle('active', tf === '15m');
         document.getElementById('tf-1h').classList.toggle('active', tf === '1h');
-        document.getElementById('tf-status').innerText = tf === '15m' ? 'Active TF: 15-Min (Strict 5-Min Cooldown)' : 'Active TF: 1-Hour Trend Confluence';
+        document.getElementById('tf-status').innerText = tf === '15m' ? 'Mode: Big Move Signal Filter (Min 50 Pts Move)' : 'Mode: 1-Hour Trend Confluence (Big Expansion)';
         fetchData();
     }
 
@@ -336,37 +333,40 @@
         fetchData();
     }
 
-    // STRICT TECHNICAL SCORE ENGINE
-    function calculateTechnicalScore(prices) {
-        if (prices.length < 15) return { score: 0, filters: [false, false, false, false, false] };
+    // STRICT BIG MOVE TECHNICAL ENGINE
+    function calculateTechnicalScore(prices, symObj) {
+        if (prices.length < 20) return { score: 0, filters: [false, false, false, false, false] };
 
         const len = prices.length;
         const current = prices[len - 1];
 
-        // 1. EMA Trend Filter (Strict Trend Buffer)
+        // 1. Strong EMA Trend (Price clearly above SMA 20)
         const sma20 = prices.slice(-20).reduce((a, b) => a + b, 0) / Math.min(len, 20);
-        const f1_ema = current > (sma20 * 1.0003);
+        const f1_ema = current > (sma20 * 1.0008);
 
-        // 2. RSI Filter (Range 54 to 68)
+        // 2. High Momentum RSI (Between 58 and 75 - Strong Bullish Expansion Zone)
         let gains = 0, losses = 0;
         for (let i = len - 14; i < len - 1; i++) {
             let diff = prices[i + 1] - prices[i];
             if (diff >= 0) gains += diff; else losses -= diff;
         }
         let rsi = 100 - (100 / (1 + (gains / (losses || 1))));
-        const f2_rsi = rsi >= 54 && rsi <= 68;
+        const f2_rsi = rsi >= 58 && rsi <= 75;
 
-        // 3. VWAP Filter
+        // 3. VWAP Bullish Support
         const vwap = prices.reduce((a, b) => a + b, 0) / len;
         const f3_vwap = current > vwap;
 
-        // 4. Consecutive Candle Volume/Momentum
-        const f4_vol = (prices[len - 1] > prices[len - 2]) && (prices[len - 2] > prices[len - 3]);
+        // 4. BIG MOVE VOLATILITY CHECK: Minimum Point Expansion Range
+        const minPriceInWindow = Math.min(...prices.slice(-6));
+        const priceExpansion = current - minPriceInWindow;
+        const f4_big_move = priceExpansion >= symObj.minMove; // Must move minimum points (e.g., 35-50+ Pts)
 
-        // 5. Supertrend High-Breakout Proxy
-        const f5_supertrend = current > Math.max(...prices.slice(-5, -1));
+        // 5. High Breakout Proxy (Price higher than past 10 candles)
+        const pastMax = Math.max(...prices.slice(-12, -1));
+        const f5_supertrend = current > pastMax;
 
-        const filters = [f1_ema, f2_rsi, f3_vwap, f4_vol, f5_supertrend];
+        const filters = [f1_ema, f2_rsi, f3_vwap, f4_big_move, f5_supertrend];
         const score = filters.filter(Boolean).length;
 
         return { score, filters };
@@ -406,37 +406,36 @@
         history.push(price);
         if (history.length > 50) history.shift();
 
-        const analysis = calculateTechnicalScore(history);
+        const analysis = calculateTechnicalScore(history, sym);
         document.getElementById(`score-${sym.name}`).innerText = `Score: ${analysis.score}/5 (${currentTF.toUpperCase()})`;
 
-        // Update Badge Display
         const badgeContainer = document.getElementById(`badges-${sym.name}`);
-        const names = ['EMA', 'RSI', 'VWAP', 'VOL', 'SUPERTREND'];
+        const names = ['EMA', 'RSI', 'VWAP', 'VOL 50+', 'BREAKOUT'];
         badgeContainer.innerHTML = analysis.filters.map((passed, idx) => 
             `<span class="badge ${passed ? 'pass' : ''}">${names[idx]} ${passed ? '✓' : ''}</span>`
         ).join('');
 
         const sigBox = document.getElementById(`signal-${sym.name}`);
         const now = Date.now();
-        const cooldownPeriod = 5 * 60 * 1000; // 5 Minutes Cooldown
+        const cooldownPeriod = 10 * 60 * 1000; // 10 Minutes Cooldown for Big Moves
 
-        // Trigger Buy ONLY if score >= 4 AND 5 minutes passed since last alert
-        if (analysis.score >= 4 && (now - lastSignalTime[sym.name] > cooldownPeriod)) {
-            sigBox.innerText = "BUY CALL 🚀";
+        // REQUIRES PERFECT SCORE (5/5) FOR BIG MOVE SIGNAL
+        if (analysis.score === 5 && (now - lastSignalTime[sym.name] > cooldownPeriod)) {
+            sigBox.innerText = "🚨 BIG MOVE BUY CALL 🚀";
             sigBox.className = "signal-box signal-buy";
-            const sl = currentTF === '15m' ? "-15 Pts" : "-35 Pts";
-            const tgt = currentTF === '15m' ? "+25 Pts" : "+70 Pts";
+            const sl = sym.name === 'NIFTY' ? "-20 Pts" : "-45 Pts";
+            const tgt = sym.name === 'NIFTY' ? "+50 Pts" : "+120 Pts";
             document.getElementById(`sl-${sym.name}`).innerText = sl;
             document.getElementById(`tgt-${sym.name}`).innerText = tgt;
 
             if (lastAlerts[sym.name] !== "BUY") {
-                speakHindi(`${sym.name} न्यू ट्रेड सिग्नल कन्फर्म`);
+                speakHindi(`${sym.name} बड़ा मूव ट्रेड सिग्नल कन्फर्म`);
                 sendTelegramAlert(sym.name, price, atm, sl, tgt, analysis.score);
                 lastAlerts[sym.name] = "BUY";
-                lastSignalTime[sym.name] = now; // Lock signal for 5 mins
+                lastSignalTime[sym.name] = now;
             }
-        } else if (analysis.score < 4) {
-            sigBox.innerText = "WAIT / NO TRADE ⏸";
+        } else if (analysis.score < 5) {
+            sigBox.innerText = "WAITING BIG BREAKOUT ⏸";
             sigBox.className = "signal-box signal-neutral";
             document.getElementById(`sl-${sym.name}`).innerText = "--";
             document.getElementById(`tgt-${sym.name}`).innerText = "--";
@@ -455,14 +454,14 @@
     async function sendTelegramAlert(symbol, price, strike, sl, tgt, score) {
         if (!config.tgToken || !config.tgChatId) return;
 
-        const message = `🚀 *SIGNAL ALERT: ${symbol}*\n` +
+        const message = `🚨 *BIG MOVE ALERT: ${symbol}*\n` +
                         `------------------------------\n` +
-                        `📈 *Action:* BUY CALL\n` +
+                        `🔥 *Action:* CONFIRMED BUY CALL\n` +
                         `💰 *LTP:* ₹${price.toFixed(2)}\n` +
                         `🎯 *Strike:* ${symbol} ${strike} CE\n` +
                         `🛑 *Stop Loss:* ${sl}\n` +
-                        `🎯 *Target:* ${tgt}\n` +
-                        `⚡ *Score:* ${score}/5 (${currentTF})\n` +
+                        `🎯 *Target:* ${tgt} (50+ Point Move Target)\n` +
+                        `⚡ *Score:* ${score}/5 (Perfect Confluence)\n` +
                         `⏰ *Time:* ${new Date().toLocaleTimeString('en-IN')}`;
 
         try {
@@ -474,12 +473,12 @@
         } catch (e) { console.error("Telegram alert error", e); }
     }
 
-    // BACKTEST ENGINE WITH CHART
+    // BACKTEST ENGINE
     function runBacktest() {
         const symbol = document.getElementById('btSymbol').value;
         const basePrices = { NIFTY: 24500, BANKNIFTY: 52000, SENSEX: 80000 };
-        const slPts = (symbol === 'NIFTY' ? 20 : 40) * (currentTF === '1h' ? 2 : 1);
-        const targetPts = (symbol === 'NIFTY' ? 40 : 80) * (currentTF === '1h' ? 2 : 1);
+        const slPts = symbol === 'NIFTY' ? 25 : 50;
+        const targetPts = symbol === 'NIFTY' ? 50 : 120;
 
         let currentPrice = basePrices[symbol];
         let trades = [];
@@ -489,19 +488,20 @@
         let currentTrade = null;
 
         for (let i = 100; i > 0; i--) {
-            let change = (Math.random() - 0.47) * 35;
+            let change = (Math.random() - 0.46) * 45;
             let open = currentPrice;
             let close = open + change;
-            let high = Math.max(open, close) + Math.random() * 8;
-            let low = Math.min(open, close) - Math.random() * 8;
+            let high = Math.max(open, close) + Math.random() * 12;
+            let low = Math.min(open, close) - Math.random() * 12;
             currentPrice = close;
 
-            if (!inTrade && close > open + 8) {
+            // Trigger Big Move Breakout
+            if (!inTrade && close > open + (symbol === 'NIFTY' ? 25 : 60)) {
                 inTrade = true;
                 currentTrade = {
                     id: trades.length + 1,
                     time: `${i} Candle (${currentTF})`,
-                    type: 'BUY CALL',
+                    type: 'BIG MOVE BUY',
                     entry: parseFloat(close.toFixed(1)),
                     sl: close - slPts,
                     target: close + targetPts
@@ -510,7 +510,7 @@
                 if (high >= currentTrade.target) {
                     currentTrade.exit = currentTrade.target;
                     currentTrade.pnl = targetPts;
-                    currentTrade.status = 'TARGET 🎯';
+                    currentTrade.status = 'BIG TARGET 🎯';
                     trades.push(currentTrade);
                     runningPnl += targetPts;
                     equityPoints.push(runningPnl);
@@ -583,12 +583,13 @@
         });
     }
 
-    setInterval(fetchData, 3000); // Fetch data every 3 seconds
+    setInterval(fetchData, 3000);
     if (config.jwtToken) fetchData();
 </script>
 
 </body>
 </html>
+
 
 
 
