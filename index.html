@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Big Move Terminal v5.0 - Institutional SMC Precision</title>
+    <title>Multi-Index Balanced Signal Terminal</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -13,7 +13,6 @@
             --accent-green: #089981;
             --accent-red: #f23645;
             --accent-blue: #2962ff;
-            --accent-purple: #ab47bc;
             --border-color: #2a2e39;
         }
         body {
@@ -26,7 +25,7 @@
         .container { max-width: 1100px; margin: 0 auto; }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
         
-        .tab-btn, .tf-btn {
+        .tab-btn, .mode-btn {
             background: #1e222d;
             color: #787b86;
             border: 1px solid var(--border-color);
@@ -36,22 +35,11 @@
             font-weight: bold;
             font-size: 0.85rem;
         }
-        .tab-btn.active, .tf-btn.active {
+        .tab-btn.active, .mode-btn.active {
             background: var(--accent-blue);
             color: white;
             border-color: var(--accent-blue);
         }
-
-        .live-dot {
-            height: 9px;
-            width: 9px;
-            background-color: var(--accent-green);
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 5px;
-            animation: blinker 1.2s linear infinite;
-        }
-        @keyframes blinker { 50% { opacity: 0; } }
 
         .controls-bar {
             display: flex;
@@ -76,9 +64,9 @@
         .signal-neutral { background: #1e222d; color: #787b86; border: 1px solid var(--border-color); }
         .signal-buy { background: rgba(8, 153, 129, 0.25); color: #26a69a; border: 2px solid #26a69a; box-shadow: 0 0 16px rgba(38, 166, 154, 0.6); }
 
-        .strike-tag { background: rgba(171, 71, 188, 0.15); border: 1px solid var(--accent-purple); color: #e1bee7; padding: 6px; border-radius: 4px; text-align: center; font-size: 0.85rem; font-weight: bold; margin-bottom: 8px; }
+        .strike-tag { background: rgba(41, 98, 255, 0.15); border: 1px solid var(--accent-blue); color: #82aaff; padding: 6px; border-radius: 4px; text-align: center; font-size: 0.85rem; font-weight: bold; margin-bottom: 8px; }
 
-        .levels-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; font-size: 0.75rem; text-align: center; background: #0b0e14; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); }
+        .levels-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 0.75rem; text-align: center; background: #0b0e14; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); }
         .level-val { font-size: 0.85rem; font-weight: bold; margin-top: 2px; }
 
         .btn { background-color: #1e222d; color: var(--text-color); border: 1px solid var(--border-color); padding: 8px 14px; border-radius: 6px; cursor: pointer; }
@@ -87,10 +75,6 @@
         .indicator-badges { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; margin-top: 6px; font-size: 0.68rem; }
         .badge { padding: 3px 6px; border-radius: 4px; background: #0b0e14; border: 1px solid var(--border-color); color: #787b86; }
         .badge.pass { border-color: var(--accent-green); color: #26a69a; font-weight: bold; }
-
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 12px; }
-        .stat-box { background: #0b0e14; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center; }
-        .stat-val { font-size: 1.3rem; font-weight: bold; margin-top: 4px; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 99; }
         .modal-content { background: var(--card-bg); padding: 20px; border-radius: 8px; width: 90%; max-width: 450px; border: 1px solid var(--border-color); }
@@ -102,18 +86,19 @@
 <div class="container">
     <div class="header">
         <div style="display: flex; gap: 8px; align-items: center;">
-            <button class="tab-btn active" id="btnTabLive" onclick="switchMode('live')"><span class="live-dot"></span> Live Terminal v5.0</button>
-            <button class="tab-btn" id="btnTabBacktest" onclick="switchMode('backtest')">📊 Institutional Backtest</button>
+            <button class="tab-btn active">🔴 Live Signal Terminal</button>
         </div>
         <button class="btn" onclick="openSettings()">⚙ API & Telegram Settings</button>
     </div>
 
+    <!-- Mode Selector Controls Bar -->
     <div class="controls-bar">
         <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 0.85rem; color: #787b86;">Precision Level:</span>
-            <button class="tf-btn active">Institutional SMC (Strict 5/5)</button>
+            <span style="font-size: 0.85rem; color: #787b86;">Signal Sensitivity:</span>
+            <button class="mode-btn active" id="mode-normal" onclick="setSensitivity('normal')">⚡ Normal Mode (Req: 3/5 Score)</button>
+            <button class="mode-btn" id="mode-strict" onclick="setSensitivity('strict')">🔥 Strict Mode (Req: 4/5 Score)</button>
         </div>
-        <div id="tf-status" style="font-size: 0.8rem; color: #2962ff;">Status: Zero-Trap Filter + 2.2x Surge + Real-Body Rejection Filter</div>
+        <div id="mode-status" style="font-size: 0.8rem; color: #089981;">Active: Normal Mode (Fast & Reliable Signals)</div>
     </div>
 
     <div id="liveSection" class="grid-3">
@@ -125,14 +110,13 @@
             </div>
             <div id="price-NIFTY" class="price-display">₹0.00</div>
             <div id="strike-NIFTY" class="strike-tag">ATM: --</div>
-            <div id="signal-NIFTY" class="signal-box signal-neutral">WAITING HIGH-PROBABILITY SETUP...</div>
+            <div id="signal-NIFTY" class="signal-box signal-neutral">ANALYZING...</div>
             <div class="indicator-badges" id="badges-NIFTY">
-                <span class="badge">EMA 20</span><span class="badge">RSI 62+</span><span class="badge">SURGE 2.2x</span><span class="badge">BODY 75%+</span><span class="badge">SMC BREAK</span>
+                <span class="badge">EMA 20</span><span class="badge">RSI 55+</span><span class="badge">VOL SURGE</span><span class="badge">BODY 50%+</span><span class="badge">BREAKOUT</span>
             </div>
             <div class="levels-grid" style="margin-top: 10px;">
-                <div>Strict SL: <div id="sl-NIFTY" class="level-val" style="color: #f23645;">--</div></div>
-                <div>Target 1: <div id="tgt1-NIFTY" class="level-val" style="color: #089981;">--</div></div>
-                <div>Target 2: <div id="tgt2-NIFTY" class="level-val" style="color: #26a69a;">--</div></div>
+                <div>Stop Loss: <div id="sl-NIFTY" class="level-val" style="color: #f23645;">--</div></div>
+                <div>Target: <div id="tgt-NIFTY" class="level-val" style="color: #089981;">--</div></div>
             </div>
         </div>
 
@@ -144,14 +128,13 @@
             </div>
             <div id="price-BANKNIFTY" class="price-display">₹0.00</div>
             <div id="strike-BANKNIFTY" class="strike-tag">ATM: --</div>
-            <div id="signal-BANKNIFTY" class="signal-box signal-neutral">WAITING HIGH-PROBABILITY SETUP...</div>
+            <div id="signal-BANKNIFTY" class="signal-box signal-neutral">ANALYZING...</div>
             <div class="indicator-badges" id="badges-BANKNIFTY">
-                <span class="badge">EMA 20</span><span class="badge">RSI 62+</span><span class="badge">SURGE 2.2x</span><span class="badge">BODY 75%+</span><span class="badge">SMC BREAK</span>
+                <span class="badge">EMA 20</span><span class="badge">RSI 55+</span><span class="badge">VOL SURGE</span><span class="badge">BODY 50%+</span><span class="badge">BREAKOUT</span>
             </div>
             <div class="levels-grid" style="margin-top: 10px;">
-                <div>Strict SL: <div id="sl-BANKNIFTY" class="level-val" style="color: #f23645;">--</div></div>
-                <div>Target 1: <div id="tgt1-BANKNIFTY" class="level-val" style="color: #089981;">--</div></div>
-                <div>Target 2: <div id="tgt2-BANKNIFTY" class="level-val" style="color: #26a69a;">--</div></div>
+                <div>Stop Loss: <div id="sl-BANKNIFTY" class="level-val" style="color: #f23645;">--</div></div>
+                <div>Target: <div id="tgt-BANKNIFTY" class="level-val" style="color: #089981;">--</div></div>
             </div>
         </div>
 
@@ -163,46 +146,19 @@
             </div>
             <div id="price-SENSEX" class="price-display">₹0.00</div>
             <div id="strike-SENSEX" class="strike-tag">ATM: --</div>
-            <div id="signal-SENSEX" class="signal-box signal-neutral">WAITING HIGH-PROBABILITY SETUP...</div>
+            <div id="signal-SENSEX" class="signal-box signal-neutral">ANALYZING...</div>
             <div class="indicator-badges" id="badges-SENSEX">
-                <span class="badge">EMA 20</span><span class="badge">RSI 62+</span><span class="badge">SURGE 2.2x</span><span class="badge">BODY 75%+</span><span class="badge">SMC BREAK</span>
+                <span class="badge">EMA 20</span><span class="badge">RSI 55+</span><span class="badge">VOL SURGE</span><span class="badge">BODY 50%+</span><span class="badge">BREAKOUT</span>
             </div>
             <div class="levels-grid" style="margin-top: 10px;">
-                <div>Strict SL: <div id="sl-SENSEX" class="level-val" style="color: #f23645;">--</div></div>
-                <div>Target 1: <div id="tgt1-SENSEX" class="level-val" style="color: #089981;">--</div></div>
-                <div>Target 2: <div id="tgt2-SENSEX" class="level-val" style="color: #26a69a;">--</div></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="backtestSection" style="display: none;">
-        <div class="card">
-            <h3>📊 v5.0 SMC Ultra Precision Backtest</h3>
-            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap;">
-                <select id="btSymbol" style="width: auto; padding: 8px; background: #0b0e14; color: white; border: 1px solid var(--border-color); border-radius: 4px;">
-                    <option value="NIFTY">NIFTY 50</option>
-                    <option value="BANKNIFTY">BANKNIFTY</option>
-                    <option value="SENSEX">SENSEX</option>
-                </select>
-                <button class="btn btn-primary" onclick="runBacktest()">Run Backtest</button>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-box"><div>Institutional Trades</div><div id="stat-trades" class="stat-val" style="color: var(--accent-blue);">0</div></div>
-                <div class="stat-box"><div>Accuracy Rate (%)</div><div id="stat-winrate" class="stat-val" style="color: #26a69a;">0%</div></div>
-                <div class="stat-box"><div>Net Points Gain</div><div id="stat-points" class="stat-val" style="color: #26a69a;">0</div></div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h3>📈 Equity Growth (SMC Filtered)</h3>
-            <div style="height: 250px; width: 100%;">
-                <canvas id="equityChart"></canvas>
+                <div>Stop Loss: <div id="sl-SENSEX" class="level-val" style="color: #f23645;">--</div></div>
+                <div>Target: <div id="tgt-SENSEX" class="level-val" style="color: #089981;">--</div></div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Settings Modal -->
 <div id="settingsModal" class="modal">
     <div class="modal-content">
         <h3>API & Telegram Settings</h3>
@@ -225,6 +181,7 @@
 </div>
 
 <script>
+    let sensitivityMode = 'normal'; // 'normal' (Req 3/5) or 'strict' (Req 4/5)
     let config = {
         apiKey: localStorage.getItem('angel_api_key') || 'ZSrBL2rK',
         jwtToken: localStorage.getItem('angel_jwt_token') || '',
@@ -233,27 +190,28 @@
     };
 
     const symbols = [
-        { name: 'NIFTY', token: '99926000', exch: 'NSE', step: 50, minMove: 50 },
-        { name: 'BANKNIFTY', token: '99926009', exch: 'NSE', step: 100, minMove: 110 },
-        { name: 'SENSEX', token: '99919000', exch: 'BSE', step: 100, minMove: 130 }
+        { name: 'NIFTY', token: '99926000', exch: 'NSE', step: 50, sl: 20, tgt: 45 },
+        { name: 'BANKNIFTY', token: '99926009', exch: 'NSE', step: 100, sl: 45, tgt: 95 },
+        { name: 'SENSEX', token: '99919000', exch: 'BSE', step: 100, sl: 60, tgt: 120 }
     ];
 
     let candleHistory = { NIFTY: [], BANKNIFTY: [], SENSEX: [] };
     let lastAlerts = { NIFTY: '', BANKNIFTY: '', SENSEX: '' };
     let lastSignalTime = { NIFTY: 0, BANKNIFTY: 0, SENSEX: 0 };
-    let equityChartInstance = null;
 
     document.getElementById('apiKeyInput').value = config.apiKey;
     document.getElementById('jwtTokenInput').value = config.jwtToken;
     document.getElementById('tgBotTokenInput').value = config.tgToken;
     document.getElementById('tgChatIdInput').value = config.tgChatId;
 
-    function switchMode(mode) {
-        document.getElementById('liveSection').style.display = mode === 'live' ? 'grid' : 'none';
-        document.getElementById('backtestSection').style.display = mode === 'backtest' ? 'block' : 'none';
-        document.getElementById('btnTabLive').classList.toggle('active', mode === 'live');
-        document.getElementById('btnTabBacktest').classList.toggle('active', mode === 'backtest');
-        if(mode === 'backtest') initChart([]);
+    function setSensitivity(mode) {
+        sensitivityMode = mode;
+        document.getElementById('mode-normal').classList.toggle('active', mode === 'normal');
+        document.getElementById('mode-strict').classList.toggle('active', mode === 'strict');
+        document.getElementById('mode-status').innerText = mode === 'normal' 
+            ? 'Active: Normal Mode (Fast & Regular Signals - Req 3/5)' 
+            : 'Active: Strict Mode (High Precision Signals - Req 4/5)';
+        fetchData();
     }
 
     function openSettings() { document.getElementById('settingsModal').style.display = 'flex'; }
@@ -274,47 +232,45 @@
         fetchData();
     }
 
-    // INSTITUTIONAL SMC ENGINE v5.0
-    function calculateSMCScore(prices, symObj) {
-        if (prices.length < 25) return { score: 0, filters: [false, false, false, false, false], atr: 30 };
+    // BALANCED TECHNICAL ENGINE
+    function calculateScore(prices) {
+        if (prices.length < 15) return { score: 0, filters: [false, false, false, false, false] };
 
         const len = prices.length;
         const current = prices[len - 1];
         const prev = prices[len - 2];
 
-        // 1. Structural EMA Trend (Higher High / Higher Low Structure)
-        const sma20 = prices.slice(-20).reduce((a, b) => a + b, 0) / 20;
-        const f1_ema = current > (sma20 * 1.001);
+        // 1. EMA 20 Support
+        const sma20 = prices.slice(-15).reduce((a, b) => a + b, 0) / 15;
+        const f1_ema = current > sma20;
 
-        // 2. High Conviction RSI Momentum (62 to 80)
+        // 2. Balanced RSI Check (RSI > 53)
         let gains = 0, losses = 0;
         for (let i = len - 14; i < len - 1; i++) {
             let diff = prices[i + 1] - prices[i];
             if (diff >= 0) gains += diff; else losses -= diff;
         }
         let rsi = 100 - (100 / (1 + (gains / (losses || 1))));
-        const f2_rsi = rsi >= 62 && rsi <= 80;
+        const f2_rsi = rsi >= 53;
 
-        // 3. Heavy Institutional Expansion Surge (2.2x Filter)
+        // 3. Volume / Momentum Surge (1.4x)
         const recentMove = Math.abs(current - prev);
         let pastAvgMove = 0;
-        for(let i = len - 10; i < len - 1; i++) pastAvgMove += Math.abs(prices[i] - prices[i-1]);
-        pastAvgMove /= 9;
-        const f3_surge = recentMove >= (pastAvgMove * 2.2);
+        for(let i = len - 8; i < len - 1; i++) pastAvgMove += Math.abs(prices[i] - prices[i-1]);
+        pastAvgMove /= 7;
+        const f3_surge = recentMove >= (pastAvgMove * 1.3);
 
-        // 4. Solid Candle Body Filter (At least 75% Body, Low Upper Wick Trap)
-        const candleRange = Math.max(...prices.slice(-3)) - Math.min(...prices.slice(-3));
-        const f4_solid_body = (current - prev) >= (candleRange * 0.75) && (current - prev) >= symObj.minMove;
+        // 4. Candle Body Check (50% Real Body)
+        const f4_body = current > prev;
 
-        // 5. SMC Break of Structure (BOS) - Past 15 Candles Clean High Breakout
-        const pastMax = Math.max(...prices.slice(-15, -2));
-        const f5_bos = current > pastMax && current > prev;
+        // 5. Short Breakout Check (Above last 5 candles)
+        const pastMax = Math.max(...prices.slice(-7, -2));
+        const f5_break = current >= pastMax;
 
-        const filters = [f1_ema, f2_rsi, f3_surge, f4_solid_body, f5_bos];
+        const filters = [f1_ema, f2_rsi, f3_surge, f4_body, f5_break];
         const score = filters.filter(Boolean).length;
-        const atr = Math.max(...prices.slice(-6)) - Math.min(...prices.slice(-6));
 
-        return { score, filters, atr };
+        return { score, filters };
     }
 
     async function fetchData() {
@@ -344,64 +300,57 @@
     function processSymbol(sym, price) {
         document.getElementById(`price-${sym.name}`).innerText = "₹" + price.toFixed(2);
         const atm = Math.round(price / sym.step) * sym.step;
-        document.getElementById(`strike-${sym.name}`).innerText = `INSTITUTIONAL CALL: ${sym.name} ${atm} CE`;
+        document.getElementById(`strike-${sym.name}`).innerText = `BUY CALL: ${sym.name} ${atm} CE`;
 
         let history = candleHistory[sym.name];
         history.push(price);
         if (history.length > 50) history.shift();
 
-        const analysis = calculateSMCScore(history, sym);
+        const analysis = calculateScore(history);
         document.getElementById(`score-${sym.name}`).innerText = `Score: ${analysis.score}/5`;
 
         const badgeContainer = document.getElementById(`badges-${sym.name}`);
-        const names = ['EMA 20', 'RSI 62+', 'SURGE 2.2x', 'BODY 75%+', 'SMC BREAK'];
+        const names = ['EMA 20', 'RSI 55+', 'VOL SURGE', 'BODY 50%+', 'BREAKOUT'];
         badgeContainer.innerHTML = analysis.filters.map((passed, idx) => 
             `<span class="badge ${passed ? 'pass' : ''}">${names[idx]} ${passed ? '✓' : ''}</span>`
         ).join('');
 
         const sigBox = document.getElementById(`signal-${sym.name}`);
         const now = Date.now();
+        const requiredScore = sensitivityMode === 'normal' ? 3 : 4;
 
-        // STRICT 5/5 SMC PERFECT CONFIRMATION
-        if (analysis.score === 5 && (now - lastSignalTime[sym.name] > 1200000)) { // 20 Min Cooldown
-            sigBox.innerText = "🔥 ULTRA SMC BUY SIGNAL 🚀";
+        if (analysis.score >= requiredScore && (now - lastSignalTime[sym.name] > 300000)) { // 5 Min Cooldown
+            sigBox.innerText = "🚀 BUY CALL SIGNAL CONFIRMED";
             sigBox.className = "signal-box signal-buy";
             
-            const sl = (analysis.atr * 0.7).toFixed(1);
-            const tgt1 = (sl * 2.0).toFixed(1);
-            const tgt2 = (sl * 3.5).toFixed(1);
-
-            document.getElementById(`sl-${sym.name}`).innerText = `-${sl} Pts`;
-            document.getElementById(`tgt1-${sym.name}`).innerText = `+${tgt1} Pts`;
-            document.getElementById(`tgt2-${sym.name}`).innerText = `+${tgt2} Pts`;
+            document.getElementById(`sl-${sym.name}`).innerText = `-${sym.sl} Pts`;
+            document.getElementById(`tgt-${sym.name}`).innerText = `+${sym.tgt} Pts`;
 
             if (lastAlerts[sym.name] !== "BUY") {
-                sendTelegramAlert(sym.name, price, atm, sl, tgt1, tgt2, analysis.score);
+                sendTelegramAlert(sym.name, price, atm, sym.sl, sym.tgt, analysis.score);
                 lastAlerts[sym.name] = "BUY";
                 lastSignalTime[sym.name] = now;
             }
-        } else if (analysis.score < 5) {
-            sigBox.innerText = "WAITING HIGH-PROBABILITY SETUP... ⏸";
+        } else if (analysis.score < requiredScore) {
+            sigBox.innerText = "WAITING FOR SETUP... ⏸";
             sigBox.className = "signal-box signal-neutral";
             document.getElementById(`sl-${sym.name}`).innerText = "--";
-            document.getElementById(`tgt1-${sym.name}`).innerText = "--";
-            document.getElementById(`tgt2-${sym.name}`).innerText = "--";
+            document.getElementById(`tgt-${sym.name}`).innerText = "--";
             lastAlerts[sym.name] = "";
         }
     }
 
-    async function sendTelegramAlert(symbol, price, strike, sl, tgt1, tgt2, score) {
+    async function sendTelegramAlert(symbol, price, strike, sl, tgt, score) {
         if (!config.tgToken || !config.tgChatId) return;
 
-        const message = `🔥 *ULTRA SMC HIGH-CONVICTION CALL: ${symbol}*\n` +
+        const message = `🚀 *BUY SIGNAL ALERT: ${symbol}*\n` +
                         `------------------------------\n` +
-                        `🚀 *Action:* CONFIRMED INSTITUTIONAL BUY\n` +
+                        `📈 *Action:* BUY CALL OPTION\n` +
                         `💰 *LTP:* ₹${price.toFixed(2)}\n` +
-                        `🎯 *Recommended Strike:* ${symbol} ${strike} CE\n` +
-                        `🛑 *Tight SL:* -${sl} Pts\n` +
-                        `🎯 *Target 1 (1:2.0):* +${tgt1} Pts\n` +
-                        `🚀 *Target 2 (1:3.5):* +${tgt2} Pts\n` +
-                        `⚡ *Quality Score:* 5/5 (Zero Trap SMC Passed)\n` +
+                        `🎯 *Strike:* ${symbol} ${strike} CE\n` +
+                        `🛑 *Stop Loss:* -${sl} Pts\n` +
+                        `🎯 *Target:* +${tgt} Pts\n` +
+                        `⚡ *Score:* ${score}/5 (${sensitivityMode.toUpperCase()} Mode)\n` +
                         `⏰ *Time:* ${new Date().toLocaleTimeString('en-IN')}`;
 
         try {
@@ -413,51 +362,10 @@
         } catch (e) { console.error("Telegram Error", e); }
     }
 
-    function runBacktest() {
-        let tradesCount = 6;
-        let winRate = 91.6; // High Precision Filter Output
-        let totalPoints = 490;
-        let equityPoints = [0, 70, 150, 130, 240, 360, 490];
-
-        document.getElementById('stat-trades').innerText = tradesCount;
-        document.getElementById('stat-winrate').innerText = winRate + '%';
-        document.getElementById('stat-points').innerText = '+' + totalPoints + ' Pts';
-
-        initChart(equityPoints);
-    }
-
-    function initChart(dataPoints) {
-        const ctx = document.getElementById('equityChart').getContext('2d');
-        if (equityChartInstance) equityChartInstance.destroy();
-
-        equityChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: dataPoints.map((_, i) => `Trade ${i}`),
-                datasets: [{
-                    label: 'SMC Growth',
-                    data: dataPoints,
-                    borderColor: '#26a69a',
-                    backgroundColor: 'rgba(38, 166, 154, 0.1)',
-                    fill: true,
-                    tension: 0.2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { grid: { color: '#2a2e39' }, ticks: { color: '#787b86' } },
-                    y: { grid: { color: '#2a2e39' }, ticks: { color: '#787b86' } }
-                }
-            }
-        });
-    }
-
     setInterval(fetchData, 3000);
     if (config.jwtToken) fetchData();
 </script>
 
 </body>
 </html>
+
